@@ -6,8 +6,8 @@
 
 | 구분 | 내용 |
 | --- | --- |
-| 언어 | Java (버전 미정) |
-| 프레임워크 | Spring |
+| 언어 | Java 21 |
+| 프레임워크 | Spring Boot 4.1.1 |
 | 빌드 도구 | Gradle |
 | DB 마이그레이션 | Flyway |
 | 외부 API 호출 | RestClient |
