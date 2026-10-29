@@ -1,7 +1,6 @@
 # ===== Gradle =====
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -14,6 +13,9 @@ build/
 hs_err_pid*
 out/
 bin/
+
+# Gradle Wrapper는 저장소에 올린다 (*.jar 규칙보다 뒤에 있어야 적용됨)
+!gradle/wrapper/gradle-wrapper.jar
 
 # ===== IntelliJ IDEA =====
 .idea/
