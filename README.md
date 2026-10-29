@@ -12,7 +12,7 @@
 | DB 마이그레이션 | Flyway |
 | 외부 API 호출 | RestClient |
 | 테스트 | JUnit 5 |
-| DB | 미정 |
+| DB | PostgreSQL 18 |
 | 배포 | 미정 (FE·BE 각각 배포) |
 
 API는 `openapi.yaml`을 먼저 작성하고 그에 맞춰 구현합니다.
