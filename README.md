@@ -7,12 +7,13 @@
 | 구분 | 내용 |
 | --- | --- |
 | 언어 | Java 21 |
-| 프레임워크 | Spring Boot 4.1.1 |
-| 빌드 도구 | Gradle |
+| 프레임워크 | Spring Boot 4.1.2 |
+| 빌드 도구 | Gradle (Groovy) |
+| 설정 파일 | YAML (`application.yaml`) |
+| DB | PostgreSQL 18 |
 | DB 마이그레이션 | Flyway |
 | 외부 API 호출 | RestClient |
 | 테스트 | JUnit 5 |
-| DB | PostgreSQL 18 |
 | 배포 | 미정 (FE·BE 각각 배포) |
 
 API는 `openapi.yaml`을 먼저 작성하고 그에 맞춰 구현합니다.
@@ -29,7 +30,24 @@ API는 `openapi.yaml`을 먼저 작성하고 그에 맞춰 구현합니다.
 
 ## 폴더 구조
 
-기능별 패키지 구조를 사용합니다. 패키지 이름과 구조는 팀 합의 후 이 문서에 적습니다.
+## 폴더 구조
+
+기능별 패키지 구조를 사용합니다. 루트 패키지는 `com.fivegrade.backend`입니다.
+
+| 패키지 | 내용 |
+| --- | --- |
+| `common` | 공통 오류 응답, 공통 설정 |
+| `simulation` | 환산 요청 DTO·입력 검증, Controller, 최종 응답 조립 |
+| `conversion` | 5등급 환산 엔진 |
+| `recommendation` | 추천 원서 조합 |
+| `report/generation` | AI 리포트 생성 |
+| `report/storage` | 리포트 저장·조회·삭제 |
+| `auth` | 회원가입, 로그인·로그아웃, 토큰 관리 |
+| `user` | 사용자, 회원 탈퇴 |
+| `admission` | 전형 DB, 대학·학과 사전, 태그맵 |
+
+비어 있는 패키지는 `.gitkeep`으로 유지하며, 코드가 들어가면 지웁니다.
+DB 의존성과 Flyway 마이그레이션(`src/main/resources/db/migration`)은 다음 PR에서 추가합니다.
 
 ## 실행 방법
 
