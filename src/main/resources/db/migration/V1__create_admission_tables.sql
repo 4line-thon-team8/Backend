@@ -49,7 +49,7 @@ CREATE TABLE admission_units (
 CREATE TABLE admission_unit_years (
     id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     unit_id          BIGINT        NOT NULL REFERENCES admission_units (id),
-    year             SMALLINT      NOT NULL,
+    year             INTEGER       NOT NULL,
     quota            INTEGER,
     applicants       INTEGER,
     competition_rate NUMERIC(8, 2),
@@ -68,6 +68,9 @@ CREATE TABLE admission_unit_years (
     CONSTRAINT ck_aug_year CHECK (year BETWEEN 2000 AND 2100),
     CONSTRAINT ck_aug_quota CHECK (quota IS NULL OR quota >= 0),
     CONSTRAINT ck_aug_applicants CHECK (applicants IS NULL OR applicants >= 0),
+    CONSTRAINT ck_aug_competition_rate CHECK (competition_rate IS NULL OR competition_rate >= 0),
+    CONSTRAINT ck_aug_fill_rate CHECK (fill_rate IS NULL OR fill_rate >= 0),
+    CONSTRAINT ck_aug_fill_rank CHECK (fill_rank IS NULL OR fill_rank >= 0),
     CONSTRAINT ck_aug_grade_avg CHECK (grade_avg IS NULL OR grade_avg BETWEEN 1 AND 9),
     CONSTRAINT ck_aug_grade_min CHECK (grade_min IS NULL OR grade_min BETWEEN 1 AND 9),
     CONSTRAINT ck_aug_cut_50 CHECK (cut_grade_50 IS NULL OR cut_grade_50 BETWEEN 1 AND 9),
