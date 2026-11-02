@@ -297,6 +297,8 @@ class AuthPersistenceTests {
                 .schemas(schema)
                 .defaultSchema(schema)
                 .validateMigrationNaming(true)
+                // 이 테스트는 V2 업그레이드를 검증하므로, 이후 마이그레이션이 추가되어도 V2까지만 적용한다.
+                .target("2")
                 .load();
 
         latest.migrate();
