@@ -8,10 +8,10 @@
 CREATE TABLE reports (
     id               UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id          BIGINT       NOT NULL REFERENCES users (id),
-    idempotency_key  VARCHAR(100),
+    idempotency_key  VARCHAR(100) NOT NULL,
     greeting_summary TEXT,
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    -- 같은 사용자가 같은 키로 다시 저장하면 중복으로 막는다. 키가 NULL이면 제약을 적용하지 않는다.
+    -- 같은 사용자가 같은 키로 다시 저장하면 중복으로 막는다. 키는 필수이며, 모든 저장 요청에 적용된다.
     CONSTRAINT uk_reports_user_idempotency UNIQUE (user_id, idempotency_key)
 );
 
