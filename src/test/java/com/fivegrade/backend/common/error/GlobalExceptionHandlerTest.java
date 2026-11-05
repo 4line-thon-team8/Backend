@@ -5,14 +5,20 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -36,11 +42,35 @@ class GlobalExceptionHandlerTest {
 
 	private MockMvc mockMvc;
 
+	/** 핸들러가 남기는 로그를 가로채서 입력값이 섞이는지 본다. */
+	private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
+	private final Logger handlerLogger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
 	@BeforeEach
 	void setUp() {
 		mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
 				.setControllerAdvice(new GlobalExceptionHandler())
 				.build();
+		logs.start();
+		handlerLogger.addAppender(logs);
+	}
+
+	@AfterEach
+	void tearDown() {
+		handlerLogger.detachAppender(logs);
+		logs.stop();
+	}
+
+	/** 로그 메시지와 예외 정보를 한 문자열로 합친다. 어디에도 입력값이 없어야 한다. */
+	private String allLogText() {
+		StringBuilder sb = new StringBuilder();
+		for (ILoggingEvent event : logs.list) {
+			sb.append(event.getFormattedMessage());
+			if (event.getThrowableProxy() != null) {
+				sb.append(event.getThrowableProxy().getMessage());
+			}
+		}
+		return sb.toString();
 	}
 
 	@Test
@@ -132,6 +162,42 @@ class GlobalExceptionHandlerTest {
 				.andExpect(jsonPath("$.*", hasSize(2)));
 	}
 
+	@Test
+	void 허용되지_않는_메서드_응답은_Allow_헤더를_보존한다() throws Exception {
+		mockMvc.perform(post("/test/business"))
+				.andExpect(status().isMethodNotAllowed())
+				.andExpect(header().string("Allow", containsString("GET")));
+	}
+
+	@Test
+	void 서버_오류_코드는_던진_메시지와_상관없이_고정_문구로_응답한다() throws Exception {
+		mockMvc.perform(get("/test/business-5xx"))
+				.andExpect(status().isInternalServerError())
+				.andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+				.andExpect(jsonPath("$.message").value(ErrorCode.INTERNAL_ERROR.getMessage()))
+				.andExpect(jsonPath("$.message").value(not(containsString("db-password"))));
+	}
+
+	@Test
+	void 예상하지_못한_예외의_로그에는_예외_메시지가_남지_않는다() throws Exception {
+		mockMvc.perform(get("/test/unexpected")).andExpect(status().isInternalServerError());
+
+		org.assertj.core.api.Assertions.assertThat(logs.list).isNotEmpty();
+		org.assertj.core.api.Assertions.assertThat(allLogText())
+				.contains("IllegalStateException")
+				.doesNotContain("db-password");
+	}
+
+	@Test
+	void 깨진_JSON을_받아도_로그에_입력값이_남지_않는다() throws Exception {
+		mockMvc.perform(post("/test/body")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"name\":\"" + SECRET + "\", "))
+				.andExpect(status().isBadRequest());
+
+		org.assertj.core.api.Assertions.assertThat(allLogText()).doesNotContain(SECRET);
+	}
+
 	/**
 	 * 테스트 전용 컨트롤러. standaloneSetup 으로만 사용한다.
 	 * 테스트 클래스의 중첩 클래스라서 Spring Boot 의 TestTypeExcludeFilter 가
@@ -144,6 +210,11 @@ class GlobalExceptionHandlerTest {
 		@GetMapping("/business")
 		void business() {
 			throw new BusinessException(ErrorCode.REPORT_NOT_FOUND);
+		}
+
+		@GetMapping("/business-5xx")
+		void business5xx() {
+			throw new BusinessException(ErrorCode.INTERNAL_ERROR, "db-password=secret");
 		}
 
 		@GetMapping("/unexpected")
