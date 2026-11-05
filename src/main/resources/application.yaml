@@ -17,3 +17,11 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+
+# OpenAPI 문서(/v3/api-docs)와 Swagger UI(/swagger-ui.html).
+# 운영 서버에서 문서가 실수로 열리지 않도록 기본값은 꺼짐이다. 로컬 개발에서만 .env 로 켠다.
+springdoc:
+  api-docs:
+    enabled: ${OPENAPI_ENABLED:false}
+  swagger-ui:
+    enabled: ${OPENAPI_ENABLED:false}

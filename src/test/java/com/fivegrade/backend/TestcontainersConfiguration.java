@@ -11,7 +11,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  * 접속 정보는 @ServiceConnection 이 자동으로 연결해 준다.
  */
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
 	@Bean
 	@ServiceConnection
