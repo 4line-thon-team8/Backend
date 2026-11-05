@@ -142,6 +142,9 @@ dept_name,track_name,major_code
 의생명화학과,학생부종합(융합인재 Ⅱ 면접),BIOMEDICAL_ENG
 의생명화학과,"학생부교과(기초생활수급자, 차상위계층, 한부모가족)",BIOMEDICAL_ENG
 의생명화학과,학생부교과(농어촌학생),BIOMEDICAL_ENG
+자율전공학부,학생부교과(교과성적우수자),UNDECLARED
+자율전공학부,학생부교과(미래창의인재),UNDECLARED
+자율전공학부,학생부종합(융합인재Ⅰ서류),UNDECLARED
 중국어문화학과,학생부교과(교과성적우수자),CHINESE_LIT
 중국어문화학과,학생부교과(미래창의인재),CHINESE_LIT
 중국어문화학과,학생부교과(기회균형),CHINESE_LIT

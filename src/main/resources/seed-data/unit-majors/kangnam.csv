@@ -20,6 +20,12 @@ dept_name,track_name,major_code
 법행정세무학부,학생부종합(장애인등대상자전형),PUBLIC_ADMIN
 법행정세무학부,학생부종합(공무원위탁생),PUBLIC_ADMIN
 법행정세무학부,학생부교과(만학도전형),PUBLIC_ADMIN
+복지융합대학,학생부교과(지역균형전형),SOCIAL_WELFARE
+복지융합대학,학생부교과(농어촌학생전형),SOCIAL_WELFARE
+복지융합대학,학생부교과(국가보훈대상자전형),SOCIAL_WELFARE
+복지융합대학,학생부종합(학교생활우수자전형1),SOCIAL_WELFARE
+복지융합대학,학생부교과(기초차상위전형),SOCIAL_WELFARE
+복지융합대학,학생부종합(장애인등대상자전형),SOCIAL_WELFARE
 부동산건설학부,학생부교과(지역균형전형),CIVIL_ENG
 부동산건설학부,학생부교과(농어촌학생전형),CIVIL_ENG
 부동산건설학부,학생부교과(국가보훈대상자전형),CIVIL_ENG
@@ -43,6 +49,11 @@ dept_name,track_name,major_code
 인공지능융합공학부,학생부종합(학교생활우수자전형1),AI
 인공지능융합공학부,학생부교과(특성화고교졸업자전형),AI
 인공지능융합공학부,학생부교과(기초차상위전형),AI
+자유전공학부,학생부교과(지역균형전형),UNDECLARED
+자유전공학부,학생부교과(농어촌학생전형),UNDECLARED
+자유전공학부,학생부교과(국가보훈대상자전형),UNDECLARED
+자유전공학부,학생부종합(학교생활우수자전형1),UNDECLARED
+자유전공학부,학생부교과(기초차상위전형),UNDECLARED
 전자반도체공학부,학생부교과(지역균형전형),SEMICONDUCTOR
 전자반도체공학부,학생부교과(지역균형전형),ELECTRONIC_ENG
 전자반도체공학부,학생부교과(농어촌학생전형),SEMICONDUCTOR

@@ -23,7 +23,7 @@ class SeedUnitMajorMapTest {
 
 	@Test
 	void 적재_개수가_CSV와_같다() {
-		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(12_246);
+		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_433);
 	}
 
 	@Test
@@ -31,8 +31,8 @@ class SeedUnitMajorMapTest {
 		Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM admission_units", Integer.class);
 		Integer mapped = jdbc.queryForObject("SELECT COUNT(DISTINCT unit_id) FROM unit_major_map", Integer.class);
 
-		// 자유전공·계열 모집처럼 학과를 하나로 정할 수 없는 모집단위는 일부러 연결하지 않았다.
-		assertThat(mapped).isEqualTo(10_974);
+		// 국방·군사·무용처럼 학과 사전에 대응하는 코드가 없는 모집단위만 연결하지 않았다.
+		assertThat(mapped).isEqualTo(11_684);
 		assertThat(mapped * 100 / total).isGreaterThanOrEqualTo(90);
 	}
 
@@ -47,6 +47,33 @@ class SeedUnitMajorMapTest {
 				""", String.class);
 
 		assertThat(majorCodes).containsExactlyInAnyOrder("COMPUTER_ENG", "AI");
+	}
+
+	@Test
+	void 무전공_모집단위는_UNDECLARED에_연결된다() {
+		List<String> majorCodes = jdbc.queryForList("""
+				SELECT DISTINCT m.major_code
+				FROM unit_major_map m
+				JOIN admission_units a ON a.id = m.unit_id
+				JOIN universities u ON u.id = a.university_id
+				WHERE u.name = '한양대학교' AND a.dept_name = '한양인터칼리지학부(자연)'
+				""", String.class);
+
+		assertThat(majorCodes).containsExactly("UNDECLARED");
+	}
+
+	@Test
+	void 계열_모집단위는_그_계열의_학과_전체에_연결된다() {
+		List<String> majorCodes = jdbc.queryForList("""
+				SELECT DISTINCT m.major_code
+				FROM unit_major_map m
+				JOIN admission_units a ON a.id = m.unit_id
+				JOIN universities u ON u.id = a.university_id
+				WHERE u.name = '전북대학교' AND a.dept_name = '경상계열'
+				""", String.class);
+
+		assertThat(majorCodes).containsExactlyInAnyOrder("BUSINESS", "ACCOUNTING", "ECONOMICS", "FINANCE",
+				"INTL_TRADE", "MIS", "TOURISM", "REAL_ESTATE");
 	}
 
 	@Test

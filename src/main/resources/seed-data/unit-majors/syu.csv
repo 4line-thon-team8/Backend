@@ -38,6 +38,7 @@ dept_name,track_name,major_code
 물리치료학과,학생부종합(기회균형 II),PHYSICS
 물리치료학과,학생부교과(농어촌),PHYSICS
 물리치료학과,학생부교과(서해5도),PHYSICS
+미래융합자유전공학부,학생부종합(재림교회목회자추천),UNDECLARED
 바이오융합공학과,학생부교과(학교장추천),BIO_ENG
 바이오융합공학과,학생부종합(세움인재),BIO_ENG
 바이오융합공학과,학생부교과(농어촌),BIO_ENG
@@ -84,6 +85,7 @@ dept_name,track_name,major_code
 인공지능융합학부,학생부종합(기회균형 II),AI
 인공지능융합학부,학생부교과(농어촌),AI
 인공지능융합학부,학생부교과(서해5도),AI
+창의융합자유전공학부,학생부종합(재림교회목회자추천),UNDECLARED
 컴퓨터공학부,학생부교과(학교장추천),COMPUTER_ENG
 컴퓨터공학부,학생부교과(특성화고교),COMPUTER_ENG
 컴퓨터공학부,학생부종합(기회균형 I),COMPUTER_ENG

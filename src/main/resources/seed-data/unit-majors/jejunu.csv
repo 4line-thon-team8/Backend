@@ -92,6 +92,12 @@ dept_name,track_name,major_code
 국어국문학과,학생부종합(농어촌학생 전형),KOREAN_LIT
 국어국문학과,학생부종합(특수교육대상자 전형),KOREAN_LIT
 국어국문학과,학생부종합(일반학생 전형),KOREAN_LIT
+글로벌자율학부,학생부교과(일반학생 전형),UNDECLARED
+글로벌자율학부,학생부교과(지역인재 전형),UNDECLARED
+글로벌자율학부,학생부종합(지역인재 전형),UNDECLARED
+글로벌자율학부,학생부종합(사회통합 전형),UNDECLARED
+글로벌자율학부,학생부종합(고른기회 전형),UNDECLARED
+글로벌자율학부,학생부종합(일반학생 전형),UNDECLARED
 기계시스템공학과,학생부교과(일반학생 전형),MECHANICAL_ENG
 기계시스템공학과,학생부교과(지역인재 전형),MECHANICAL_ENG
 기계시스템공학과,학생부종합(사회통합 전형),MECHANICAL_ENG
