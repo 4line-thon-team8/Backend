@@ -23,7 +23,7 @@ class SeedMajorDictionaryTest {
 
 	@Test
 	void 학과_태그_연결_개수가_CSV와_같다() {
-		assertThat(count("majors")).isEqualTo(82);
+		assertThat(count("majors")).isEqualTo(83);
 		assertThat(count("tags")).isEqualTo(30);
 		assertThat(count("major_tags")).isEqualTo(228);
 	}
@@ -43,17 +43,23 @@ class SeedMajorDictionaryTest {
 	}
 
 	@Test
-	void 모든_학과에_계열_태그가_정확히_하나_붙어_있다() {
+	void UNDECLARED_외_모든_학과에_계열_태그가_정확히_하나_붙어_있다() {
 		List<String> broken = jdbc.queryForList("""
 				SELECT m.code
 				FROM majors m
 				LEFT JOIN major_tags mt ON mt.major_code = m.code
 				LEFT JOIN tags t ON t.id = mt.tag_id AND t.category = '계열'
+				WHERE m.code <> 'UNDECLARED'
 				GROUP BY m.code
 				HAVING COUNT(t.id) <> 1
 				""", String.class);
 
 		assertThat(broken).isEmpty();
+	}
+
+	@Test
+	void UNDECLARED는_무전공_모집용_코드라_태그가_없다() {
+		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM major_tags WHERE major_code = 'UNDECLARED'", Integer.class)).isZero();
 	}
 
 	@Test
