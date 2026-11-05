@@ -6,7 +6,7 @@ labels: ["api-change"]
 ---
 
 ## 대상 엔드포인트
-<!-- 예: POST /api/v1/simulations -->
+<!-- 예: POST /api/simulations -->
 
 ## 변경 내용
 <!-- 요청/응답 필드를 전/후로 -->
@@ -19,4 +19,4 @@ labels: ["api-change"]
 
 ## 합의
 - [ ] 상대 트랙 확인 완료
-- [ ] openapi.yaml 갱신 예정
+- [ ] 코드의 API 문서 설명 수정 예정
