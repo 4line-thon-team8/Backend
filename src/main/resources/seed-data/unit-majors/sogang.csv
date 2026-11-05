@@ -1,6 +1,4 @@
 dept_name,track_name,major_code
-AI기반자유전공학부,학생부종합(일반Ⅱ),AI
-SCIENCE기반자유전공학부,학생부종합(일반Ⅱ),INDUSTRIAL_ENG
 게페르트국제학부,학생부종합(일반Ⅰ),INTL_STUDIES
 경영학부(경영학전공),학생부교과(지역균형),BUSINESS
 경영학부(경영학전공),학생부종합(일반Ⅰ),BUSINESS
@@ -28,10 +26,6 @@ SCIENCE기반자유전공학부,학생부종합(일반Ⅱ),INDUSTRIAL_ENG
 반도체공학과,학생부종합(일반Ⅰ),SEMICONDUCTOR
 반도체공학과,학생부종합(특성화고교졸업자),SEMICONDUCTOR
 사학과,학생부종합(일반Ⅰ),HISTORY
-사회과학부,학생부교과(지역균형),SOCIOLOGY
-사회과학부,학생부종합(기회균형),SOCIOLOGY
-사회과학부,학생부종합(서강가치),SOCIOLOGY
-사회과학부,학생부종합(일반Ⅱ),SOCIOLOGY
 사회학과,학생부종합(일반Ⅰ),SOCIOLOGY
 생명과학과,학생부교과(지역균형),LIFE_SCI
 생명과학과,학생부종합(일반Ⅰ),LIFE_SCI
@@ -63,9 +57,9 @@ SCIENCE기반자유전공학부,학생부종합(일반Ⅱ),INDUSTRIAL_ENG
 전자공학과,학생부종합(특성화고교졸업자),ELECTRONIC_ENG
 정치외교학과,학생부종합(일반Ⅰ),POLITICAL_SCI
 종교학과,학생부종합(일반Ⅰ),RELIGION
-중국문화학과,학생부교과(지역균형),KOREAN_LIT
-중국문화학과,학생부종합(일반Ⅰ),KOREAN_LIT
-중국문화학과,학생부종합(기회균형),KOREAN_LIT
+중국문화학과,학생부교과(지역균형),CHINESE_LIT
+중국문화학과,학생부종합(일반Ⅰ),CHINESE_LIT
+중국문화학과,학생부종합(기회균형),CHINESE_LIT
 지식융합미디어학부,학생부교과(지역균형),MEDIA_COMM
 지식융합미디어학부,학생부종합(기회균형),MEDIA_COMM
 지식융합미디어학부,학생부종합(서강가치),MEDIA_COMM

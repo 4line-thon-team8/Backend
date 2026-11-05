@@ -188,6 +188,12 @@ dept_name,track_name,major_code
 에너지자원공학과,학생부종합(고른기회),ENERGY_ENG
 에너지자원공학과,학생부종합(서해5도지역출신자),ENERGY_ENG
 에너지자원공학과,학생부교과(지역균형),ENERGY_ENG
+영미유럽인문융합학부,학생부종합(인하미래인재(면접형)),ENGLISH_LIT
+영미유럽인문융합학부,학생부종합(인하미래인재(서류형)),ENGLISH_LIT
+영미유럽인문융합학부,학생부종합(고른기회),ENGLISH_LIT
+영미유럽인문융합학부,학생부종합(농어촌학생),ENGLISH_LIT
+영미유럽인문융합학부,학생부종합(서해5도지역출신자),ENGLISH_LIT
+영미유럽인문융합학부,학생부교과(지역균형),ENGLISH_LIT
 영어교육과,학생부종합(인하미래인재(면접형)),ENGLISH_EDU
 영어교육과,학생부종합(고른기회),ENGLISH_EDU
 영어교육과,학생부종합(농어촌학생),ENGLISH_EDU

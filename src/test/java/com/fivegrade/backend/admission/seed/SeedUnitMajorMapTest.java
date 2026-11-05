@@ -23,7 +23,7 @@ class SeedUnitMajorMapTest {
 
 	@Test
 	void 적재_개수가_CSV와_같다() {
-		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(12_346);
+		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(12_246);
 	}
 
 	@Test
@@ -32,7 +32,7 @@ class SeedUnitMajorMapTest {
 		Integer mapped = jdbc.queryForObject("SELECT COUNT(DISTINCT unit_id) FROM unit_major_map", Integer.class);
 
 		// 자유전공·계열 모집처럼 학과를 하나로 정할 수 없는 모집단위는 일부러 연결하지 않았다.
-		assertThat(mapped).isEqualTo(11_077);
+		assertThat(mapped).isEqualTo(10_974);
 		assertThat(mapped * 100 / total).isGreaterThanOrEqualTo(90);
 	}
 

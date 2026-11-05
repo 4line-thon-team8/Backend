@@ -126,9 +126,6 @@ dept_name,track_name,major_code
 농업경제학과,학생부종합Ⅰ[서류],ECONOMICS
 농업경제학과,학생부종합Ⅱ(영농창업인재전형),AGRICULTURE
 농업경제학과,학생부종합Ⅱ(영농창업인재전형),ECONOMICS
-농업생명과학대학자율전공,학생부교과(일반전형),AGRICULTURE
-농업생명과학대학자율전공,학생부교과(지역인재전형),AGRICULTURE
-농업생명과학대학자율전공,학생부교과(기회균형선발Ⅰ전형),AGRICULTURE
 도시・자치융합학과,학생부교과(일반전형),URBAN_ENG
 도시・자치융합학과,학생부교과(지역인재전형),URBAN_ENG
 도시・자치융합학과,학생부교과(기회균형선발Ⅰ전형),URBAN_ENG
@@ -257,9 +254,6 @@ dept_name,track_name,major_code
 산림환경자원학과,학생부종합Ⅲ(저소득층학생전형),FORESTRY
 산림환경자원학과,학생부종합Ⅰ[면접(300)],FORESTRY
 산림환경자원학과,학생부종합Ⅰ[서류],FORESTRY
-생명시스템과학대학자율전공,학생부교과(일반전형),BIO_ENG
-생명시스템과학대학자율전공,학생부교과(지역인재전형),BIO_ENG
-생명시스템과학대학자율전공,학생부교과(기회균형선발Ⅰ전형),BIO_ENG
 생명정보융합학과,학생부교과(일반전형),LIFE_SCI
 생명정보융합학과,학생부교과(지역인재전형),LIFE_SCI
 생명정보융합학과,학생부교과(기회균형선발Ⅰ전형),LIFE_SCI
@@ -650,7 +644,6 @@ dept_name,track_name,major_code
 항공우주공학과,학생부종합Ⅱ(기회균형선발Ⅱ전형),AEROSPACE_ENG
 항공우주공학과,학생부종합Ⅰ[면접(300)],AEROSPACE_ENG
 항공우주공학과,학생부종합Ⅰ[서류],AEROSPACE_ENG
-해양안보학전공,학생부종합Ⅱ(국가안보융합인재전형),EARTH_ENV_SCI
 해양환경과학과,학생부교과(일반전형),EARTH_ENV_SCI
 해양환경과학과,학생부교과(지역인재전형),EARTH_ENV_SCI
 해양환경과학과,학생부교과(기회균형선발Ⅰ전형),EARTH_ENV_SCI

@@ -53,8 +53,6 @@ dept_name,track_name,major_code
 사학과,KU자기추천,HISTORY
 사학과,KU지역균형,HISTORY
 사학과,기회균형,HISTORY
-사회과학대학,특수교육대상자,SOCIOLOGY
-사회과학대학융합전공학부,KU지역균형,SOCIOLOGY
 사회환경공학부,KU자기추천,CIVIL_ENG
 사회환경공학부,KU자기추천,ENVIRONMENTAL_ENG
 사회환경공학부,KU지역균형,CIVIL_ENG
@@ -67,7 +65,6 @@ dept_name,track_name,major_code
 산업공학과,KU자기추천,INDUSTRIAL_ENG
 산업공학과,KU지역균형,INDUSTRIAL_ENG
 산업공학과,기회균형,INDUSTRIAL_ENG
-생명과학대학자유전공학부,KU지역균형,LIFE_SCI
 생명과학특성학과,KU자기추천,LIFE_SCI
 생명과학특성학과,KU지역균형,LIFE_SCI
 생명과학특성학과,기회균형,LIFE_SCI

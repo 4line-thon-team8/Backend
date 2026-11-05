@@ -1,6 +1,10 @@
 dept_name,track_name,major_code
 AI신약학과,학생부교과(고교추천전형),AI
 AI신약학과,학생부종합(덕성인재전형Ⅱ),AI
+가상현실융합학과,학생부교과(고교추천전형),COMPUTER_ENG
+가상현실융합학과,학생부교과(고교추천전형),SOFTWARE
+가상현실융합학과,학생부종합(덕성인재전형Ⅱ),COMPUTER_ENG
+가상현실융합학과,학생부종합(덕성인재전형Ⅱ),SOFTWARE
 데이터사이언스학과,학생부교과(고교추천전형),DATA_SCIENCE
 데이터사이언스학과,학생부종합(덕성인재전형Ⅱ),DATA_SCIENCE
 약학과(6년제),학생부교과(고교추천전형),PHARMACY

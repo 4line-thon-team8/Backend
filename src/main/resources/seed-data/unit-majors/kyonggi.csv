@@ -15,6 +15,8 @@ AI컴퓨터공학부,학생부종합(기회균형선발전형),COMPUTER_ENG
 AI컴퓨터공학부,학생부종합(기회균형선발전형),AI
 AI컴퓨터공학부,학생부종합(사회배려대상자전형),COMPUTER_ENG
 AI컴퓨터공학부,학생부종합(사회배려대상자전형),AI
+FineArts학부,학생부교과(학교장추천전형),FINE_ART
+FineArts학부,학생부종합(KGU학생부종합전형),FINE_ART
 건축학과,학생부교과(교과성적우수자전형),ARCHITECTURE
 건축학과,학생부교과(학교장추천전형),ARCHITECTURE
 건축학과,학생부교과(농어촌학생전형),ARCHITECTURE
@@ -92,7 +94,6 @@ AI컴퓨터공학부,학생부종합(사회배려대상자전형),AI
 사학과,학생부교과(농어촌학생전형),HISTORY
 사학과,학생부종합(KGU학생부종합전형),HISTORY
 사학과,학생부종합(기회균형선발전형),HISTORY
-사회과학부,학생부교과(교과성적우수자전형),SOCIOLOGY
 사회복지・청소년학과,학생부교과(교과성적우수자전형),SOCIAL_WELFARE
 사회복지・청소년학과,학생부교과(학교장추천전형),SOCIAL_WELFARE
 사회복지・청소년학과,학생부교과(농어촌학생전형),SOCIAL_WELFARE

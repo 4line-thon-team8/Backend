@@ -42,17 +42,6 @@ dept_name,track_name,major_code
 국제학부,학생부교과(일반학생 전형),INTL_STUDIES
 국제학부,학생부종합(국가보훈대상자),INTL_STUDIES
 국제학부,학생부종합(농어촌학생),INTL_STUDIES
-농업생명과학계열,학생부종합(큰사람),AGRICULTURE
-농업생명과학계열,학생부종합(사회통합),AGRICULTURE
-농업생명과학계열,학생부교과(일반학생 전형),AGRICULTURE
-농업생명과학계열,학생부교과(지역인재전형 1유형),AGRICULTURE
-농업생명과학계열,학생부교과(농어촌학생 전형),AGRICULTURE
-농업생명과학계열,학생부종합(기회균형선발),AGRICULTURE
-농업생명과학계열,학생부종합(국가보훈대상자),AGRICULTURE
-농업생명과학계열,학생부종합(농어촌학생),AGRICULTURE
-농업생명과학계열,학생부종합(특성화고교졸업자),AGRICULTURE
-농업생명과학계열,학생부종합(지역인재1유형),AGRICULTURE
-농업생명과학계열,학생부종합(특성화고졸재직자),AGRICULTURE
 독어교육과,학생부종합(큰사람),EDUCATION
 독어교육과,학생부교과(일반학생 전형),EDUCATION
 독어교육과,학생부교과(지역인재전형 1유형),EDUCATION
@@ -172,13 +161,3 @@ dept_name,track_name,major_code
 프랑스·아프리카학과,학생부종합(특수교육대상자),FRENCH_LIT
 프랑스·아프리카학과,학생부종합(농어촌학생),FRENCH_LIT
 한옥학과,학생부종합(만학도(정원외)),ARCHITECTURAL_ENG
-환경생명자원계열,학생부종합(큰사람),LIFE_SCI
-환경생명자원계열,학생부종합(사회통합),LIFE_SCI
-환경생명자원계열,학생부교과(일반학생 전형),LIFE_SCI
-환경생명자원계열,학생부교과(지역인재전형 1유형),LIFE_SCI
-환경생명자원계열,학생부교과(농어촌학생 전형),LIFE_SCI
-환경생명자원계열,학생부종합(기회균형선발),LIFE_SCI
-환경생명자원계열,학생부종합(특수교육대상자),LIFE_SCI
-환경생명자원계열,학생부종합(국가보훈대상자),LIFE_SCI
-환경생명자원계열,학생부종합(농어촌학생),LIFE_SCI
-환경생명자원계열,학생부종합(지역인재1유형),LIFE_SCI
