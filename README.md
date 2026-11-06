@@ -17,11 +17,11 @@
 | 테스트 | JUnit 5, Testcontainers (PostgreSQL) |
 | 배포 | 미정 (FE·BE 각각 배포) |
 
-API는 `openapi.yaml`을 먼저 작성하고 그에 맞춰 구현합니다.
+API 문서는 코드에서 자동 생성합니다(springdoc). 요청·응답 설명은 코드에 함께 작성합니다.
 
 ## API 명세
 
-팀 노션의 "API 명세서"를 기준으로 합니다. 취합이 끝나면 `openapi.yaml`에 반영합니다.
+팀 노션의 "API 명세서"를 기준으로 합니다. 구현이 끝난 API는 자동 생성 문서로도 확인합니다.
 
 ## 브랜치
 
