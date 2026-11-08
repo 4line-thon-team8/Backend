@@ -1027,12 +1027,6 @@ dept_name,track_name,major_code
 정치외교학과,학생부교과(경제배려대상자전형),POLITICAL_SCI
 정치외교학과,학생부종합(농어촌학생전형),POLITICAL_SCI
 정치외교학과,학생부교과(특수교육대상자전형),POLITICAL_SCI
-제약학과,학생부종합(학생부종합Ⅰ전형),PHARMACY
-제약학과,학생부종합(학생부종합Ⅱ전형),PHARMACY
-제약학과,학생부교과(학생부교과전형),PHARMACY
-제약학과,학생부교과(지역인재전형),PHARMACY
-제약학과,학생부교과(지역경제배려대상자전형),PHARMACY
-제약학과,학생부종합(농어촌학생전형),PHARMACY
 주거환경학과,학생부종합(학생부종합Ⅰ전형),CONSUMER_FAMILY
 주거환경학과,학생부종합(학생부종합Ⅱ전형),CONSUMER_FAMILY
 주거환경학과,학생부교과(학생부교과전형),CONSUMER_FAMILY
