@@ -154,4 +154,107 @@ class FiveGradeAverageCalculatorTest {
                 .map(BigDecimal::new)
                 .toList();
     }
+
+    @Test
+    void comparisonPreservesPrecisionBeyondDisplayScale() {
+        List<BigDecimal> input = grades(
+                "1", "1", "1", "1",
+                "1", "1", "1", "2"
+        );
+
+        assertEquals(
+                new BigDecimal("1.125"),
+                calculator.calculateForComparison(input)
+        );
+
+        assertEquals(
+                new BigDecimal("1.13"),
+                calculator.calculateForDisplay(input)
+        );
+    }
+
+    @Test
+    void comparisonHandlesRepeatingDecimal() {
+        assertEquals(
+                new BigDecimal(
+                        "1.666666666666666666666666666666667"
+                ),
+                calculator.calculateForComparison(
+                        grades("1", "2", "2")
+                )
+        );
+    }
+
+    @Test
+    void displayDoesNotDoubleRoundComparisonResult() {
+        List<BigDecimal> input =
+                grades("1.004" + "9".repeat(40));
+
+        assertEquals(
+                0,
+                calculator.calculateForComparison(input)
+                        .compareTo(new BigDecimal("1.005"))
+        );
+
+        assertEquals(
+                new BigDecimal("1.00"),
+                calculator.calculateForDisplay(input)
+        );
+    }
+
+    @Test
+    void comparisonRejectsInvalidGradesInsteadOfSkippingThem() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> calculator.calculateForComparison(null)
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> calculator.calculateForComparison(List.of())
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> calculator.calculateForComparison(
+                        Arrays.asList(BigDecimal.ONE, null)
+                )
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> calculator.calculateForComparison(
+                        grades("2", "5.01")
+                )
+        );
+    }
+
+    @Test
+    void comparisonPreservesInputAndAcceptsBoundaries() {
+        List<BigDecimal> input =
+                new ArrayList<>(grades("1", "5"));
+
+        List<BigDecimal> original =
+                new ArrayList<>(input);
+
+        assertEquals(
+                0,
+                calculator.calculateForComparison(input)
+                        .compareTo(new BigDecimal("3"))
+        );
+
+        assertEquals(
+                0,
+                calculator.calculateForComparison(grades("1"))
+                        .compareTo(BigDecimal.ONE)
+        );
+
+        assertEquals(
+                0,
+                calculator.calculateForComparison(grades("5"))
+                        .compareTo(BigDecimal.valueOf(5))
+        );
+
+        assertEquals(original, input);
+    }
 }
