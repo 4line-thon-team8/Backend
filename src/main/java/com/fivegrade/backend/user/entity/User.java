@@ -1,5 +1,4 @@
 package com.fivegrade.backend.user.entity;
-import com.fivegrade.backend.user.support.EmailNormalizer;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +9,7 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.util.Objects;
+import com.fivegrade.backend.user.support.EmailNormalizer;
 
 /**
  * 계정 정보를 users 테이블에 매핑하는 엔티티.
