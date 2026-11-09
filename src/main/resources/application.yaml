@@ -17,6 +17,11 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  jackson:
+    deserialization:
+      # 정의하지 않은 필드는 조용히 무시하지 않고 400 으로 거부한다.
+      # 받지 않기로 한 필드(gradeSystem, credits 등)를 보낸 클라이언트가 값이 반영된 줄 알고 넘어가는 것을 막는다.
+      fail-on-unknown-properties: true
 
 # OpenAPI 문서(/v3/api-docs)와 Swagger UI(/swagger-ui.html).
 # 운영 서버에서 문서가 실수로 열리지 않도록 기본값은 꺼짐이다. 로컬 개발에서만 .env 로 켠다.
