@@ -1,4 +1,5 @@
 package com.fivegrade.backend.user.entity;
+
 import com.fivegrade.backend.user.support.EmailNormalizer;
 
 import jakarta.persistence.Column;
