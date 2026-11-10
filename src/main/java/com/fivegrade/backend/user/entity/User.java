@@ -24,7 +24,6 @@ import java.util.Objects;
  *
  * API 응답에는 이 엔티티를 직접 노출하지 않고 별도 DTO를 사용한다.
  */
-
 @Entity
 @Table(name = "users")
 public class User {

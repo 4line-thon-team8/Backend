@@ -1,12 +1,11 @@
 package com.fivegrade.backend;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.fivegrade.backend.user.entity.User;
 import com.fivegrade.backend.user.repository.UserRepository;
 import com.fivegrade.backend.user.service.UserLookupService;
+
 import jakarta.persistence.EntityManager;
-import java.sql.SQLException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -16,6 +15,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.SQLException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * 실제 PostgreSQL에서 이메일 정규화와 저장 제약을 검증한다.
