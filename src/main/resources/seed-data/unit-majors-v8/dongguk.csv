@@ -1,0 +1,284 @@
+dept_name,track_name,major_code
+AI소프트웨어융합학부,Do Dream,SOFTWARE
+AI소프트웨어융합학부,Do Dream,AI
+AI소프트웨어융합학부,기회균형통합,SOFTWARE
+AI소프트웨어융합학부,기회균형통합,AI
+AI소프트웨어융합학부,불교추천인재,SOFTWARE
+AI소프트웨어융합학부,불교추천인재,AI
+AI소프트웨어융합학부,특수교육대상자,SOFTWARE
+AI소프트웨어융합학부,특수교육대상자,AI
+AI소프트웨어융합학부,학교장추천인재,SOFTWARE
+AI소프트웨어융합학부,학교장추천인재,AI
+가정교육과,Do Dream,EDUCATION
+가정교육과,기회균형통합,EDUCATION
+가정교육과,학교장추천인재,EDUCATION
+건설환경공학과,Do Dream,CIVIL_ENG
+건설환경공학과,Do Dream,ENVIRONMENTAL_ENG
+건설환경공학과,기회균형통합,CIVIL_ENG
+건설환경공학과,기회균형통합,ENVIRONMENTAL_ENG
+건설환경공학과,불교추천인재,CIVIL_ENG
+건설환경공학과,불교추천인재,ENVIRONMENTAL_ENG
+건설환경공학과,학교장추천인재,CIVIL_ENG
+건설환경공학과,학교장추천인재,ENVIRONMENTAL_ENG
+건축공학부,Do Dream,ARCHITECTURAL_ENG
+건축공학부,Do Dream,ARCHITECTURE
+건축공학부,기회균형통합,ARCHITECTURAL_ENG
+건축공학부,기회균형통합,ARCHITECTURE
+건축공학부,불교추천인재,ARCHITECTURAL_ENG
+건축공학부,불교추천인재,ARCHITECTURE
+건축공학부,학교장추천인재,ARCHITECTURAL_ENG
+건축공학부,학교장추천인재,ARCHITECTURE
+경영대학,Do Dream,BUSINESS
+경영대학,기회균형통합,BUSINESS
+경영대학,불교추천인재,BUSINESS
+경영대학,특수교육대상자,BUSINESS
+경영대학,학교장추천인재,BUSINESS
+경영정보학과,Do Dream,MIS
+경영정보학과,Do Dream,BUSINESS
+경영정보학과,기회균형통합,MIS
+경영정보학과,기회균형통합,BUSINESS
+경영정보학과,불교추천인재,MIS
+경영정보학과,불교추천인재,BUSINESS
+경영정보학과,학교장추천인재,MIS
+경영정보학과,학교장추천인재,BUSINESS
+경영학과,Do Dream,BUSINESS
+경영학과,기회균형통합,BUSINESS
+경영학과,불교추천인재,BUSINESS
+경영학과,특수교육대상자,BUSINESS
+경영학과,학교장추천인재,BUSINESS
+경제학과,Do Dream,ECONOMICS
+경제학과,기회균형통합,ECONOMICS
+경제학과,불교추천인재,ECONOMICS
+경제학과,학교장추천인재,ECONOMICS
+경찰행정학부,Do Dream,PUBLIC_ADMIN
+경찰행정학부,기회균형통합,PUBLIC_ADMIN
+경찰행정학부,불교추천인재,PUBLIC_ADMIN
+경찰행정학부,학교장추천인재,PUBLIC_ADMIN
+광고홍보학과,Do Dream,MEDIA_COMM
+광고홍보학과,기회균형통합,MEDIA_COMM
+광고홍보학과,불교추천인재,MEDIA_COMM
+광고홍보학과,학교장추천인재,MEDIA_COMM
+교육학과,Do Dream,EDUCATION
+교육학과,기회균형통합,EDUCATION
+교육학과,특수교육대상자,EDUCATION
+교육학과,학교장추천인재,EDUCATION
+국어교육과,Do Dream,KOREAN_EDU
+국어교육과,기회균형통합,KOREAN_EDU
+국어교육과,특수교육대상자,KOREAN_EDU
+국어교육과,학교장추천인재,KOREAN_EDU
+국어국문·문예창작학부,Do Dream,KOREAN_LIT
+국어국문·문예창작학부,기회균형통합,KOREAN_LIT
+국어국문·문예창작학부,학교장추천인재,KOREAN_LIT
+국제통상학과,Do Dream,INTL_STUDIES
+국제통상학과,기회균형통합,INTL_STUDIES
+국제통상학과,불교추천인재,INTL_STUDIES
+국제통상학과,학교장추천인재,INTL_STUDIES
+글로벌무역학과,특성화고등을졸업한재직자(면접형),INTL_TRADE
+글로벌무역학과,특성화고등을졸업한재직자(서류형),INTL_TRADE
+기계로봇에너지공학과,Do Dream,ENERGY_ENG
+기계로봇에너지공학과,Do Dream,MECHANICAL_ENG
+기계로봇에너지공학과,기회균형통합,ENERGY_ENG
+기계로봇에너지공학과,기회균형통합,MECHANICAL_ENG
+기계로봇에너지공학과,불교추천인재,ENERGY_ENG
+기계로봇에너지공학과,불교추천인재,MECHANICAL_ENG
+기계로봇에너지공학과,학교장추천인재,ENERGY_ENG
+기계로봇에너지공학과,학교장추천인재,MECHANICAL_ENG
+문화유산학과,Do Dream,HISTORY
+문화유산학과,불교추천인재,HISTORY
+문화유산학과,학교장추천인재,HISTORY
+문화유산학과(승려),불교추천인재,RELIGION
+문화재학과,Do Dream,HISTORY
+문화재학과,불교추천인재,HISTORY
+문화재학과,학교장추천인재,HISTORY
+문화재학과(승려),불교추천인재,RELIGION
+물리학과,Do Dream,PHYSICS
+물리학과,학교장추천인재,PHYSICS
+미디어커뮤니케이션학전공,Do Dream,MEDIA_COMM
+미디어커뮤니케이션학전공,기회균형통합,MEDIA_COMM
+미디어커뮤니케이션학전공,불교추천인재,MEDIA_COMM
+미디어커뮤니케이션학전공,학교장추천인재,MEDIA_COMM
+바이오시스템대학,학교장추천인재,BIO_ENG
+바이오환경과학과,Do Dream,EARTH_ENV_SCI
+바이오환경과학과,기회균형통합,EARTH_ENV_SCI
+바이오환경과학과,불교추천인재,EARTH_ENV_SCI
+바이오환경과학과,학교장추천인재,EARTH_ENV_SCI
+법학과,Do Dream,LAW
+법학과,기회균형통합,LAW
+법학과,불교추천인재,LAW
+법학과,특수교육대상자,LAW
+법학과,학교장추천인재,LAW
+불교학부,기회균형통합,RELIGION
+불교학부,불교추천인재,RELIGION
+불교학부,학교장추천인재,RELIGION
+불교학부(승려),불교추천인재,RELIGION
+불교학부(일반),불교추천인재,RELIGION
+사학과,Do Dream,HISTORY
+사학과,기회균형통합,HISTORY
+사학과,학교장추천인재,HISTORY
+사회복지상담학과,특성화고등을졸업한재직자(면접형),SOCIAL_WELFARE
+사회복지상담학과,특성화고등을졸업한재직자(서류형),SOCIAL_WELFARE
+사회복지학과,Do Dream,SOCIAL_WELFARE
+사회복지학과,불교추천인재,SOCIAL_WELFARE
+사회복지학과,특수교육대상자,SOCIAL_WELFARE
+사회복지학과,학교장추천인재,SOCIAL_WELFARE
+사회학전공,Do Dream,SOCIOLOGY
+사회학전공,학교장추천인재,SOCIOLOGY
+산업시스템공학과,Do Dream,INDUSTRIAL_ENG
+산업시스템공학과,기회균형통합,INDUSTRIAL_ENG
+산업시스템공학과,불교추천인재,INDUSTRIAL_ENG
+산업시스템공학과,학교장추천인재,INDUSTRIAL_ENG
+생명과학과,Do Dream,LIFE_SCI
+생명과학과,기회균형통합,LIFE_SCI
+생명과학과,학교장추천인재,LIFE_SCI
+수학과,Do Dream,MATH
+수학과,기회균형통합,MATH
+수학과,학교장추천인재,MATH
+수학교육과,Do Dream,MATH_EDU
+수학교육과,기회균형통합,MATH_EDU
+수학교육과,학교장추천인재,MATH_EDU
+시스템반도체학부,Do Dream,SEMICONDUCTOR
+시스템반도체학부,기회균형통합,SEMICONDUCTOR
+시스템반도체학부,불교추천인재,SEMICONDUCTOR
+시스템반도체학부,학교장추천인재,SEMICONDUCTOR
+식품바이오융합공학과,Do Dream,FOOD_ENG
+식품바이오융합공학과,Do Dream,BIO_ENG
+식품바이오융합공학과,기회균형통합,FOOD_ENG
+식품바이오융합공학과,기회균형통합,BIO_ENG
+식품바이오융합공학과,불교추천인재,FOOD_ENG
+식품바이오융합공학과,불교추천인재,BIO_ENG
+식품바이오융합공학과,학교장추천인재,FOOD_ENG
+식품바이오융합공학과,학교장추천인재,BIO_ENG
+식품산업관리학과,Do Dream,FOOD_ENG
+식품산업관리학과,기회균형통합,FOOD_ENG
+식품산업관리학과,학교장추천인재,FOOD_ENG
+식품생명공학과,Do Dream,FOOD_ENG
+식품생명공학과,Do Dream,BIO_ENG
+식품생명공학과,기회균형통합,FOOD_ENG
+식품생명공학과,기회균형통합,BIO_ENG
+식품생명공학과,불교추천인재,FOOD_ENG
+식품생명공학과,불교추천인재,BIO_ENG
+식품생명공학과,학교장추천인재,FOOD_ENG
+식품생명공학과,학교장추천인재,BIO_ENG
+약학과,Do Dream,PHARMACY
+약학과,학교장추천인재,PHARMACY
+에너지신소재공학과,Do Dream,MATERIALS_ENG
+에너지신소재공학과,Do Dream,ENERGY_ENG
+에너지신소재공학과,기회균형통합,MATERIALS_ENG
+에너지신소재공학과,기회균형통합,ENERGY_ENG
+에너지신소재공학과,학교장추천인재,MATERIALS_ENG
+에너지신소재공학과,학교장추천인재,ENERGY_ENG
+역사교육과,Do Dream,EDUCATION
+역사교육과,기회균형통합,EDUCATION
+역사교육과,학교장추천인재,EDUCATION
+연극학부,Do Dream,FILM_MEDIA
+열린전공학부(인문),학교장추천인재,KOREAN_LIT
+열린전공학부(인문),학교장추천인재,ENGLISH_LIT
+열린전공학부(인문),학교장추천인재,CHINESE_LIT
+열린전공학부(인문),학교장추천인재,JAPANESE_LIT
+열린전공학부(인문),학교장추천인재,GERMAN_LIT
+열린전공학부(인문),학교장추천인재,FRENCH_LIT
+열린전공학부(인문),학교장추천인재,HISTORY
+열린전공학부(인문),학교장추천인재,PHILOSOPHY
+열린전공학부(인문),학교장추천인재,LIBRARY_SCI
+열린전공학부(인문),학교장추천인재,LINGUISTICS
+열린전공학부(인문),학교장추천인재,RUSSIAN_LIT
+열린전공학부(인문),학교장추천인재,SPANISH_LIT
+열린전공학부(인문),학교장추천인재,OTHER_FOREIGN_LIT
+열린전공학부(인문),학교장추천인재,RELIGION
+열린전공학부(자연),학교장추천인재,MATH
+열린전공학부(자연),학교장추천인재,STATISTICS
+열린전공학부(자연),학교장추천인재,PHYSICS
+열린전공학부(자연),학교장추천인재,CHEMISTRY
+열린전공학부(자연),학교장추천인재,LIFE_SCI
+열린전공학부(자연),학교장추천인재,EARTH_ENV_SCI
+열린전공학부(자연),학교장추천인재,FOOD_NUTRITION
+열린전공학부(자연),학교장추천인재,AGRICULTURE
+열린전공학부(자연),학교장추천인재,ANIMAL_SCI
+열린전공학부(자연),학교장추천인재,FORESTRY
+열린전공학부(자연),학교장추천인재,LANDSCAPE
+영어영문학부,Do Dream,ENGLISH_LIT
+영어영문학부,기회균형통합,ENGLISH_LIT
+영어영문학부,불교추천인재,ENGLISH_LIT
+영어영문학부,학교장추천인재,ENGLISH_LIT
+영화영상학과,Do Dream,FILM_MEDIA
+영화영상학과,기회균형통합,FILM_MEDIA
+영화영상학과,학교장추천인재,FILM_MEDIA
+융합보안학과,특성화고등을졸업한재직자(면접형),INFO_COMM_ENG
+융합보안학과,특성화고등을졸업한재직자(서류형),INFO_COMM_ENG
+융합환경과학과,Do Dream,EARTH_ENV_SCI
+융합환경과학과,기회균형통합,EARTH_ENV_SCI
+융합환경과학과,불교추천인재,EARTH_ENV_SCI
+융합환경과학과,학교장추천인재,EARTH_ENV_SCI
+의료인공지능공학과,Do Dream,AI
+의료인공지능공학과,기회균형통합,AI
+의료인공지능공학과,학교장추천인재,AI
+의생명공학과,Do Dream,BIOMEDICAL_ENG
+의생명공학과,기회균형통합,BIOMEDICAL_ENG
+의생명공학과,학교장추천인재,BIOMEDICAL_ENG
+일본학과,Do Dream,JAPANESE_LIT
+일본학과,기회균형통합,JAPANESE_LIT
+일본학과,학교장추천인재,JAPANESE_LIT
+전자전기공학부,Do Dream,ELECTRICAL_ENG
+전자전기공학부,Do Dream,ELECTRONIC_ENG
+전자전기공학부,기회균형통합,ELECTRICAL_ENG
+전자전기공학부,기회균형통합,ELECTRONIC_ENG
+전자전기공학부,불교추천인재,ELECTRICAL_ENG
+전자전기공학부,불교추천인재,ELECTRONIC_ENG
+전자전기공학부,특수교육대상자,ELECTRICAL_ENG
+전자전기공학부,특수교육대상자,ELECTRONIC_ENG
+전자전기공학부,학교장추천인재,ELECTRICAL_ENG
+전자전기공학부,학교장추천인재,ELECTRONIC_ENG
+정보통신공학과,Do Dream,INFO_COMM_ENG
+정보통신공학과,기회균형통합,INFO_COMM_ENG
+정보통신공학과,불교추천인재,INFO_COMM_ENG
+정보통신공학과,특수교육대상자,INFO_COMM_ENG
+정보통신공학과,학교장추천인재,INFO_COMM_ENG
+정치외교학전공,Do Dream,POLITICAL_SCI
+정치외교학전공,기회균형통합,POLITICAL_SCI
+정치외교학전공,불교추천인재,POLITICAL_SCI
+정치외교학전공,학교장추천인재,POLITICAL_SCI
+중어중문학과,Do Dream,CHINESE_LIT
+중어중문학과,기회균형통합,CHINESE_LIT
+중어중문학과,불교추천인재,CHINESE_LIT
+중어중문학과,학교장추천인재,CHINESE_LIT
+지능형네트워크융합학과,Do Dream,AI
+지능형네트워크융합학과,기회균형통합,AI
+지능형네트워크융합학과,학교장추천인재,AI
+지리교육과,Do Dream,EDUCATION
+지리교육과,기회균형통합,EDUCATION
+지리교육과,학교장추천인재,EDUCATION
+철학과,Do Dream,PHILOSOPHY
+철학과,학교장추천인재,PHILOSOPHY
+컴퓨터·AI학부,Do Dream,COMPUTER_ENG
+컴퓨터·AI학부,Do Dream,AI
+컴퓨터·AI학부,기회균형통합,COMPUTER_ENG
+컴퓨터·AI학부,기회균형통합,AI
+컴퓨터·AI학부,불교추천인재,COMPUTER_ENG
+컴퓨터·AI학부,불교추천인재,AI
+컴퓨터·AI학부,특수교육대상자,COMPUTER_ENG
+컴퓨터·AI학부,특수교육대상자,AI
+컴퓨터·AI학부,학교장추천인재,COMPUTER_ENG
+컴퓨터·AI학부,학교장추천인재,AI
+통계학과,Do Dream,STATISTICS
+통계학과,기회균형통합,STATISTICS
+통계학과,불교추천인재,STATISTICS
+통계학과,학교장추천인재,STATISTICS
+행정학전공,Do Dream,PUBLIC_ADMIN
+행정학전공,기회균형통합,PUBLIC_ADMIN
+행정학전공,불교추천인재,PUBLIC_ADMIN
+행정학전공,학교장추천인재,PUBLIC_ADMIN
+화공생물공학과,Do Dream,CHEMICAL_ENG
+화공생물공학과,Do Dream,BIO_ENG
+화공생물공학과,기회균형통합,CHEMICAL_ENG
+화공생물공학과,기회균형통합,BIO_ENG
+화공생물공학과,불교추천인재,CHEMICAL_ENG
+화공생물공학과,불교추천인재,BIO_ENG
+화공생물공학과,학교장추천인재,CHEMICAL_ENG
+화공생물공학과,학교장추천인재,BIO_ENG
+화학과,Do Dream,CHEMISTRY
+화학과,기회균형통합,CHEMISTRY
+화학과,학교장추천인재,CHEMISTRY
+회계학과,Do Dream,ACCOUNTING
+회계학과,기회균형통합,ACCOUNTING
+회계학과,불교추천인재,ACCOUNTING
+회계학과,학교장추천인재,ACCOUNTING

@@ -179,14 +179,6 @@ dept_name,track_name,major_code
 파이낸스경영학과,학생부종합(추천형),BUSINESS
 파이낸스경영학과,학생부종합(고른기회),BUSINESS
 파이낸스경영학과,학생부종합(서류형),BUSINESS
-한양인터칼리지학부(인문),학생부종합(추천형),UNDECLARED
-한양인터칼리지학부(인문),학생부종합(서류형),UNDECLARED
-한양인터칼리지학부(자연),학생부종합(추천형),UNDECLARED
-한양인터칼리지학부(자연),학생부종합(고른기회),UNDECLARED
-한양인터칼리지학부(자연),학생부종합(사회통합),UNDECLARED
-한양인터칼리지학부(자연),학생부종합(서류형),UNDECLARED
-한양인터칼리지학부(자연),학생부종합(면접형),UNDECLARED
-한양인터칼리지학부,학생부교과(추천형),UNDECLARED
 행정학과,학생부교과(추천형),PUBLIC_ADMIN
 행정학과,학생부종합(추천형),PUBLIC_ADMIN
 행정학과,학생부종합(고른기회),PUBLIC_ADMIN

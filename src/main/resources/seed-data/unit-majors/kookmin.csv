@@ -110,8 +110,6 @@ KMU International Business school,학생부종합(국제인재전형),BUSINESS
 미래모빌리티학과,학생부교과(교과우수자(학교장추천)전형),MECHANICAL_ENG
 미래모빌리티학과,학생부종합(국민프런티어전형),MECHANICAL_ENG
 미래모빌리티학과,학생부종합(기회균형Ⅰ전형),MECHANICAL_ENG
-미래융합전공(A),학생부교과(교과우수자(학교장추천)전형),UNDECLARED
-미래융합전공(B),학생부교과(교과우수자(학교장추천)전형),UNDECLARED
 바이오소재융합공학과,학생부교과(교과우수자(학교장추천)전형),MATERIALS_ENG
 바이오소재융합공학과,학생부교과(교과우수자(학교장추천)전형),BIO_ENG
 바이오소재융합공학과,학생부종합(국민프런티어전형),MATERIALS_ENG
@@ -211,8 +209,6 @@ KMU International Business school,학생부종합(국제인재전형),BUSINESS
 자동차모빌리티대학,학생부종합(기회균형Ⅰ전형),MECHANICAL_ENG
 자동차모빌리티대학,학생부종합(농어촌학생전형),MECHANICAL_ENG
 자동차모빌리티대학,학생부종합(기회균형Ⅱ전형),MECHANICAL_ENG
-자유전공(A),학생부교과(교과우수자(학교장추천)전형),UNDECLARED
-자유전공(B),학생부교과(교과우수자(학교장추천)전형),UNDECLARED
 전자화학재료전공,학생부교과(교과우수자(학교장추천)전형),MATERIALS_ENG
 전자화학재료전공,학생부교과(교과우수자(학교장추천)전형),ELECTRONIC_ENG
 전자화학재료전공,학생부종합(국민프런티어전형),MATERIALS_ENG
@@ -233,6 +229,9 @@ KMU International Business school,학생부종합(국제인재전형),BUSINESS
 정치외교학과,학생부종합(기회균형Ⅰ전형),POLITICAL_SCI
 정치외교학과,학생부종합(농어촌학생전형),POLITICAL_SCI
 정치외교학과,학생부종합(기회균형Ⅱ전형),POLITICAL_SCI
+제약공학과,학생부교과(교과우수자(학교장추천)전형),PHARMACY
+제약공학과,학생부종합(국민프런티어전형),PHARMACY
+제약공학과,학생부종합(기회균형Ⅱ전형),PHARMACY
 중어중문학과,학생부교과(교과우수자(학교장추천)전형),CHINESE_LIT
 중어중문학과,학생부종합(국민프런티어전형),CHINESE_LIT
 중어중문학과,학생부종합(기회균형Ⅰ전형),CHINESE_LIT

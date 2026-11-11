@@ -1,0 +1,274 @@
+dept_name,track_name,major_code
+AI데이터융합학부,학생부교과(학교장추천전형),AI
+AI데이터융합학부,학생부교과(학교장추천전형),DATA_SCIENCE
+AI데이터융합학부,학생부종합(학생부종합전형(면접형)),AI
+AI데이터융합학부,학생부종합(학생부종합전형(면접형)),DATA_SCIENCE
+AI데이터융합학부,학생부종합(학생부종합전형(서류형)),AI
+AI데이터융합학부,학생부종합(학생부종합전형(서류형)),DATA_SCIENCE
+AI데이터융합학부,학생부종합(기회균형전형),AI
+AI데이터융합학부,학생부종합(기회균형전형),DATA_SCIENCE
+AI로봇공학과,학생부교과(학교장추천전형),AI
+AI로봇공학과,학생부교과(학교장추천전형),MECHANICAL_ENG
+AI로봇공학과,학생부종합(학생부종합전형(SW인재)),AI
+AI로봇공학과,학생부종합(학생부종합전형(SW인재)),MECHANICAL_ENG
+AI로봇공학과,학생부종합(기회균형전형),AI
+AI로봇공학과,학생부종합(기회균형전형),MECHANICAL_ENG
+AI융합대학(글로벌)[통합모집],학생부종합(학생부종합전형(서류형)),AI
+AI융합대학(서울)[통합모집],학생부종합(학생부종합전형(서류형)),AI
+ELLT학과,학생부교과(학교장추천전형),ENGLISH_LIT
+ELLT학과,학생부종합(학생부종합전형(면접형)),ENGLISH_LIT
+ELLT학과,학생부종합(학생부종합전형(서류형)),ENGLISH_LIT
+ELLT학과,학생부종합(기회균형전형),ENGLISH_LIT
+Finance & AI융합학부,학생부교과(학교장추천전형),AI
+Finance & AI융합학부,학생부종합(학생부종합전형(면접형)),AI
+Finance & AI융합학부,학생부종합(학생부종합전형(서류형)),AI
+Finance & AI융합학부,학생부종합(기회균형전형),AI
+Global Business & Technology학부,학생부교과(학교장추천전형),BUSINESS
+Global Business & Technology학부,학생부종합(학생부종합전형(면접형)),BUSINESS
+Global Business & Technology학부,학생부종합(학생부종합전형(서류형)),BUSINESS
+Global Business & Technology학부,학생부종합(기회균형전형),BUSINESS
+KFL학부,학생부종합(기회균형전형),OTHER_FOREIGN_LIT
+Language & AI융합학부,학생부교과(학교장추천전형),AI
+Language & AI융합학부,학생부종합(학생부종합전형(면접형)),AI
+Language & AI융합학부,학생부종합(학생부종합전형(서류형)),AI
+Language & AI융합학부,학생부종합(기회균형전형),AI
+Language & Diplomacy학부,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+Language & Diplomacy학부,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+Language & Diplomacy학부,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+Language & Trade학부,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+Language & Trade학부,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+Language & Trade학부,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+Social Science & AI융합학부,학생부교과(학교장추천전형),AI
+Social Science & AI융합학부,학생부종합(학생부종합전형(면접형)),AI
+Social Science & AI융합학부,학생부종합(학생부종합전형(서류형)),AI
+Social Science & AI융합학부,학생부종합(기회균형전형),AI
+경영학부,학생부교과(학교장추천전형),BUSINESS
+경영학부,학생부종합(학생부종합전형(면접형)),BUSINESS
+경영학부,학생부종합(학생부종합전형(서류형)),BUSINESS
+경영학부,학생부종합(기회균형전형),BUSINESS
+경제학부,학생부교과(학교장추천전형),ECONOMICS
+경제학부,학생부종합(학생부종합전형(면접형)),ECONOMICS
+경제학부,학생부종합(학생부종합전형(서류형)),ECONOMICS
+경제학부,학생부종합(기회균형전형),ECONOMICS
+국제금융학과,학생부교과(학교장추천전형),INTL_STUDIES
+국제금융학과,학생부종합(학생부종합전형(면접형)),INTL_STUDIES
+국제금융학과,학생부종합(학생부종합전형(서류형)),INTL_STUDIES
+국제통상학과,학생부교과(학교장추천전형),INTL_STUDIES
+국제통상학과,학생부종합(학생부종합전형(면접형)),INTL_STUDIES
+국제통상학과,학생부종합(학생부종합전형(서류형)),INTL_STUDIES
+국제통상학과,학생부종합(기회균형전형),INTL_STUDIES
+국제학부,학생부교과(학교장추천전형),INTL_STUDIES
+국제학부,학생부종합(학생부종합전형(면접형)),INTL_STUDIES
+국제학부,학생부종합(학생부종합전형(서류형)),INTL_STUDIES
+그리스・불가리아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+그리스・불가리아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+그리스・불가리아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+글로벌바이오 & 비즈니스융합학부,학생부종합(학생부종합전형(서류형)),BIO_ENG
+글로벌바이오 & 비즈니스융합학부,학생부종합(학생부종합전형(서류형)),BUSINESS
+글로벌스포츠산업학부,학생부교과(학교장추천전형),PHYSICAL_EDU
+글로벌스포츠산업학부,학생부종합(학생부종합전형(면접형)),PHYSICAL_EDU
+글로벌스포츠산업학부,학생부종합(학생부종합전형(서류형)),PHYSICAL_EDU
+글로벌스포츠산업학부,학생부종합(기회균형전형),PHYSICAL_EDU
+기후변화융합학부,학생부교과(학교장추천전형),EARTH_ENV_SCI
+기후변화융합학부,학생부종합(학생부종합전형(면접형)),EARTH_ENV_SCI
+기후변화융합학부,학생부종합(학생부종합전형(서류형)),EARTH_ENV_SCI
+기후변화융합학부,학생부종합(기회균형전형),EARTH_ENV_SCI
+네덜란드어과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+네덜란드어과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+네덜란드어과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+노어과,학생부교과(학교장추천전형),RUSSIAN_LIT
+노어과,학생부종합(학생부종합전형(면접형)),RUSSIAN_LIT
+노어과,학생부종합(학생부종합전형(서류형)),RUSSIAN_LIT
+독일어과,학생부교과(학교장추천전형),GERMAN_LIT
+독일어과,학생부종합(학생부종합전형(면접형)),GERMAN_LIT
+독일어과,학생부종합(학생부종합전형(서류형)),GERMAN_LIT
+독일어과,학생부종합(기회균형전형),GERMAN_LIT
+디지털콘텐츠학부,학생부교과(학교장추천전형),FILM_MEDIA
+디지털콘텐츠학부,학생부종합(학생부종합전형(면접형)),FILM_MEDIA
+디지털콘텐츠학부,학생부종합(학생부종합전형(서류형)),FILM_MEDIA
+디지털콘텐츠학부,학생부종합(기회균형전형),FILM_MEDIA
+루마니아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+루마니아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+루마니아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+말레이・인도네시아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+말레이・인도네시아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+말레이・인도네시아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+몽골학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+몽골학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+몽골학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+미디어커뮤니케이션학부,학생부교과(학교장추천전형),MEDIA_COMM
+미디어커뮤니케이션학부,학생부종합(학생부종합전형(면접형)),MEDIA_COMM
+미디어커뮤니케이션학부,학생부종합(학생부종합전형(서류형)),MEDIA_COMM
+미디어커뮤니케이션학부,학생부종합(기회균형전형),MEDIA_COMM
+바이오메디컬공학부,학생부교과(학교장추천전형),BIOMEDICAL_ENG
+바이오메디컬공학부,학생부종합(학생부종합전형(면접형)),BIOMEDICAL_ENG
+바이오메디컬공학부,학생부종합(학생부종합전형(서류형)),BIOMEDICAL_ENG
+바이오메디컬공학부,학생부종합(기회균형전형),BIOMEDICAL_ENG
+반도체전자공학부(반도체공학전공),학생부교과(학교장추천전형),SEMICONDUCTOR
+반도체전자공학부(반도체공학전공),학생부교과(학교장추천전형),ELECTRONIC_ENG
+반도체전자공학부(반도체공학전공),학생부종합(학생부종합전형(면접형)),SEMICONDUCTOR
+반도체전자공학부(반도체공학전공),학생부종합(학생부종합전형(면접형)),ELECTRONIC_ENG
+반도체전자공학부(반도체공학전공),학생부종합(학생부종합전형(서류형)),SEMICONDUCTOR
+반도체전자공학부(반도체공학전공),학생부종합(학생부종합전형(서류형)),ELECTRONIC_ENG
+반도체전자공학부(반도체공학전공),학생부종합(기회균형전형),SEMICONDUCTOR
+반도체전자공학부(반도체공학전공),학생부종합(기회균형전형),ELECTRONIC_ENG
+반도체전자공학부(전자공학전공),학생부교과(학교장추천전형),SEMICONDUCTOR
+반도체전자공학부(전자공학전공),학생부교과(학교장추천전형),ELECTRONIC_ENG
+반도체전자공학부(전자공학전공),학생부종합(학생부종합전형(면접형)),SEMICONDUCTOR
+반도체전자공학부(전자공학전공),학생부종합(학생부종합전형(면접형)),ELECTRONIC_ENG
+반도체전자공학부(전자공학전공),학생부종합(학생부종합전형(서류형)),SEMICONDUCTOR
+반도체전자공학부(전자공학전공),학생부종합(학생부종합전형(서류형)),ELECTRONIC_ENG
+반도체전자공학부(전자공학전공),학생부종합(기회균형전형),SEMICONDUCTOR
+반도체전자공학부(전자공학전공),학생부종합(기회균형전형),ELECTRONIC_ENG
+베트남학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+베트남학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+베트남학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+사학과,학생부교과(학교장추천전형),HISTORY
+사학과,학생부종합(학생부종합전형(면접형)),HISTORY
+사학과,학생부종합(학생부종합전형(서류형)),HISTORY
+산업경영공학과,학생부교과(학교장추천전형),INDUSTRIAL_ENG
+산업경영공학과,학생부교과(학교장추천전형),BUSINESS
+산업경영공학과,학생부종합(학생부종합전형(면접형)),INDUSTRIAL_ENG
+산업경영공학과,학생부종합(학생부종합전형(면접형)),BUSINESS
+산업경영공학과,학생부종합(학생부종합전형(서류형)),INDUSTRIAL_ENG
+산업경영공학과,학생부종합(학생부종합전형(서류형)),BUSINESS
+산업경영공학과,학생부종합(기회균형전형),INDUSTRIAL_ENG
+산업경영공학과,학생부종합(기회균형전형),BUSINESS
+생명공학과,학생부교과(학교장추천전형),BIO_ENG
+생명공학과,학생부종합(학생부종합전형(면접형)),BIO_ENG
+생명공학과,학생부종합(학생부종합전형(서류형)),BIO_ENG
+생명공학과,학생부종합(기회균형전형),BIO_ENG
+세르비아・크로아티아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+세르비아・크로아티아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+세르비아・크로아티아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+수학과,학생부교과(학교장추천전형),MATH
+수학과,학생부종합(학생부종합전형(면접형)),MATH
+수학과,학생부종합(학생부종합전형(서류형)),MATH
+스칸디나비아어과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+스칸디나비아어과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+스칸디나비아어과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+스페인어과,학생부교과(학교장추천전형),SPANISH_LIT
+스페인어과,학생부종합(학생부종합전형(면접형)),SPANISH_LIT
+스페인어과,학생부종합(학생부종합전형(서류형)),SPANISH_LIT
+스페인어과,학생부종합(기회균형전형),SPANISH_LIT
+아랍어과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+아랍어과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+아랍어과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+아프리카학부,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+아프리카학부,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+아프리카학부,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+언어인지과학과,학생부교과(학교장추천전형),LINGUISTICS
+언어인지과학과,학생부종합(학생부종합전형(면접형)),LINGUISTICS
+언어인지과학과,학생부종합(학생부종합전형(서류형)),LINGUISTICS
+영미문학.문화학과,학생부교과(학교장추천전형),CHEMISTRY
+영미문학.문화학과,학생부종합(학생부종합전형(면접형)),CHEMISTRY
+영미문학.문화학과,학생부종합(학생부종합전형(서류형)),CHEMISTRY
+영미문학.문화학과,학생부종합(기회균형전형),CHEMISTRY
+영어교육과,학생부종합(학생부종합전형(면접형)),ENGLISH_EDU
+영어교육과,학생부종합(학생부종합전형(서류형)),ENGLISH_EDU
+영어통번역학과,학생부교과(학교장추천전형),ENGLISH_LIT
+영어통번역학과,학생부종합(학생부종합전형(면접형)),ENGLISH_LIT
+영어통번역학과,학생부종합(학생부종합전형(서류형)),ENGLISH_LIT
+영어통번역학과,학생부종합(기회균형전형),ENGLISH_LIT
+외국어교육학부(독일어교육전공),학생부종합(학생부종합전형(면접형)),EDUCATION
+외국어교육학부(독일어교육전공),학생부종합(학생부종합전형(서류형)),EDUCATION
+외국어교육학부(중국어교육전공),학생부종합(학생부종합전형(면접형)),EDUCATION
+외국어교육학부(중국어교육전공),학생부종합(학생부종합전형(서류형)),EDUCATION
+외국어교육학부(프랑스어교육전공),학생부종합(학생부종합전형(면접형)),EDUCATION
+외국어교육학부(프랑스어교육전공),학생부종합(학생부종합전형(서류형)),EDUCATION
+우크라이나학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+우크라이나학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+우크라이나학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+융합인재학부,학생부교과(학교장추천전형),UNDECLARED
+융합인재학부,학생부종합(학생부종합전형(면접형)),UNDECLARED
+융합인재학부,학생부종합(학생부종합전형(서류형)),UNDECLARED
+융합인재학부,학생부종합(기회균형전형),UNDECLARED
+융합일본지역학부,학생부교과(학교장추천전형),JAPANESE_LIT
+융합일본지역학부,학생부종합(학생부종합전형(면접형)),JAPANESE_LIT
+융합일본지역학부,학생부종합(학생부종합전형(서류형)),JAPANESE_LIT
+이탈리아어과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+이탈리아어과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+이탈리아어과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+인도・남아시아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+인도・남아시아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+인도・남아시아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+일본언어문화학부,학생부교과(학교장추천전형),JAPANESE_LIT
+일본언어문화학부,학생부종합(학생부종합전형(면접형)),JAPANESE_LIT
+일본언어문화학부,학생부종합(학생부종합전형(서류형)),JAPANESE_LIT
+자유전공학부(글로벌),학생부교과(학교장추천전형),UNDECLARED
+자유전공학부(글로벌),학생부종합(학생부종합전형(서류형)),UNDECLARED
+자유전공학부(글로벌),학생부종합(기회균형전형),UNDECLARED
+자유전공학부(서울),학생부교과(학교장추천전형),UNDECLARED
+자유전공학부(서울),학생부종합(학생부종합전형(서류형)),UNDECLARED
+자유전공학부(서울),학생부종합(기회균형전형),UNDECLARED
+전자물리학과,학생부교과(학교장추천전형),ELECTRONIC_ENG
+전자물리학과,학생부종합(학생부종합전형(면접형)),ELECTRONIC_ENG
+전자물리학과,학생부종합(학생부종합전형(서류형)),ELECTRONIC_ENG
+정치외교학과,학생부교과(학교장추천전형),POLITICAL_SCI
+정치외교학과,학생부종합(학생부종합전형(면접형)),POLITICAL_SCI
+정치외교학과,학생부종합(학생부종합전형(서류형)),POLITICAL_SCI
+중국언어문화학부,학생부교과(학교장추천전형),CHINESE_LIT
+중국언어문화학부,학생부종합(학생부종합전형(면접형)),CHINESE_LIT
+중국언어문화학부,학생부종합(학생부종합전형(서류형)),CHINESE_LIT
+중국언어문화학부,학생부종합(기회균형전형),CHINESE_LIT
+중국외교통상학부,학생부교과(학교장추천전형),CHINESE_LIT
+중국외교통상학부,학생부종합(학생부종합전형(면접형)),CHINESE_LIT
+중국외교통상학부,학생부종합(학생부종합전형(서류형)),CHINESE_LIT
+중국외교통상학부,학생부종합(기회균형전형),CHINESE_LIT
+중앙아시아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+중앙아시아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+중앙아시아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+철학과,학생부교과(학교장추천전형),PHILOSOPHY
+철학과,학생부종합(학생부종합전형(면접형)),PHILOSOPHY
+철학과,학생부종합(학생부종합전형(서류형)),PHILOSOPHY
+체코・슬로바키아학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+체코・슬로바키아학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+체코・슬로바키아학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+컴퓨터공학부,학생부교과(학교장추천전형),COMPUTER_ENG
+컴퓨터공학부,학생부종합(학생부종합전형(SW인재)),COMPUTER_ENG
+컴퓨터공학부,학생부종합(기회균형전형),COMPUTER_ENG
+태국학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+태국학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+태국학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+통계학과,학생부교과(학교장추천전형),STATISTICS
+통계학과,학생부종합(학생부종합전형(면접형)),STATISTICS
+통계학과,학생부종합(학생부종합전형(서류형)),STATISTICS
+투어리즘 & 웰니스학부,학생부교과(학교장추천전형),TOURISM
+투어리즘 & 웰니스학부,학생부종합(학생부종합전형(면접형)),TOURISM
+투어리즘 & 웰니스학부,학생부종합(학생부종합전형(서류형)),TOURISM
+투어리즘 & 웰니스학부,학생부종합(기회균형전형),TOURISM
+튀르키예・아제르바이잔학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+튀르키예・아제르바이잔학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+튀르키예・아제르바이잔학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+페르시아어・이란학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+페르시아어・이란학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+페르시아어・이란학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+포르투갈어과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+포르투갈어과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+포르투갈어과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+폴란드학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+폴란드학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+폴란드학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+프랑스어학부,학생부교과(학교장추천전형),FRENCH_LIT
+프랑스어학부,학생부종합(학생부종합전형(면접형)),FRENCH_LIT
+프랑스어학부,학생부종합(학생부종합전형(서류형)),FRENCH_LIT
+프랑스어학부,학생부종합(기회균형전형),FRENCH_LIT
+한국어교육과,학생부종합(학생부종합전형(면접형)),EDUCATION
+한국어교육과,학생부종합(학생부종합전형(서류형)),EDUCATION
+한국학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+한국학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+한국학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+행정학과,학생부교과(학교장추천전형),PUBLIC_ADMIN
+행정학과,학생부종합(학생부종합전형(면접형)),PUBLIC_ADMIN
+행정학과,학생부종합(학생부종합전형(서류형)),PUBLIC_ADMIN
+헝가리학과,학생부교과(학교장추천전형),OTHER_FOREIGN_LIT
+헝가리학과,학생부종합(학생부종합전형(면접형)),OTHER_FOREIGN_LIT
+헝가리학과,학생부종합(학생부종합전형(서류형)),OTHER_FOREIGN_LIT
+화학과,학생부교과(학교장추천전형),CHEMISTRY
+화학과,학생부종합(학생부종합전형(면접형)),CHEMISTRY
+화학과,학생부종합(학생부종합전형(서류형)),CHEMISTRY
+화학과,학생부종합(기회균형전형),CHEMISTRY
+환경학과,학생부교과(학교장추천전형),EARTH_ENV_SCI
+환경학과,학생부종합(학생부종합전형(면접형)),EARTH_ENV_SCI
+환경학과,학생부종합(학생부종합전형(서류형)),EARTH_ENV_SCI
+환경학과,학생부종합(기회균형전형),EARTH_ENV_SCI

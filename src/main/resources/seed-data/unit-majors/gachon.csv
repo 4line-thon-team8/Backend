@@ -1,4 +1,9 @@
 dept_name,track_name,major_code
+AI인문대학,학생부교과(학생부우수자),AI
+AI인문대학,학생부종합(가천바람개비),AI
+AI인문대학,학생부종합(기회균형),AI
+AI인문대학,학생부교과(농어촌(교과)),AI
+AI인문대학,학생부종합(농어촌(종합)),AI
 간호학과,학생부교과(학생부우수자),NURSING
 간호학과,학생부교과(지역균형),NURSING
 간호학과,학생부종합(가천바람개비),NURSING
@@ -212,7 +217,6 @@ dept_name,track_name,major_code
 인공지능학과,학생부교과(농어촌(교과)),AI
 인공지능학과,학생부종합(농어촌(종합)),AI
 인공지능학과,학생부교과(특성화고교),AI
-자유전공학부,학생부교과(지역균형),UNDECLARED
 전기공학과,학생부교과(학생부우수자),ELECTRICAL_ENG
 전기공학과,학생부종합(가천바람개비),ELECTRICAL_ENG
 전기공학과,학생부종합(기회균형),ELECTRICAL_ENG

@@ -14,7 +14,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * V7 시드(모집단위-학과 매핑)가 마이그레이션으로 적재되었는지 확인한다.
+ * V7 시드(모집단위-학과 매핑)와 이를 보정한 V8 이 마이그레이션으로 적재되었는지 확인한다.
+ * 기대값은 V7 + V8 을 모두 적용한 최종 상태(보정된 매핑) 기준이다.
  * 앱이 뜰 때 Flyway 가 시드를 넣으므로 별도 준비 없이 바로 조회한다.
  */
 @Import(TestcontainersConfiguration.class)
