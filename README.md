@@ -71,6 +71,7 @@ cp .env.example .env
 | `DB_NAME` | `fivegrade` | DB 이름 |
 | `DB_USER` | `fivegrade` | DB 계정 |
 | `DB_PASSWORD` | 없음 (필수) | DB 비밀번호 |
+| `CORS_ALLOWED_ORIGINS` | 빈 값 | 교차 출처 요청을 허용할 FE Origin. 여러 개는 쉼표로 구분 |
 
 ### 2. DB 실행
 
@@ -78,7 +79,33 @@ cp .env.example .env
 docker compose up -d
 ```
 
-### 3. 서버 실행
+### 3. FE 연결과 CORS 설정
+
+FE와 BE의 Origin이 다르면 BE의 `.env` 또는 실행 환경변수에
+`CORS_ALLOWED_ORIGINS`를 설정합니다.
+
+로컬 개발 예시:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
+
+여러 Origin을 허용하려면 쉼표로 구분합니다.
+
+```dotenv
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+```
+
+실제로 사용하는 주소만 등록합니다. Origin에는 스킴(http/https),
+호스트와 필요한 포트만 적고, 경로나 마지막 슬래시는 넣지 않습니다.
+
+배포 시에는 확정된 FE Origin을 BE 배포 환경변수에 설정합니다.
+`.env.example`에 작성한 값이 배포 환경에 자동으로 적용되지는 않습니다.
+
+값이 비어 있으면 교차 출처 요청을 허용하지 않으며,
+와일드카드(`*`)는 사용할 수 없습니다.
+
+### 4. 서버 실행
 
 ```bash
 ./gradlew bootRun
