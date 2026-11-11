@@ -24,6 +24,12 @@ class SimulationRequestJsonTest {
 			 "applicationPreference": {"desiredMajorCodes": ["HISTORY"]},
 			 "analysisConsent": true}""";
 
+	/** 등급 값 자리에 원하는 JSON 조각을 넣어 보는 본문 */
+	private static final String WITH_GRADE = """
+			{"subjects": [{"subjectRef": "s1", "subjectCode": "KOREAN", "gradeValue": %s}],
+			 "applicationPreference": {"desiredMajorCodes": ["HISTORY"]},
+			 "analysisConsent": true}""";
+
 	@Autowired
 	private JsonMapper jsonMapper;
 
@@ -33,6 +39,44 @@ class SimulationRequestJsonTest {
 
 		assertThat(request.subjects()).hasSize(1);
 		assertThat(request.applicationPreference().preferredTrack()).isEqualTo(PreferredTrack.ANY);
+	}
+
+	@Test
+	void 정수_등급은_그대로_읽힌다() {
+		for (int grade = 1; grade <= 5; grade++) {
+			SimulationRequest request = jsonMapper.readValue(WITH_GRADE.formatted(grade), SimulationRequest.class);
+
+			assertThat(request.subjects().get(0).gradeValue()).isEqualTo(grade);
+		}
+	}
+
+	@Test
+	void 소수_등급은_정수로_잘라_받지_않고_거부한다() {
+		// 2.9가 2로, 5.9가 5로 조용히 바뀌면 사용자가 보낸 값과 다른 성적으로 분석된다.
+		for (String grade : new String[] { "2.9", "5.9", "2.0", "1e0" }) {
+			String json = WITH_GRADE.formatted(grade);
+
+			assertThatThrownBy(() -> jsonMapper.readValue(json, SimulationRequest.class))
+					.as("등급 %s", grade)
+					.isInstanceOf(RuntimeException.class);
+		}
+	}
+
+	@Test
+	void 문자열_등급은_숫자로_바꿔_받지_않고_거부한다() {
+		String json = WITH_GRADE.formatted("\"2\"");
+
+		assertThatThrownBy(() -> jsonMapper.readValue(json, SimulationRequest.class))
+				.isInstanceOf(RuntimeException.class);
+	}
+
+	@Test
+	void 문자열_분석_동의는_불리언으로_바꿔_받지_않고_거부한다() {
+		String json = WITH_GRADE.formatted("2")
+				.replace("\"analysisConsent\": true", "\"analysisConsent\": \"true\"");
+
+		assertThatThrownBy(() -> jsonMapper.readValue(json, SimulationRequest.class))
+				.isInstanceOf(RuntimeException.class);
 	}
 
 	@Test

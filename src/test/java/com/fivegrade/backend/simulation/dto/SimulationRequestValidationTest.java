@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fivegrade.backend.common.error.GlobalExceptionHandler;
 import jakarta.validation.Valid;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -101,9 +103,30 @@ class SimulationRequestValidationTest {
 	}
 
 	@Test
-	void 과목이_상한을_넘으면_400() throws Exception {
-		String subjects = ("," + VALID_SUBJECT).repeat(SimulationRequest.MAX_SUBJECTS).substring(1);
-		expectInvalid(send(body("[" + subjects + "," + VALID_SUBJECT + "]", validPreference(), "true")), "subjects");
+	void 과목이_상한이면_통과하고_상한을_넘으면_400() throws Exception {
+		// subjectRef가 겹치면 중복 검증에도 걸리므로, 상한만 확인하도록 행마다 다른 ref를 쓴다.
+		send(body(subjectRows(SimulationRequest.MAX_SUBJECTS), validPreference(), "true"))
+				.andExpect(status().isOk());
+		expectInvalid(send(body(subjectRows(SimulationRequest.MAX_SUBJECTS + 1), validPreference(), "true")),
+				"subjects");
+	}
+
+	@Test
+	void subjectRef가_중복되면_400() throws Exception {
+		String duplicated = "{\"subjectRef\": \"s1\", \"subjectCode\": \"MATH\", \"gradeValue\": 3}";
+
+		expectInvalid(send(body("[" + VALID_SUBJECT + "," + duplicated + "]", validPreference(), "true")),
+				"subjects");
+	}
+
+	@Test
+	void subjectCode가_같아도_subjectRef가_다르면_통과한다() throws Exception {
+		// 같은 과목의 다른 학기 성적은 같은 subjectCode로 여러 행을 보낸다.
+		String otherSemester = "{\"subjectRef\": \"s2\", \"subjectCode\": \"KOREAN\", \"gradeValue\": 3}";
+
+		send(body("[" + VALID_SUBJECT + "," + otherSemester + "]", validPreference(), "true"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.subjects.length()").value(2));
 	}
 
 	@Test
@@ -151,6 +174,13 @@ class SimulationRequestValidationTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
 				.andExpect(content().string(not(containsString(SECRET))));
+	}
+
+	/** subjectRef가 서로 다른 과목 행 count개를 담은 JSON 배열 */
+	private static String subjectRows(int count) {
+		return IntStream.rangeClosed(1, count)
+				.mapToObj(i -> "{\"subjectRef\": \"s" + i + "\", \"subjectCode\": \"KOREAN\", \"gradeValue\": 2}")
+				.collect(Collectors.joining(",", "[", "]"));
 	}
 
 	private static String validPreference() {
