@@ -1,5 +1,6 @@
 package com.fivegrade.backend.recommendation.probability;
 
+import com.fivegrade.backend.recommendation.scale.GradeScaleConverter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,6 +61,41 @@ class AdmissionBandCalculatorTest {
 
 		assertEquals(0.997565, assessment.probability().getAsDouble(), DELTA);
 		assertEquals(AdmissionBand.SAFE, assessment.band());
+	}
+
+	@Test
+	void doesNotMarkOverWhenMarginIsExactlyOnePointFiveDespiteFloatingPointError() {
+		// 5등급 평균 1.65는 9등급 환산 2.9(double로는 2.8999999999999995)이고, 예측 70%컷 4.45의 중심은 4.4다.
+		// 여유는 정확히 1.5인데 double 뺄셈은 1.5000000000000009가 되어 SAFE가 OVER로 판정됐다.
+		double student = new GradeScaleConverter().toNineGradeEquivalent(1.65);
+		CutForecast forecast = new CutForecast(4.45, 0.5, 3);
+
+		BandAssessment assessment = calculator.assess(forecast, student);
+
+		assertEquals(1.5, assessment.margin().getAsDouble(), DELTA);
+		assertEquals(AdmissionBand.SAFE, assessment.band());
+	}
+
+	@Test
+	void marksOverWhenMarginIsClearlyAboveOnePointFive() {
+		// 허용 오차는 경계 오차만 흡수한다. 여유 1.51은 정말로 한도를 넘은 값이라 OVER다.
+		double student = new GradeScaleConverter().toNineGradeEquivalent(1.65);
+		CutForecast forecast = new CutForecast(4.46, 0.5, 3);
+
+		BandAssessment assessment = calculator.assess(forecast, student);
+
+		assertEquals(1.51, assessment.margin().getAsDouble(), DELTA);
+		assertEquals(AdmissionBand.OVER, assessment.band());
+	}
+
+	@Test
+	void treatsGradeJustBelowLowGradeStartByFloatingPointErrorAsLowGrade() {
+		// 5.0에서 부동소수점 오차만큼 모자란 값도 5.0과 같이 하위 성적 기준(0.96)을 적용한다.
+		CutForecast forecast = new CutForecast(5.5, 0.5, 3);
+
+		BandAssessment assessment = calculator.assess(forecast, 5.0 - 1e-12);
+
+		assertEquals(AdmissionBand.MATCH, assessment.band());
 	}
 
 	@Test

@@ -55,11 +55,11 @@ public final class AdmissionBandCalculator {
 			double studentGrade,
 			int years
 	) {
-		if (probability >= parameters.overProbability() && margin > parameters.overGap()) {
+		if (probability >= parameters.overProbability() && margin > parameters.overGap() + ProbabilityParameters.EPSILON) {
 			return AdmissionBand.OVER;
 		}
 
-		boolean lowGrade = studentGrade >= parameters.lowGradeStart();
+		boolean lowGrade = studentGrade >= parameters.lowGradeStart() - ProbabilityParameters.EPSILON;
 		double safeThreshold = lowGrade ? parameters.lowGradeSafe() : parameters.safe();
 		boolean enoughYears = !lowGrade || years >= parameters.lowGradeMinYears();
 

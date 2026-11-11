@@ -30,8 +30,9 @@ public record YearlyCut(int year, double cut50, double cut70) {
 	/**
 	 * 예측에 쓸 수 있는 정상 행인지 판정한다.
 	 * 뒤집히지 않았고, 두 컷의 폭이 전형 계열의 한도(교과 1.5, 학종 1.0) 이하여야 한다.
+	 * 폭이 한도와 정확히 같을 때 소수 뺄셈 오차로 불량이 되지 않도록 허용 오차를 둔다.
 	 */
 	public boolean isClean(TrackKind track) {
-		return !isInverted() && width() <= track.maxCleanWidth();
+		return !isInverted() && width() <= track.maxCleanWidth() + ProbabilityParameters.EPSILON;
 	}
 }

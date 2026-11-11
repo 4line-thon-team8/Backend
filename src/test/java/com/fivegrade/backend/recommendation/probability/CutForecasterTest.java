@@ -125,6 +125,28 @@ class CutForecasterTest {
 	}
 
 	@Test
+	void acceptsWidthAtTheLimitDespiteFloatingPointError() {
+		// 4.4 - 2.9는 double로 1.5000000000000004라서 한도 1.5를 넘는 것으로 보였다.
+		assertTrue(new YearlyCut(2026, 2.9, 4.4).isClean(TrackKind.SUBJECT));
+		assertTrue(new YearlyCut(2026, 2.1, 3.1).isClean(TrackKind.HOLISTIC));
+	}
+
+	@Test
+	void stillRejectsWidthClearlyOverTheLimit() {
+		assertFalse(new YearlyCut(2026, 2.9, 4.41).isClean(TrackKind.SUBJECT));
+		assertFalse(new YearlyCut(2026, 2.1, 3.11).isClean(TrackKind.HOLISTIC));
+	}
+
+	@Test
+	void usesCleanRowWhenWidthIsExactlyAtTheLimitDespiteFloatingPointError() {
+		Optional<CutForecast> forecast = forecaster.forecast(
+				List.of(new YearlyCut(2026, 2.9, 4.4)), RECENT, TrackKind.SUBJECT);
+
+		assertTrue(forecast.isPresent());
+		assertEquals(1, forecast.get().years());
+	}
+
+	@Test
 	void returnsEmptyWhenThereAreNoCuts() {
 		Optional<CutForecast> forecast = forecaster.forecast(List.of(), RECENT, TrackKind.SUBJECT);
 
