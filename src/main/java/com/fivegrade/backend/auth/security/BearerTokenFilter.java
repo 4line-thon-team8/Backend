@@ -18,7 +18,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-
+/**
+ * Authorization 헤더의 Bearer 토큰으로 사용자를 인증한다.
+ *
+ * SecurityConfig에서 직접 생성해 SecurityFilterChain에 등록한다.
+ * 서블릿 필터로 중복 등록되지 않도록 @Component나 별도 필터 Bean으로 등록하지 않는다.
+ */
 public class BearerTokenFilter extends OncePerRequestFilter {
 
     public static final String RAW_TOKEN_ATTRIBUTE =
@@ -40,7 +45,7 @@ public class BearerTokenFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
 
-// 공개 API는 Authorization 헤더가 남아 있어도 토큰을 검사하지 않는다.
+        // 공개 API는 Authorization 헤더가 남아 있어도 토큰을 검사하지 않는다.
         if ("OPTIONS".equals(request.getMethod())
                 || PublicApiPaths.MATCHER.matches(request)) {
             chain.doFilter(request, response);
