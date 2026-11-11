@@ -28,8 +28,14 @@ public final class SimulationService {
             RecommendationQueryMapper queryMapper,
             RecommendationService recommendationService
     ) {
-        this.averageCalculator = Objects.requireNonNull(averageCalculator);
-        this.queryMapper = Objects.requireNonNull(queryMapper);
+        this.averageCalculator = Objects.requireNonNull(
+                averageCalculator
+        );
+
+        this.queryMapper = Objects.requireNonNull(
+                queryMapper
+        );
+
         this.recommendationService = Objects.requireNonNull(
                 recommendationService
         );
@@ -58,6 +64,7 @@ public final class SimulationService {
                 request.applicationPreference()
         );
 
+        // 계산·DB 오류는 예외로 전파하고 빈 정상 결과로 바꾸지 않는다.
         RecommendationResult result = Objects.requireNonNull(
                 recommendationService.recommend(query),
                 "recommendation result is required"
@@ -72,6 +79,7 @@ public final class SimulationService {
                 ))
                 .toList();
 
+        // 카드 순서, gradeGap, null 값과 warnings를 그대로 전달한다.
         return new SimulationAnalysis(
                 displayAverage,
                 subjects,
