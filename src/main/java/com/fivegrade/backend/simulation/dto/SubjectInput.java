@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 /**
  * 과목 한 개의 성적. 사용자 성적은 5등급제 값만 받는다.
  *
- * 허용 과목 코드 목록은 환산 쪽에서 전달받은 뒤 서비스 단계에서 대조한다.
+ * 이번 배포에서 허용하는 과목 코드 목록은 {@code SimulationRequestValidator} 가 서비스 단계에서 대조한다.
  * 여기서는 형식만 확인한다.
  *
  * @param subjectRef  요청 행과 결과를 연결하는 비식별 식별자
