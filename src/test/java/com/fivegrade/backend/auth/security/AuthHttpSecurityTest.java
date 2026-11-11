@@ -53,6 +53,56 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost:5173")
 class AuthHttpSecurityTest {
 
+    @Test
+    void publicDictionariesIgnoreStaleTokens() throws Exception {
+        for (String path : new String[]{"/api/majors", "/api/subjects"}) {
+            mvc.perform(get(path)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string(
+                            HttpHeaders.CACHE_CONTROL, "no-store"));
+        }
+
+        verify(tokens, never()).findValidUserId(anyString());
+    }
+
+    @Test
+    void signupAndLoginIgnoreStaleTokens() throws Exception {
+        when(auth.login(any())).thenReturn(
+                new LoginResponse(new IssuedAccessToken(
+                        "response-token",
+                        Instant.parse("2026-11-11T03:00:00Z")
+                ))
+        );
+
+        mvc.perform(post("/api/auth/signup")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer expired")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(credentials()))
+                .andExpect(status().isCreated());
+
+        mvc.perform(post("/api/auth/login")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer expired")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(credentials()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("response-token"));
+
+        verify(tokens, never()).findValidUserId(anyString());
+    }
+
+    @Test
+    void protectedApisStillRejectStaleTokens() throws Exception {
+        mvc.perform(get("/api/simulations/probe")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
+                .andExpect(status().isUnauthorized());
+
+        // 공개 사전 경로라도 GET 이외의 메서드는 공개 대상이 아니다.
+        mvc.perform(post("/api/majors")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
+                .andExpect(status().isUnauthorized());
+    }
+
     @Configuration(proxyBeanMethods = false)
     @EnableWebMvc
     @Import({SecurityConfig.class, AuthErrorWriter.class, GlobalExceptionHandler.class,
@@ -78,6 +128,11 @@ class AuthHttpSecurityTest {
         @GetMapping("/api/reports/other-owner")
         void otherOwner(@AuthenticationPrincipal AuthenticatedUser user) {
             user.requireOwner(99L);
+        }
+
+        @GetMapping({"/api/majors", "/api/subjects"})
+        Map<String, String> dictionary() {
+            return Map.of("result", "ok");
         }
     }
 

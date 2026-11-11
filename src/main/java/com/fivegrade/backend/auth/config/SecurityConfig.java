@@ -1,5 +1,6 @@
 package com.fivegrade.backend.auth.config;
 
+import com.fivegrade.backend.auth.security.PublicApiPaths;
 import com.fivegrade.backend.auth.security.AuthErrorWriter;
 import com.fivegrade.backend.auth.security.BearerTokenFilter;
 import com.fivegrade.backend.auth.security.ApiCorsProcessor;
@@ -59,12 +60,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/auth/signup", "/api/auth/login").permitAll()
-                        // 실제 사전 엔드포인트가 확정되면 이 목록도 명세와 맞춘다.
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/majors", "/api/majors/**",
-                                "/api/subjects", "/api/subjects/**").permitAll()
+                        .requestMatchers(PublicApiPaths.MATCHER).permitAll()
                         .requestMatchers("/api/**").authenticated()
                         // 문서 노출은 기존 OPENAPI_ENABLED 설정이 제어한다.
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**",

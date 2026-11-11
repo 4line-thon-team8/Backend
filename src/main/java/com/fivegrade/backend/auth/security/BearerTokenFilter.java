@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/** SecurityConfigでのみ登録する。@Componentで二重登録しない。 */
+
 public class BearerTokenFilter extends OncePerRequestFilter {
 
     public static final String RAW_TOKEN_ATTRIBUTE =
@@ -39,7 +39,10 @@ public class BearerTokenFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-        if ("OPTIONS".equals(request.getMethod())) {
+
+// 공개 API는 Authorization 헤더가 남아 있어도 토큰을 검사하지 않는다.
+        if ("OPTIONS".equals(request.getMethod())
+                || PublicApiPaths.MATCHER.matches(request)) {
             chain.doFilter(request, response);
             return;
         }
