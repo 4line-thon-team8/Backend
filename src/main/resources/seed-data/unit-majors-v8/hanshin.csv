@@ -255,9 +255,12 @@ AI시스템반도체학,학생부교과(학생부우수자),SEMICONDUCTOR
 신학・인문융합계열,학생부교과(학교장추천),OTHER_FOREIGN_LIT
 신학・인문융합계열,학생부교과(학교장추천),RELIGION
 심리・아동학,학생부교과(참인재),CONSUMER_FAMILY
+심리・아동학,학생부교과(참인재),PSYCHOLOGY
 심리・아동학,학생부교과(기회균형선발),CONSUMER_FAMILY
+심리・아동학,학생부교과(기회균형선발),PSYCHOLOGY
 심리・아동학,학생부교과(농어촌학생),CONSUMER_FAMILY
-영미문화학,학생부교과(참인재),CHEMISTRY
+심리・아동학,학생부교과(농어촌학생),PSYCHOLOGY
+영미문화학,학생부교과(참인재),ENGLISH_LIT
 일본학,학생부교과(참인재),JAPANESE_LIT
 자유전공학부,학생부교과(참인재),UNDECLARED
 자유전공학부,학생부교과(학생부우수자),UNDECLARED

@@ -70,9 +70,13 @@ AI소프트웨어융합학부,학교장추천인재,AI
 국어국문·문예창작학부,기회균형통합,KOREAN_LIT
 국어국문·문예창작학부,학교장추천인재,KOREAN_LIT
 국제통상학과,Do Dream,INTL_STUDIES
+국제통상학과,Do Dream,INTL_TRADE
 국제통상학과,기회균형통합,INTL_STUDIES
+국제통상학과,기회균형통합,INTL_TRADE
 국제통상학과,불교추천인재,INTL_STUDIES
+국제통상학과,불교추천인재,INTL_TRADE
 국제통상학과,학교장추천인재,INTL_STUDIES
+국제통상학과,학교장추천인재,INTL_TRADE
 글로벌무역학과,특성화고등을졸업한재직자(면접형),INTL_TRADE
 글로벌무역학과,특성화고등을졸업한재직자(서류형),INTL_TRADE
 기계로봇에너지공학과,Do Dream,ENERGY_ENG
@@ -210,8 +214,11 @@ AI소프트웨어융합학부,학교장추천인재,AI
 융합환경과학과,불교추천인재,EARTH_ENV_SCI
 융합환경과학과,학교장추천인재,EARTH_ENV_SCI
 의료인공지능공학과,Do Dream,AI
+의료인공지능공학과,Do Dream,BIOMEDICAL_ENG
 의료인공지능공학과,기회균형통합,AI
+의료인공지능공학과,기회균형통합,BIOMEDICAL_ENG
 의료인공지능공학과,학교장추천인재,AI
+의료인공지능공학과,학교장추천인재,BIOMEDICAL_ENG
 의생명공학과,Do Dream,BIOMEDICAL_ENG
 의생명공학과,기회균형통합,BIOMEDICAL_ENG
 의생명공학과,학교장추천인재,BIOMEDICAL_ENG
@@ -282,3 +289,9 @@ AI소프트웨어융합학부,학교장추천인재,AI
 회계학과,기회균형통합,ACCOUNTING
 회계학과,불교추천인재,ACCOUNTING
 회계학과,학교장추천인재,ACCOUNTING
+북한학전공,Do Dream,POLITICAL_SCI
+북한학전공,학교장추천인재,POLITICAL_SCI
+범죄학과,특성화고등을졸업한재직자(면접형),SOCIOLOGY
+범죄학과,특성화고등을졸업한재직자(면접형),LAW
+범죄학과,특성화고등을졸업한재직자(서류형),SOCIOLOGY
+범죄학과,특성화고등을졸업한재직자(서류형),LAW

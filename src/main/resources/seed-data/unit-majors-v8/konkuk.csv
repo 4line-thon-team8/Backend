@@ -42,9 +42,13 @@ KU자유전공학부,KU자기추천,UNDECLARED
 국어국문학과,KU지역균형,KOREAN_LIT
 국어국문학과,기회균형,KOREAN_LIT
 국제무역학과,KU자기추천,INTL_STUDIES
+국제무역학과,KU자기추천,INTL_TRADE
 국제무역학과,KU지역균형,INTL_STUDIES
+국제무역학과,KU지역균형,INTL_TRADE
 국제무역학과,기회균형,INTL_STUDIES
+국제무역학과,기회균형,INTL_TRADE
 국제무역학과,특성화고교졸업자,INTL_STUDIES
+국제무역학과,특성화고교졸업자,INTL_TRADE
 기계·로봇·자동차공학부,KU자기추천,MECHANICAL_ENG
 기계·로봇·자동차공학부,KU지역균형,MECHANICAL_ENG
 기계·로봇·자동차공학부,기회균형,MECHANICAL_ENG

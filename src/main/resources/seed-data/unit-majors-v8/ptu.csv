@@ -117,11 +117,17 @@ AI콘텐츠학과,학생부교과(기초생활수급자등전형),AI
 국제무역행정학과,학생부교과(특성화고교졸업자특별전형),PUBLIC_ADMIN
 국제무역행정학과,학생부교과(기초생활수급자등전형),PUBLIC_ADMIN
 국제물류학과,학생부교과(PTU교과),INTL_STUDIES
+국제물류학과,학생부교과(PTU교과),INTL_TRADE
 국제물류학과,학생부교과(PTU추천),INTL_STUDIES
+국제물류학과,학생부교과(PTU추천),INTL_TRADE
 국제물류학과,학생부교과(PTU기회균형),INTL_STUDIES
+국제물류학과,학생부교과(PTU기회균형),INTL_TRADE
 국제물류학과,학생부교과(농어촌학생특별전형),INTL_STUDIES
+국제물류학과,학생부교과(농어촌학생특별전형),INTL_TRADE
 국제물류학과,학생부교과(특성화고교졸업자특별전형),INTL_STUDIES
+국제물류학과,학생부교과(특성화고교졸업자특별전형),INTL_TRADE
 국제물류학과,학생부교과(기초생활수급자등전형),INTL_STUDIES
+국제물류학과,학생부교과(기초생활수급자등전형),INTL_TRADE
 국제지역및신학자율전공학부,학생부교과(PTU교과),KOREAN_LIT
 국제지역및신학자율전공학부,학생부교과(PTU교과),ENGLISH_LIT
 국제지역및신학자율전공학부,학생부교과(PTU교과),CHINESE_LIT

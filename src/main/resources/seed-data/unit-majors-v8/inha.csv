@@ -41,11 +41,17 @@ dept_name,track_name,major_code
 국어교육과,학생부종합(농어촌학생),KOREAN_EDU
 국어교육과,학생부교과(지역균형),KOREAN_EDU
 국제통상학과,학생부종합(인하미래인재(면접형)),INTL_STUDIES
+국제통상학과,학생부종합(인하미래인재(면접형)),INTL_TRADE
 국제통상학과,학생부종합(인하미래인재(서류형)),INTL_STUDIES
+국제통상학과,학생부종합(인하미래인재(서류형)),INTL_TRADE
 국제통상학과,학생부종합(고른기회),INTL_STUDIES
+국제통상학과,학생부종합(고른기회),INTL_TRADE
 국제통상학과,학생부종합(농어촌학생),INTL_STUDIES
+국제통상학과,학생부종합(농어촌학생),INTL_TRADE
 국제통상학과,학생부종합(서해5도지역출신자),INTL_STUDIES
+국제통상학과,학생부종합(서해5도지역출신자),INTL_TRADE
 국제통상학과,학생부교과(지역균형),INTL_STUDIES
+국제통상학과,학생부교과(지역균형),INTL_TRADE
 금융투자학과,학생부종합(특성화고 등을 졸업한 재직자),FINANCE
 금융투자학과,학생부종합(평생학습자),FINANCE
 기계공학과,학생부종합(인하미래인재(면접형)),MECHANICAL_ENG

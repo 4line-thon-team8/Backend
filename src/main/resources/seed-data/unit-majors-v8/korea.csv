@@ -123,11 +123,17 @@ dept_name,track_name,major_code
 보건정책관리학부,계열적합전형,HEALTH_TECH
 보건정책관리학부,고른기회전형,HEALTH_TECH
 보건환경융합과학부,학교추천,EARTH_ENV_SCI
+보건환경융합과학부,학교추천,HEALTH_TECH
 보건환경융합과학부,학업우수전형,EARTH_ENV_SCI
+보건환경융합과학부,학업우수전형,HEALTH_TECH
 보건환경융합과학부,계열적합전형,EARTH_ENV_SCI
+보건환경융합과학부,계열적합전형,HEALTH_TECH
 보건환경융합과학부,고른기회전형,EARTH_ENV_SCI
+보건환경융합과학부,고른기회전형,HEALTH_TECH
 보건환경융합과학부,다문화전형,EARTH_ENV_SCI
+보건환경융합과학부,다문화전형,HEALTH_TECH
 보건환경융합과학부,재직자전형,EARTH_ENV_SCI
+보건환경융합과학부,재직자전형,HEALTH_TECH
 불어불문학과,학교추천,FRENCH_LIT
 불어불문학과,학업우수전형,FRENCH_LIT
 불어불문학과,계열적합전형,FRENCH_LIT

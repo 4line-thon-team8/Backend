@@ -1,6 +1,8 @@
 dept_name,track_name,major_code
 AI신약학과,학생부교과(고교추천전형),AI
+AI신약학과,학생부교과(고교추천전형),BIO_ENG
 AI신약학과,학생부종합(덕성인재전형Ⅱ),AI
+AI신약학과,학생부종합(덕성인재전형Ⅱ),BIO_ENG
 Art & Design대학,학생부종합(기회균형전형Ⅰ_특성화고교),DESIGN
 Art & Design대학,학생부종합(기회균형전형Ⅰ_특성화고교),FINE_ART
 가상현실융합학과,학생부교과(고교추천전형),COMPUTER_ENG
