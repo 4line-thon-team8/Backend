@@ -1,7 +1,9 @@
 package com.fivegrade.backend;
 
 import org.flywaydb.core.Flyway;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -9,7 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Testcontainers DB의 별도 스키마에서 V3 → V4를 검증한다.
@@ -33,7 +35,17 @@ class EmailNormalizationMigrationTests {
     @Autowired
     private JdbcTemplate jdbc;
 
-    @Test
+    @BeforeEach
+    void resetTestSchema() {
+        dropTestSchema();
+    }
+
+    @AfterEach
+    void cleanUpTestSchema() {
+        dropTestSchema();
+    }
+
+    @RepeatedTest(2)
     void upgradesV3ToV4WithoutLosingUser() {
         // 별도 스키마에 V3까지 적용한다.
         Flyway v3 = flywayTo("3");
@@ -91,6 +103,15 @@ class EmailNormalizationMigrationTests {
                         WHERE version = '4'
                           AND success = true
                         """, Integer.class)
+        );
+    }
+
+    private void dropTestSchema() {
+        // Testcontainers의 고정된 테스트 전용 스키마에만 실행한다.
+        jdbc.execute(
+                "DROP SCHEMA IF EXISTS "
+                        + SCHEMA
+                        + " CASCADE"
         );
     }
 

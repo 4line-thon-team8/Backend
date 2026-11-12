@@ -9,6 +9,12 @@ import java.util.Locale;
  * 이메일 형식이나 가입 가능 여부를 결정하는 클래스는 아니다.
  *
  * 입력 이메일이 예외 메시지에 포함되지 않도록 한다.
+ *
+ * <p>정규화 예시:</p>
+ * <pre>
+ * 입력: "  Demo@Example.com  "
+ * 결과: "demo@example.com"
+ * </pre>
  */
 public final class EmailNormalizer {
 
@@ -34,8 +40,3 @@ public final class EmailNormalizer {
         return normalized;
     }
 }
-
-/* 출력 예시
-입력: "  Demo@Example.com  "
-결과: "demo@example.com"
- */
