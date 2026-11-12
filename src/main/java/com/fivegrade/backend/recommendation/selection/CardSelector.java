@@ -24,7 +24,7 @@ import java.util.function.BooleanSupplier;
  * 모든 경로를 돌고도 부족하면 마지막으로 과잉(OVER) → 먼 카드(FAR) → 평가 불가(UNRATED) 후보를
  * 같은 경로 순서로 채운다. 이 카드들은 결과에서 안내(warnings)가 붙는다.
  *
- * 상향 카드를 요청했는데 소신 카드가 하나도 없고 소신 후보가 있으면, 가장 약한 카드를 빼고 소신 카드를 넣는다.
+ * 상향 카드를 요청했는데 소신 카드가 하나도 없고 소신 후보가 있으면, 덜 아까운 카드를 빼고 소신 카드를 넣는다. 같은 대학의 카드를 빼야 들어가는 경우도 시도한다.
  *
  * 구간 안에서 후보를 고르는 기준(구간별 목표 가능성에 가까운 순)과 최종 지망 순서(소신 → 적정 → 안정 → 보충)는
  * 기획이 확정하기 전의 임시 기준이다. 바꿀 때는 {@link #PREFERRED_PROBABILITY}와 {@link #RANK_ORDER}만 고친다.
@@ -146,22 +146,25 @@ public final class CardSelector {
 			}
 		}
 
-		/** 상향 카드를 요청했는데 하나도 못 담았을 때, 가장 약한 카드를 빼고 소신 카드 1장을 넣는다. */
+		/**
+		 * 상향 카드를 요청했는데 하나도 못 담았을 때, 덜 아까운 카드를 빼고 소신 카드 1장을 넣는다.
+		 * 대학당 한도나 같은 학과 제한 때문에 넣지 못할 수 있으므로, 소신 후보마다 뺄 수 있는 카드를
+		 * 덜 아까운 순서로 모두 시도한다. 같은 대학의 카드를 빼야 들어가는 경우도 여기서 처리된다.
+		 */
 		void forceOneReach() {
 			for (CandidateKind stage : STAGE_ORDER) {
 				for (ScoredCandidate candidate : candidates(stage, AdmissionBand.REACH)) {
-					if (isFull()) {
-						ScoredCandidate victim = weakest();
-						if (victim == null) {
+					if (!isFull()) {
+						if (tryAdd(candidate)) {
 							return;
 						}
+					}
+					for (ScoredCandidate victim : evictionOrder()) {
 						remove(victim);
 						if (tryAdd(candidate)) {
 							return;
 						}
 						tryAdd(victim);
-					} else if (tryAdd(candidate)) {
-						return;
 					}
 				}
 			}
@@ -201,33 +204,29 @@ public final class CardSelector {
 			departmentKeys.remove(candidate.departmentKey());
 		}
 
-		/** 빼도 가장 덜 아까운 카드. 보충 카드가 있으면 그중 마지막, 없으면 가장 많이 담은 구간의 마지막 카드 */
-		private ScoredCandidate weakest() {
+		/**
+		 * 뺄 수 있는 카드를 덜 아까운 순서로 돌려준다. 소신 카드는 빼지 않는다.
+		 * 보충 카드(평가 불가 → 먼 카드 → 과잉) 다음에, 많이 담은 구간(안정·적정)의 마지막에 담은 카드 순서다.
+		 */
+		private List<ScoredCandidate> evictionOrder() {
+			List<ScoredCandidate> order = new ArrayList<>();
 			for (int i = LAST_RESORT_ORDER.size() - 1; i >= 0; i--) {
-				ScoredCandidate card = lastOf(LAST_RESORT_ORDER.get(i));
-				if (card != null) {
-					return card;
-				}
+				addReversed(order, LAST_RESORT_ORDER.get(i));
 			}
-			AdmissionBand crowded = null;
-			int crowdedCount = 0;
-			for (AdmissionBand band : TARGET_ORDER) {
-				int count = count(band);
-				if (band != AdmissionBand.REACH && count > crowdedCount) {
-					crowded = band;
-					crowdedCount = count;
-				}
+			List<AdmissionBand> crowdedFirst = new ArrayList<>(List.of(AdmissionBand.SAFE, AdmissionBand.MATCH));
+			crowdedFirst.sort(Comparator.comparingInt(this::count).reversed());
+			for (AdmissionBand band : crowdedFirst) {
+				addReversed(order, band);
 			}
-			return crowded == null ? null : lastOf(crowded);
+			return order;
 		}
 
-		private ScoredCandidate lastOf(AdmissionBand band) {
+		private void addReversed(List<ScoredCandidate> order, AdmissionBand band) {
 			for (int i = selected.size() - 1; i >= 0; i--) {
 				if (selected.get(i).band() == band) {
-					return selected.get(i);
+					order.add(selected.get(i));
 				}
 			}
-			return null;
 		}
 
 	}

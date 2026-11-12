@@ -209,6 +209,26 @@ class CardSelectorTest {
 		assertEquals(6, selected.size());
 	}
 
+	@Test
+	void replacesSameUniversityCardToFitReachCard() {
+		// 대학 1(2장 가득) + 다른 대학 안정·적정 카드. 소신 후보는 대학 1에만 있다.
+		// 다른 대학 카드만 빼 보면 대학 1 한도에 막혀 실패하므로, 대학 1의 카드를 빼야 소신 카드가 들어간다.
+		List<ScoredCandidate> candidates = new ArrayList<>();
+		candidates.add(candidate(1L, "대학1", "학과A", CandidateKind.DESIRED_MAJOR, AdmissionBand.SAFE, 0.90));
+		candidates.add(candidate(1L, "대학1", "학과B", CandidateKind.DESIRED_MAJOR, AdmissionBand.MATCH, 0.65));
+		candidates.add(candidate(1L, "대학1", "학과C", CandidateKind.DESIRED_MAJOR, AdmissionBand.REACH, 0.25));
+		addMany(candidates, 2, CandidateKind.DESIRED_MAJOR, AdmissionBand.SAFE, 0.90);
+		addMany(candidates, 2, CandidateKind.DESIRED_MAJOR, AdmissionBand.MATCH, 0.65);
+
+		List<ScoredCandidate> withoutRequest = selector.select(candidates, false);
+		List<ScoredCandidate> withRequest = selector.select(candidates, true);
+
+		assertEquals(0, count(withoutRequest, AdmissionBand.REACH));
+		assertEquals(6, withRequest.size());
+		assertEquals(1, count(withRequest, AdmissionBand.REACH));
+		assertTrue(withRequest.stream().filter(card -> card.universityId() == 1L).count() <= 2);
+	}
+
 	private void addMany(
 			List<ScoredCandidate> target,
 			int count,
