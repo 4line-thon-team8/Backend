@@ -1,6 +1,7 @@
 package com.fivegrade.backend.simulation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -75,6 +76,7 @@ class SimulationControllerTest {
 				.andExpect(jsonPath("$.recommendations[0].candidateKind").value("DESIRED_MAJOR"))
 				.andExpect(jsonPath("$.recommendations[0].gradeGap").value(1.23))
 				.andExpect(jsonPath("$.recommendations[0].evidence.basisYears").value(3))
+				.andExpect(jsonPath("$.recommendations[0].evidence.isNewOrMergedDepartment").value(false))
 				.andExpect(jsonPath("$.recommendations[0].reason.generationMethod").value("template"))
 				.andExpect(jsonPath("$.recommendations[1].category").value("UNRATED"))
 				.andExpect(jsonPath("$.warnings[0].code").value("FEWER_THAN_SIX_CARDS"))
@@ -90,6 +92,9 @@ class SimulationControllerTest {
 		// 값이 없는 필드는 키를 빼지 않고 null 로 내려간다.
 		assertTrue(body.contains("\"gradeGap\":null"));
 		assertTrue(body.contains("\"rank\":null"));
+		assertTrue(body.contains("\"isNewOrMergedDepartment\":null"));
+		// 공개 응답 필드명은 isNewOrMergedDepartment 하나뿐이다. 옛 이름이 함께 내려가면 안 된다.
+		assertFalse(body.contains("\"newOrMergedDepartment\""));
 		assertEquals(List.of("majors", "subjects", "recommend"), calls);
 	}
 

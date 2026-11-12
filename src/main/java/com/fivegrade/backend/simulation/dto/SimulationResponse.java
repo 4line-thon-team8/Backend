@@ -1,5 +1,6 @@
 package com.fivegrade.backend.simulation.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -50,11 +51,16 @@ public record SimulationResponse(
 	) {
 	}
 
-	/** 추천 근거. 적재되지 않은 값은 null이다. */
+	/**
+	 * 추천 근거. 적재되지 않은 값은 null이다.
+	 *
+	 * 학과 신설·통합 여부는 FE와 합의한 이름(isNewOrMergedDepartment)으로 내려간다.
+	 * 이름이 is 로 시작하는 Boolean 컴포넌트가 JSON 키에서 is 가 빠지지 않도록 키를 직접 지정한다.
+	 */
 	public record Evidence(
 			Integer quota,
 			Double competitionRate,
-			Boolean newOrMergedDepartment,
+			@JsonProperty("isNewOrMergedDepartment") Boolean isNewOrMergedDepartment,
 			int basisYears
 	) {
 	}
