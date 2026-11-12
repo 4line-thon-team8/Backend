@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fivegrade.backend.recommendation.dto.CandidateKind;
 import com.fivegrade.backend.recommendation.dto.CardEvidence;
@@ -13,6 +16,7 @@ import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.recommendation.dto.WarningCode;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
+import com.fivegrade.backend.report.generation.ConsultingReport;
 import com.fivegrade.backend.report.generation.ReportGenerator;
 import com.fivegrade.backend.report.generation.ReportSection;
 import com.fivegrade.backend.report.generation.TemplateReportGenerator;
@@ -57,6 +61,15 @@ class SimulationReportAssemblerTest {
         }
         assertTrue(report.overallAssessment().text().contains("1.13"));
         assertTrue(report.overallAssessment().text().contains("대학별"));
+        assertTrue(report.overallAssessment().text().contains("입력한 과목의 5등급 기준"));
+        assertFalse(report.overallAssessment().text().contains("국수영사과"));
+        assertFalse(report.applicationStrategy().text().contains("임의로"));
+        String allSections = reportText(result.report());
+        if (count == 0) {
+            assertEquals(1, occurrences(allSections, expectedWarning(WarningCode.NO_CANDIDATES, count)));
+        } else if (count < RecommendationResult.MAX_CARDS) {
+            assertEquals(1, occurrences(allSections, expectedWarning(WarningCode.FEWER_THAN_SIX_CARDS, count)));
+        }
         assertTrue(report.closing().text().contains("보장하지 않습니다"));
         assertThrows(UnsupportedOperationException.class, () -> result.recommendations().clear());
     }
@@ -101,25 +114,37 @@ class SimulationReportAssemblerTest {
 
     @ParameterizedTest
     @EnumSource(WarningCode.class)
-    void preservesAndExplainsEachWarningAtItsScope(WarningCode code) {
+    void preservesWarningsAndExplainsEachMeaningOnce(WarningCode code) {
         boolean global = switch (code) {
             case NO_CANDIDATES, FEWER_THAN_SIX_CARDS, REACH_CARD_NOT_AVAILABLE -> true;
             default -> false;
         };
         var warning = global ? RecommendationWarning.forResult(code)
                 : RecommendationWarning.forCard(code, 1);
+        CandidateKind kind = switch (code) {
+            case SIMILAR_MAJOR_USED -> CandidateKind.SIMILAR_MAJOR;
+            case OTHER_TRACK_USED -> CandidateKind.OTHER_TRACK;
+            case UNDECLARED_USED -> CandidateKind.UNDECLARED;
+            default -> CandidateKind.DESIRED_MAJOR;
+        };
         List<RecommendedCard> cards = code == WarningCode.NO_CANDIDATES ? List.of()
                 : List.of(card(1, code == WarningCode.UNRATED_CARD
-                ? AdmissionBand.UNRATED : AdmissionBand.MATCH, CandidateKind.DESIRED_MAJOR));
-        var baseline = assembler.assemble(analysis(new RecommendationResult(cards, List.of())));
-        var result = assembler.assemble(analysis(new RecommendationResult(cards, List.of(warning))));
+                ? AdmissionBand.UNRATED : AdmissionBand.MATCH, kind));
+        var warnings = List.of(warning, warning);
+        var result = assembler.assemble(analysis(new RecommendationResult(cards, warnings)));
 
-        assertEquals(List.of(warning), result.warnings());
-        String baselineText = global ? baseline.report().applicationStrategy().text()
-                : baseline.recommendations().getFirst().reason().text();
-        String actualText = global ? result.report().applicationStrategy().text()
+        assertEquals(warnings, result.warnings());
+        String expected = expectedWarning(code, cards.size());
+        String actual = global ? reportText(result.report())
                 : result.recommendations().getFirst().reason().text();
-        assertTrue(actualText.length() > baselineText.length());
+        assertEquals(1, occurrences(actual, expected));
+        if (!global) {
+            assertFalse(reportText(result.report()).contains(expected));
+        }
+        for (String obsolete : List.of("유사 학과로 확대한 후보라는 점",
+                "선호 전형과 다른 전형이 포함되었다는 점", "입결 근거 부족으로 구간을 평가하지 못한 후보")) {
+            assertFalse(actual.contains(obsolete));
+        }
     }
 
     @Test
@@ -154,6 +179,69 @@ class SimulationReportAssemblerTest {
         var failing = new SimulationReportAssembler((average, recommendation) -> { throw failure; });
         assertSame(failure, assertThrows(IllegalStateException.class,
                 () -> failing.assemble(analysis(RecommendationResult.empty()))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void rejectsUnknownWarningRankBeforeGeneration(int cardCount) {
+        List<RecommendedCard> cards = IntStream.rangeClosed(1, cardCount)
+                .mapToObj(rank -> card(rank, AdmissionBand.MATCH, CandidateKind.DESIRED_MAJOR))
+                .toList();
+        // 정상 DTO 생성자는 잘못된 rank를 이미 거부하므로 경계 검사는 대역으로 검증한다.
+        var malformed = mock(RecommendationResult.class);
+        when(malformed.cards()).thenReturn(cards);
+        when(malformed.warnings()).thenReturn(List.of(
+                RecommendationWarning.forCard(WarningCode.LOW_CONFIDENCE_CARD, cardCount + 1)
+        ));
+        var reportGenerator = mock(ReportGenerator.class);
+        var checkedAssembler = new SimulationReportAssembler(reportGenerator);
+
+        var failure = assertThrows(IllegalStateException.class,
+                () -> checkedAssembler.assemble(analysis(malformed)));
+
+        assertEquals("warning rank does not refer to an existing card", failure.getMessage());
+        verifyNoInteractions(reportGenerator);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void normalRecommendationDtoAlreadyRejectsUnknownWarningRank(int cardCount) {
+        List<RecommendedCard> cards = IntStream.rangeClosed(1, cardCount)
+                .mapToObj(rank -> card(rank, AdmissionBand.MATCH, CandidateKind.DESIRED_MAJOR))
+                .toList();
+        assertThrows(IllegalArgumentException.class, () -> new RecommendationResult(cards, List.of(
+                RecommendationWarning.forCard(WarningCode.LOW_CONFIDENCE_CARD, cardCount + 1)
+        )));
+    }
+
+    private String reportText(ConsultingReport report) {
+        return String.join(" ", report.greetingSummary().text(), report.overallAssessment().text(),
+                report.applicationStrategy().text(), report.closing().text());
+    }
+
+    private int occurrences(String text, String expected) {
+        int count = 0;
+        int offset = 0;
+        while ((offset = text.indexOf(expected, offset)) >= 0) {
+            count++;
+            offset += expected.length();
+        }
+        return count;
+    }
+
+    private String expectedWarning(WarningCode code, int count) {
+        return switch (code) {
+            case NO_CANDIDATES -> "현재 조건과 자료 범위에서 추천 가능한 후보가 없습니다.";
+            case FEWER_THAN_SIX_CARDS -> "추천 가능한 후보가 최대 "
+                    + RecommendationResult.MAX_CARDS + "장보다 적어 " + count + "장을 안내합니다.";
+            case REACH_CARD_NOT_AVAILABLE -> "소신 카드 포함을 요청했지만 해당 구간 후보를 포함하지 못했습니다.";
+            case SIMILAR_MAJOR_USED -> "희망 학과와 비슷한 학과로 범위를 넓힌 후보입니다.";
+            case OTHER_TRACK_USED -> "선호 전형과 다른 전형으로 범위를 넓힌 후보입니다.";
+            case UNDECLARED_USED -> "자율전공·무전공 등 학과를 정하지 않고 선발하는 후보입니다. "
+                    + "입학 후 전공 선택 방식과 제한을 확인해 주세요.";
+            case UNRATED_CARD -> "사용할 입결 컷이 없어 구간을 평가하지 못했습니다.";
+            case LOW_CONFIDENCE_CARD -> "추천 서비스가 근거 자료가 제한적인 후보로 안내했습니다. 해석에 주의해 주세요.";
+        };
     }
 
     private SimulationAnalysis analysis(RecommendationResult recommendation) {
