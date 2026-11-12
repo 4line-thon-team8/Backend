@@ -27,7 +27,7 @@ class SeedUnitMajorMapTest {
 
 	@Test
 	void 적재_개수가_CSV와_같다() {
-		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_344);
+		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_635);
 	}
 
 	@Test
@@ -35,9 +35,10 @@ class SeedUnitMajorMapTest {
 		Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM admission_units", Integer.class);
 		Integer mapped = jdbc.queryForObject("SELECT COUNT(DISTINCT unit_id) FROM unit_major_map", Integer.class);
 
-		// 국방·군사·무용처럼 학과 사전에 대응하는 코드가 없는 모집단위와,
-		// 이름만으로 전문직 학과(의예·약학 등)와 같다고 볼 수 없어 제외한 모집단위(제약공학·수산생명의학 등)는 연결하지 않았다.
-		assertThat(mapped).isEqualTo(11_663);
+		// 국방·군사·안보처럼 학과 사전에 대응하는 코드가 없는 모집단위는 연결하지 않았다.
+		// 제약공학·수산생명의학 등 이름만으로는 전문직 학과(의예·약학 등)와 같다고 볼 수 없는 모집단위는
+		// 전문직 코드가 아닌 관련 학과(생명공학·화학공학·동물자원 등)에만 연결했다.
+		assertThat(mapped).isEqualTo(11_706);
 		assertThat(mapped * 100 / total).isGreaterThanOrEqualTo(90);
 	}
 
