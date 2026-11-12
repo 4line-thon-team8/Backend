@@ -98,7 +98,8 @@ public final class TemplateReportGenerator implements ReportGenerator {
         return String.join(" ", sentences);
     }
 
-    private String warningText(WarningCode code, int count) {
+    /** 경고 코드별 안내 문구. 리포트 문장과 응답의 warnings.message가 같은 문구를 쓰도록 공개한다. */
+    public static String warningText(WarningCode code, int count) {
         return switch (code) {
             case NO_CANDIDATES -> "현재 조건과 자료 범위에서 추천 가능한 후보가 없습니다.";
             case FEWER_THAN_SIX_CARDS -> "추천 가능한 후보가 최대 "
