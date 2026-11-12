@@ -102,7 +102,8 @@ public class RecommendationCandidateLoader {
 
 		List<CandidateUnit> candidates = new ArrayList<>();
 		for (AdmissionUnit unit : admissionUnitRepository.findAllWithUniversityByIdIn(allIds)) {
-			if (EligibilityRestrictions.isRestricted(unit.getTrackName())) {
+			if (EligibilityRestrictions.isRestricted(
+					unit.getUniversity().getName(), unit.getDeptName(), unit.getTrackName())) {
 				continue;
 			}
 			List<UnitYearData> years = yearsByUnit.getOrDefault(unit.getId(), List.of());

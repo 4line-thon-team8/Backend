@@ -34,7 +34,8 @@ class EligibilityRestrictionsTest {
 				"사이버국방전형",
 				"학생부교과(성인학습자전형)",
 				"정부위탁전형",
-				"기독교지도자전형"
+				"기독교지도자전형",
+				"학생부교과(웨슬리)"
 		);
 
 		for (String trackName : restricted) {
@@ -60,6 +61,17 @@ class EligibilityRestrictionsTest {
 		for (String trackName : open) {
 			assertFalse(EligibilityRestrictions.isRestricted(trackName), trackName);
 		}
+	}
+
+	@Test
+	void restrictsOnlyTheNamedUnitWhenRestrictionIsNotInTrackName() {
+		String track = "학생부교과(교과성적우수자)";
+
+		// 협성대 신학과는 세례증명서가 필수라 제외하지만, 같은 전형의 다른 학과는 남긴다.
+		assertTrue(EligibilityRestrictions.isRestricted("협성대학교", "신학과", track));
+		assertFalse(EligibilityRestrictions.isRestricted("협성대학교", "경영학과", track));
+		assertFalse(EligibilityRestrictions.isRestricted("다른대학교", "신학과", track));
+		assertFalse(EligibilityRestrictions.isRestricted("협성대학교", "신학과", "학생부교과(일반)"));
 	}
 
 	@Test

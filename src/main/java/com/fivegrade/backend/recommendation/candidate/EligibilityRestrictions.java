@@ -26,12 +26,39 @@ public final class EligibilityRestrictions {
 			// 계약학과·특별 선발
 			"계약학과", "조기취업", "영농", "군위탁",
 			// 종교 추천
-			"불교추천", "가톨릭지도자", "재림교회", "크리스천리더", "기독교지도자", "신학특별",
+			"불교추천", "가톨릭지도자", "재림교회", "크리스천리더", "기독교지도자", "신학특별", "웨슬리",
 			// 실기·예체능
 			"실기", "예체능"
 	);
 
+	/**
+	 * 전형 이름에는 드러나지 않지만 모집요강상 특정 학과만 종교 서류(세례증명서 등)가 필수인 모집단위.
+	 * 같은 전형의 다른 학과는 일반 학생이 지원할 수 있으므로 대학·학과·전형을 모두 지정해 제외한다.
+	 */
+	private static final List<RestrictedUnit> RESTRICTED_UNITS = List.of(
+			// 협성대 신학과는 교과성적우수자 전형도 세례증명서가 필수다.
+			new RestrictedUnit("협성대학교", "신학과", "학생부교과(교과성적우수자)")
+	);
+
 	private EligibilityRestrictions() {
+	}
+
+	private record RestrictedUnit(String universityName, String deptName, String trackName) {
+	}
+
+	/** 전형 이름과 모집단위(대학·학과)로 일반 학생이 지원할 수 없다고 판단되면 true */
+	public static boolean isRestricted(String universityName, String deptName, String trackName) {
+		if (isRestricted(trackName)) {
+			return true;
+		}
+		for (RestrictedUnit unit : RESTRICTED_UNITS) {
+			if (unit.universityName().equals(universityName)
+					&& unit.deptName().equals(deptName)
+					&& unit.trackName().equals(trackName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** 전형 이름만으로 일반 학생이 지원할 수 없다고 판단되면 true */
