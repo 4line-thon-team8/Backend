@@ -60,6 +60,9 @@ public record ProbabilityParameters(
 			0.99, 1.5
 	);
 
+	/** 예측 신뢰도를 LOW 로 보는 σ 기준. σ 가 이 값을 넘으면 LOW 다. (HIGH ≤ 0.45, MEDIUM ≤ 0.60, LOW > 0.60) */
+	public static final double LOW_CONFIDENCE_SIGMA = 0.60;
+
 	/**
 	 * 정상 컷 연수에 맞는 σ 기본값. 3년 이상은 3년과 같다.
 	 */
@@ -74,5 +77,19 @@ public record ProbabilityParameters(
 			return sigmaTwoYears;
 		}
 		return sigmaThreeYears;
+	}
+
+	/**
+	 * 예측 컷의 불확실성 σ. 정상 컷 연수가 적을수록, 두 컷의 폭이 클수록 커진다.
+	 */
+	public double sigma(CutForecast forecast) {
+		return baseSigma(forecast.years()) + widthSigmaFactor * forecast.width();
+	}
+
+	/**
+	 * σ 가 LOW 기준을 넘는, 신뢰도가 낮은 예측인지 여부.
+	 */
+	public boolean isLowConfidence(CutForecast forecast) {
+		return sigma(forecast) > LOW_CONFIDENCE_SIGMA + EPSILON;
 	}
 }

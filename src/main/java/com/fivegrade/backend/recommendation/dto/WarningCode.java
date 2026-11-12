@@ -14,8 +14,10 @@ package com.fivegrade.backend.recommendation.dto;
  * - SIMILAR_MAJOR_USED / OTHER_TRACK_USED / UNDECLARED_USED: 해당 카드의 candidateKind 가
  *   각각 SIMILAR_MAJOR / OTHER_TRACK / UNDECLARED 일 때 그 카드마다 붙는다.
  * - UNRATED_CARD: 해당 카드의 band 가 UNRATED 일 때(gradeGap 은 null) 붙는다.
- * - LOW_CONFIDENCE_CARD: 구간은 계산했지만 근거 입결이 적을 때 붙는다.
- *   기준은 카드의 evidence.basisYears 가 0 또는 1인 경우이며, 구현 때 확정한다.
+ * - LOW_CONFIDENCE_CARD: 구간은 계산했지만 예측 오차 폭(σ)이 커서 신뢰도가 낮을 때 붙는다.
+ *   σ 는 정상 컷 연수와 두 컷의 폭으로 정해지며 0.60 을 넘으면 LOW 다.
+ *   정상 컷 연수가 0·1년이면 폭과 상관없이 LOW 이고, 2년 이상은 두 컷의 폭이 넓을 때만 LOW 가 된다.
+ *   구간을 평가하지 못한 UNRATED 카드에는 붙지 않는다.
  */
 public enum WarningCode {
 

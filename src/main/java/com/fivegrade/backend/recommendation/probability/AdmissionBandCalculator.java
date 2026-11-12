@@ -36,8 +36,7 @@ public final class AdmissionBandCalculator {
 		}
 
 		double center = forecast.high() + parameters.driftShift();
-		double sigma = parameters.baseSigma(forecast.years())
-				+ parameters.widthSigmaFactor() * forecast.width();
+		double sigma = parameters.sigma(forecast);
 		double margin = center - studentGrade;
 		double probability = NormalDistribution.cdf(margin / sigma);
 
