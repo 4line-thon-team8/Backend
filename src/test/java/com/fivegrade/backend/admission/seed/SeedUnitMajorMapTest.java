@@ -27,7 +27,7 @@ class SeedUnitMajorMapTest {
 
 	@Test
 	void 적재_개수가_CSV와_같다() {
-		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_635);
+		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_711);
 	}
 
 	@Test
@@ -142,6 +142,16 @@ class SeedUnitMajorMapTest {
 	@Test
 	void 전남대_에너지공학계열은_에너지공학에만_연결된다() {
 		assertThat(majorCodesOf("전남대학교", "에너지공학계열")).containsExactly("ENERGY_ENG");
+	}
+
+	@Test
+	void 전수_점검에서_바로잡은_매핑이_유지된다() {
+		// 이름이 가리키는 공학·학과 코드가 빠졌거나, 이름과 다른 코드에 연결되어 있던 모집단위들이다.
+		assertThat(majorCodesOf("홍익대학교", "기계ㆍ시스템디자인공학과")).contains("MECHANICAL_ENG");
+		assertThat(majorCodesOf("건국대학교", "항공우주·모빌리티공학과")).contains("AEROSPACE_ENG");
+		assertThat(majorCodesOf("제주대학교", "해양산업경찰학과")).containsExactly("PUBLIC_ADMIN");
+		assertThat(majorCodesOf("경희대학교", "조리&푸드디자인학과"))
+				.containsExactlyInAnyOrder("FOOD_NUTRITION", "TOURISM");
 	}
 
 	private List<String> majorCodesOf(String universityName, String deptName) {
