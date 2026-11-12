@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * V6 시드(대학·모집단위·연도별 입결·평가요소)가 마이그레이션으로 적재되었는지 확인한다.
+ * 연도별 입결 행 수는 V9(과거 입결)까지 적용한 최종 상태 기준이다.
  * 앱이 뜰 때 Flyway 가 시드를 넣으므로 별도 준비 없이 바로 조회한다.
  */
 @Import(TestcontainersConfiguration.class)
@@ -26,7 +27,8 @@ class SeedAdmissionUnitsTest {
 	void 적재_개수가_CSV와_같다() {
 		assertThat(count("universities")).isEqualTo(53);
 		assertThat(count("admission_units")).isEqualTo(11_767);
-		assertThat(count("admission_unit_years")).isEqualTo(23_698);
+		// V6 이 넣은 23,698행 + V9 의 과거 입결 10,441행
+		assertThat(count("admission_unit_years")).isEqualTo(34_139);
 		assertThat(count("eval_weights")).isEqualTo(1_489);
 	}
 
