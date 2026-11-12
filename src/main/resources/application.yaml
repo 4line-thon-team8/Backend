@@ -36,3 +36,8 @@ springdoc:
     enabled: ${OPENAPI_ENABLED:false}
   swagger-ui:
     enabled: ${OPENAPI_ENABLED:false}
+
+# 쉼표로 구분한 실제 FE Origin만 허용한다. 미설정이면 교차 출처 허용 없음.
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}

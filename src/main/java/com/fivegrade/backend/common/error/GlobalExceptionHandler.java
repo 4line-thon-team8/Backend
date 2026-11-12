@@ -23,6 +23,8 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 
 /**
  * 컨트롤러에서 발생한 예외를 한곳에서 ErrorResponse(code, message)로 바꾼다.
@@ -31,7 +33,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  * - 성적 등 입력값은 응답 메시지와 로그에 넣지 않는다. 검증 실패 메시지에는 필드 이름까지만 쓴다.
  *   예외 메시지(getMessage)에는 입력 조각이 섞일 수 있어 로그에도 예외 클래스와 발생 위치만 남긴다.
  * - 5xx 응답은 어디서 던졌든 ErrorCode 의 고정 문구만 내려주고, 원인은 서버 로그에만 남긴다.
- * - 401/403 은 ErrorCode 만 정의해 두었다. 실제 연결은 인증(B-11) 방식이 정해진 뒤에 맞춘다.
+ * - MVC의 인증·권한 예외를 공통 401/403으로 변환하며, 401에는 Bearer 인증 헤더를 포함한다.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -50,6 +52,28 @@ public class GlobalExceptionHandler {
 			return build(errorCode, errorCode.getMessage());
 		}
 		return build(errorCode, e.getMessage());
+	}
+
+	/** MVC 내부에서 발생한 인증 예외를 공통 401 응답으로 변환한다. */
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<ErrorResponse> handleAuthentication(
+			AuthenticationException e
+	) {
+		return build(
+				ErrorCode.UNAUTHORIZED,
+				ErrorCode.UNAUTHORIZED.getMessage()
+		);
+	}
+
+	/** MVC 내부에서 발생한 권한 예외를 공통 403 응답으로 변환한다. */
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ErrorResponse> handleAccessDenied(
+			AccessDeniedException e
+	) {
+		return build(
+				ErrorCode.FORBIDDEN,
+				ErrorCode.FORBIDDEN.getMessage()
+		);
 	}
 
 	/** 요청 본문(@Valid @RequestBody) 검증 실패 */
@@ -144,7 +168,18 @@ public class GlobalExceptionHandler {
 	}
 
 	private ResponseEntity<ErrorResponse> build(ErrorCode errorCode, String message, HttpHeaders headers) {
-		return ResponseEntity.status(errorCode.getStatus()).headers(headers).body(ErrorResponse.of(errorCode, message));
+		HttpHeaders responseHeaders = new HttpHeaders();
+		// 기존 헤더를 복사해 405 응답의 Allow 헤더 등을 유지한다.
+		responseHeaders.addAll(headers);
+		// 오류 응답이 캐시에 저장되지 않도록 한다.
+		responseHeaders.setCacheControl("no-store");
+		// Bearer 인증이 필요함을 401 응답 헤더로 알린다.
+		if (errorCode.getStatus().value() == 401) {responseHeaders.set(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
+		}
+
+		return ResponseEntity.status(errorCode.getStatus())
+				.headers(responseHeaders)
+				.body(ErrorResponse.of(errorCode, message));
 	}
 
 	/**
