@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 /**
  * 분석 결과에서 저장에 필요한 최소 항목만 뽑아 리포트로 자동 저장한다 (#39).
  *
- * 저장하는 것은 인사 요약 문장과 추천 원서(대학·학과·전형·구간 라벨·추천 이유·전형 참조 ID)뿐이다.
+ * 저장하는 것은 추천 원서(대학·학과·전형·구간 라벨·추천 이유·전형 참조 ID)뿐이다(기능명세 3.3).
+ * 인사·요약 문장은 희망 학과와 선호 전형을 요약한 문장이라 저장하지 않는다. 저장 여부를 나중에 바꿀 수 있게
+ * 컬럼(greeting_summary)과 ReportDraft 필드는 남겨 두고 null 로 채운다.
  * 성적, 평균, 환산 결과, 요청 원본, 전체 report 는 저장하지 않는다(P-04).
  *
  * 저장은 부가 기능이라 실패해도 분석 응답을 막지 않는다. 실패하면 예외를 던지지 않고 FAILED 로 알린다.
@@ -55,7 +57,7 @@ public class SimulationReportSaver {
 						explained.reason().text(),
 						explained.card().unitId()))
 				.toList();
-		return new ReportDraft(result.report().greetingSummary().text(), items);
+		return new ReportDraft(null, items);
 	}
 
 	public enum Status {

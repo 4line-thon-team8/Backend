@@ -2,6 +2,7 @@ package com.fivegrade.backend.simulation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -211,6 +212,8 @@ class SimulationControllerTest {
 		assertEquals("SAFE", draft.getValue().recommendations().get(0).label());
 		assertEquals(10L, draft.getValue().recommendations().get(0).unitId());
 		assertEquals("UNRATED", draft.getValue().recommendations().get(1).label());
+		// 인사·요약 문장은 희망 학과·선호 전형을 요약한 것이라 저장하지 않는다(기능명세 3.3).
+		assertNull(draft.getValue().greetingSummary());
 	}
 
 	@Test
