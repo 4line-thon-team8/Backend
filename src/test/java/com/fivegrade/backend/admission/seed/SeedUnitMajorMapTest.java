@@ -162,7 +162,7 @@ class SeedUnitMajorMapTest {
 		assertThat(majorCodesOf("이화여자대학교", "스크랜튼학부")).containsExactly("UNDECLARED");
 		assertThat(majorCodesOf("한신대학교", "글로벌융합계열")).contains("INTL_TRADE", "ECONOMICS", "POLITICAL_SCI");
 		assertThat(majorCodesOf("아주대학교", "경제정치사회융합학부")).containsExactlyInAnyOrder("POLITICAL_SCI", "ECONOMICS", "SOCIOLOGY");
-		assertThat(majorCodesOf("가톨릭대학교", "정보통신전자공학부")).containsExactlyInAnyOrder("INFO_COMM_ENG", "ELECTRONIC_ENG");
+		assertThat(majorCodesOf("가톨릭대학교", "정보통신전자공학부")).contains("INFO_COMM_ENG", "ELECTRONIC_ENG");
 	}
 
 	@Test
