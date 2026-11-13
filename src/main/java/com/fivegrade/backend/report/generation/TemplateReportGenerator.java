@@ -1,18 +1,27 @@
 package com.fivegrade.backend.report.generation;
 
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
-import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.recommendation.dto.WarningCode;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-/** 확인된 결과만 사용해 설명을 생성한다. 문구는 FE·기획 검토용이다. */
+/** 기획 확정 문구를 사용한다. 화면 안내는 공개 warnings와 FE에서 담당한다. */
 public final class TemplateReportGenerator implements ReportGenerator {
+
+    private static final String GREETING =
+            "입력해 주신 성적과 지원 방향을 바탕으로 수시 원서 추천 리스트를 안내해 드려요.";
+
+    private static final String AVERAGE_NOTICE =
+            "입력한 과목의 5등급 기준 성적을 같은 비중으로 계산한 참고 평균이에요. "
+                    + "대학별 입결의 반영 교과·가중치·산출 방식과 달라 비교에 오차가 있을 수 있어요.";
+
+    private static final String CLOSING =
+            "이 리포트는 과거 입결을 바탕으로 한 참고용 추정이에요. "
+                    + "최신 모집요강을 꼭 확인하고, 최종 지원 결정은 직접 판단해 주세요.";
 
     @Override
     public GeneratedReport generate(
@@ -23,94 +32,113 @@ public final class TemplateReportGenerator implements ReportGenerator {
         Objects.requireNonNull(recommendation);
 
         int count = recommendation.cards().size();
-        String summary = "안녕하세요. 입력한 성적과 지원 방향을 바탕으로 분석 결과를 안내합니다.";
-        String assessment = "입력한 과목의 5등급 기준 성적을 동일 비중으로 계산한 참고 평균은 "
+
+        String assessment = "참고 평균은 "
                 + displayAverage.setScale(2, RoundingMode.HALF_UP).toPlainString()
-                + "입니다. 대학별 입결의 반영교과·가중치·산출 방식과 달라 비교에 오차가 있을 수 있습니다.";
+                + "이에요. "
+                + AVERAGE_NOTICE;
 
-        // 같은 의미의 기본 안내와 경고가 같은 문장을 사용하도록 해 중복을 제거한다.
-        Set<String> strategy = new LinkedHashSet<>();
-        if (count == 0) {
-            strategy.add(warningText(WarningCode.NO_CANDIDATES, count));
-            strategy.add("입력한 희망 학과와 지원 옵션, 제공되는 자료 범위를 확인해 주세요.");
-        } else {
-            strategy.add("추천 순서는 추천 서비스가 정한 순서입니다. 카드별 구간과 자료 한계를 함께 확인해 주세요.");
-            if (count < RecommendationResult.MAX_CARDS) {
-                strategy.add(warningText(WarningCode.FEWER_THAN_SIX_CARDS, count));
-            }
-        }
-        for (RecommendationWarning warning : recommendation.warnings()) {
-            if (warning.rank() == null) {
-                strategy.add(warningText(warning.code(), count));
-            }
-        }
-        strategy.add("수능최저 충족 여부와 지원 자격은 최신 모집요강에서 별도로 확인해 주세요.");
+        String strategy = count == 0
+                ? warningText(WarningCode.NO_CANDIDATES, count)
+                : "추천 후보별 지원 구간과 최신 모집요강을 함께 확인해 주세요. "
+                + "수능최저 충족 여부와 지원 자격도 별도로 확인해 주세요.";
 
+        // 부족·확장·소신 미포함 안내는 공개 warnings에서 한 번만 노출한다.
         ConsultingReport report = new ConsultingReport(
-                ReportSection.template(summary),
+                ReportSection.template(GREETING),
                 ReportSection.template(assessment),
-                ReportSection.template(String.join(" ", strategy)),
-                ReportSection.template(
-                        "이 결과는 지원 검토를 돕는 참고용 추정 자료이며 실제 합격 여부나 합격 확률을 보장하지 않습니다. "
-                                + "최신 전형 정보를 확인하며 지원 계획을 세워 보세요."
-                )
+                ReportSection.template(strategy),
+                ReportSection.template(CLOSING)
         );
+
         List<CardReason> reasons = recommendation.cards().stream()
                 .map(card -> new CardReason(
                         card.rank(),
-                        ReportSection.template(reason(card, recommendation.warnings(), count))
+                        ReportSection.template(reason(card))
                 ))
                 .toList();
+
         return new GeneratedReport(report, reasons);
     }
 
-    private String reason(
-            RecommendedCard card,
-            List<RecommendationWarning> warnings,
-            int count
-    ) {
-        Set<String> sentences = new LinkedHashSet<>();
-        sentences.add(card.universityName() + " " + card.departmentName()
-                + "의 " + card.admissionTypeName() + " 후보입니다.");
+    private String reason(RecommendedCard card) {
+        List<String> sentences = new ArrayList<>();
+
+        sentences.add(
+                card.universityName()
+                        + " "
+                        + card.departmentName()
+                        + "의 "
+                        + card.admissionTypeName()
+                        + " 후보예요."
+        );
+
         sentences.add(switch (card.band()) {
-            case SAFE -> "추천 모델에서 안정 구간으로 분류했습니다.";
-            case MATCH -> "추천 모델에서 적정 구간으로 분류했습니다.";
-            case REACH -> "추천 모델에서 소신 구간으로 분류했습니다.";
-            case FAR -> "추천 모델에서 현재 성적으로 접근하기 먼 구간으로 분류했습니다.";
-            case OVER -> "추천 모델에서 성적 여유가 큰 구간으로 분류했습니다. 다른 지원 후보도 함께 검토해 주세요.";
-            case UNRATED -> warningText(WarningCode.UNRATED_CARD, count);
+            case SAFE ->
+                    "현재 성적과 과거 입결을 비교했을 때, 비교적 여유 있게 지원을 검토할 수 있는 후보예요.";
+            case MATCH ->
+                    "현재 성적이 과거 입결을 바탕으로 추정한 지원권과 비슷한 수준인 후보예요.";
+            case REACH ->
+                    "현재 성적보다 다소 높은 지원권의 후보로, 다른 지원 카드와 균형을 고려해 도전해 볼 수 있어요.";
+            case FAR ->
+                    "현재 성적과 추정 지원권의 차이가 커, 지원 여부를 신중하게 검토할 필요가 있는 후보예요.";
+            case OVER ->
+                    "현재 성적이 추정 지원권보다 충분히 앞서는 후보예요. 더 높은 지원권의 후보도 함께 검토해 보세요.";
+            case UNRATED ->
+                    warningText(WarningCode.UNRATED_CARD, 0);
         });
-        sentences.add(switch (card.candidateKind()) {
-            case DESIRED_MAJOR -> "희망 학과에 해당하는 후보입니다.";
-            case SIMILAR_MAJOR -> warningText(WarningCode.SIMILAR_MAJOR_USED, count);
-            case OTHER_TRACK -> warningText(WarningCode.OTHER_TRACK_USED, count);
-            case UNDECLARED -> warningText(WarningCode.UNDECLARED_USED, count);
-        });
+
         if (Boolean.TRUE.equals(card.evidence().newOrMergedDepartment())) {
-            sentences.add("신설·통합 모집단위로 입결이 변동할 수 있습니다.");
+            sentences.add(
+                    "신설·통합 모집단위로 입결이 변동할 수 있어요."
+            );
         }
-        for (RecommendationWarning warning : warnings) {
-            if (Objects.equals(warning.rank(), card.rank())) {
-                sentences.add(warningText(warning.code(), count));
-            }
-        }
-        sentences.add("최신 모집요강과 지원 자격을 확인해 주세요.");
+
+        // candidateKind와 경고는 원본 결과에 보존하고 여기서 반복 설명하지 않는다.
+        sentences.add(
+                "최신 모집요강과 지원 자격을 확인해 주세요."
+        );
+
         return String.join(" ", sentences);
     }
 
-    /** 경고 코드별 안내 문구. 리포트 문장과 응답의 warnings.message가 같은 문구를 쓰도록 공개한다. */
-    public static String warningText(WarningCode code, int count) {
+    /**
+     * 공개 매퍼에서도 사용한다.
+     * OTHER_TRACK_USED는 필터링하고 빈 문구를 노출하지 않는다.
+     */
+    public static String warningText(
+            WarningCode code,
+            int cardCount
+    ) {
+        Objects.requireNonNull(code);
+
         return switch (code) {
-            case NO_CANDIDATES -> "현재 조건과 자료 범위에서 추천 가능한 후보가 없습니다.";
-            case FEWER_THAN_SIX_CARDS -> "추천 가능한 후보가 최대 "
-                    + RecommendationResult.MAX_CARDS + "장보다 적어 " + count + "장을 안내합니다.";
-            case REACH_CARD_NOT_AVAILABLE -> "소신 카드 포함을 요청했지만 해당 구간 후보를 포함하지 못했습니다.";
-            case SIMILAR_MAJOR_USED -> "희망 학과와 비슷한 학과로 범위를 넓힌 후보입니다.";
-            case OTHER_TRACK_USED -> "선호 전형과 다른 전형으로 범위를 넓힌 후보입니다.";
-            case UNDECLARED_USED -> "자율전공·무전공 등 학과를 정하지 않고 선발하는 후보입니다. "
-                    + "입학 후 전공 선택 방식과 제한을 확인해 주세요.";
-            case UNRATED_CARD -> "사용할 입결 컷이 없어 구간을 평가하지 못했습니다.";
-            case LOW_CONFIDENCE_CARD -> "추천 서비스가 근거 자료가 제한적인 후보로 안내했습니다. 해석에 주의해 주세요.";
+            case NO_CANDIDATES ->
+                    "조건에 맞는 원서를 찾지 못했어요. 희망 학과나 선호 전형을 바꿔서 다시 시도해 주세요.";
+
+            case FEWER_THAN_SIX_CARDS ->
+                    "현재 조건에서 추천 가능한 후보는 "
+                            + cardCount
+                            + "장이에요.";
+
+            case REACH_CARD_NOT_AVAILABLE ->
+                    "요청하신 소신 카드는 조건에 맞는 후보가 없어 포함하지 못했어요.";
+
+            case SIMILAR_MAJOR_USED ->
+                    "일부 후보는 희망 학과와 비슷한 학과로 넓혀 찾았어요.";
+
+            case OTHER_TRACK_USED ->
+                    "";
+
+            case UNDECLARED_USED ->
+                    "자율전공·무전공 후보는 학과를 정하지 않고 뽑는 모집단위예요. "
+                            + "입학 후 전공 선택 방식을 확인해 주세요.";
+
+            case UNRATED_CARD ->
+                    "지원 수준을 판단할 입결 자료가 부족해요. 최신 모집요강과 대학의 입시 결과를 확인해 주세요.";
+
+            case LOW_CONFIDENCE_CARD ->
+                    "추천 근거가 되는 입결 자료가 적어 신뢰도가 다소 낮으니 결과 해석에 주의해 주세요";
         };
     }
 }
