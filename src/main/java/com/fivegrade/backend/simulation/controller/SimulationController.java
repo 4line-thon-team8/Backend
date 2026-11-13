@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 성적과 희망 학과 값은 로그나 오류 메시지에 남기지 않는다.
  *
  * 분석이 끝나면 로그인 사용자의 리포트 최소 항목을 자동 저장한다(#39). 저장이 실패해도 분석 응답은 그대로 내려가고,
- * 추천이 0장이면 저장하지 않는다. 저장 결과를 응답에 담는 필드(saveStatus 등)는 #61 확정 후에 추가한다.
+ * 추천이 0장이면 저장하지 않는다. 저장 결과는 응답의 saveStatus·reportId 로 알린다(기능명세 S-05 #15).
  */
 @RestController
 @RequestMapping("/api/simulations")
@@ -93,11 +93,11 @@ public class SimulationController {
 
 		SimulationAnalysis analysis = simulationService.analyzeValidated(request);
 		SimulationReportResult result = assembler.assemble(analysis);
-		reportSaver.save(user.id(), reportKey, result);
+		SimulationReportSaver.SaveOutcome saved = reportSaver.save(user.id(), reportKey, result);
 
 		return ResponseEntity.ok()
 				.cacheControl(CacheControl.noStore())
-				.body(SimulationResponseMapper.toResponse(result));
+				.body(SimulationResponseMapper.toResponse(result, saved));
 	}
 
 	/** 헤더가 없으면 요청마다 새 키를 만들어 저장한다. 헤더가 있는데 비었거나 너무 길면 400이다. */

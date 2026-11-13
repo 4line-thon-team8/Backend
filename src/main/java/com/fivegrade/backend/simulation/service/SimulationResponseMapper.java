@@ -20,6 +20,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * 내부 결과(SimulationReportResult)를 공개 응답으로 바꾼다.
@@ -37,6 +38,10 @@ public final class SimulationResponseMapper {
 
 	private static final int GRADE_GAP_SCALE = 2;
 
+	static final String SAVE_SAVED = "SAVED";
+	static final String SAVE_FAILED = "FAILED";
+	static final String SAVE_NOT_SAVED = "NOT_SAVED";
+
 	/** 카드별로 붙어 있어도 결과 전체 안내 한 번으로 모아 내려주는 범위 확장 안내. 응답 순서도 이 순서를 따른다. */
 	private static final List<WarningCode> RANGE_EXPANSION_CODES =
 			List.of(WarningCode.SIMILAR_MAJOR_USED, WarningCode.UNDECLARED_USED);
@@ -44,7 +49,13 @@ public final class SimulationResponseMapper {
 	private SimulationResponseMapper() {
 	}
 
+	/** 저장 결과가 없는 변환. 저장 대상이 아닌 것(NOT_SAVED)으로 내려간다. */
 	public static SimulationResponse toResponse(SimulationReportResult result) {
+		return toResponse(result, null);
+	}
+
+	/** @param saveOutcome 자동 저장 결과. null 이면 저장 대상이 아닌 것(NOT_SAVED)으로 본다. */
+	public static SimulationResponse toResponse(SimulationReportResult result, SimulationReportSaver.SaveOutcome saveOutcome) {
 		Objects.requireNonNull(result);
 		int cardCount = result.recommendations().size();
 
@@ -61,8 +72,25 @@ public final class SimulationResponseMapper {
 				subjects,
 				recommendations,
 				warnings,
-				toReport(result.report())
+				toReport(result.report()),
+				saveStatusOf(saveOutcome),
+				saveOutcome != null && isSaved(saveOutcome) ? saveOutcome.reportId() : null
 		);
+	}
+
+	private static String saveStatusOf(SimulationReportSaver.SaveOutcome outcome) {
+		if (outcome == null) {
+			return SAVE_NOT_SAVED;
+		}
+		return switch (outcome.status()) {
+			case SAVED, ALREADY_SAVED -> SAVE_SAVED;
+			case FAILED -> SAVE_FAILED;
+			case SKIPPED_NO_CARDS -> SAVE_NOT_SAVED;
+		};
+	}
+
+	private static boolean isSaved(SimulationReportSaver.SaveOutcome outcome) {
+		return SAVE_SAVED.equals(saveStatusOf(outcome));
 	}
 
 	private static RecommendationItem toItem(ExplainedCard explained) {

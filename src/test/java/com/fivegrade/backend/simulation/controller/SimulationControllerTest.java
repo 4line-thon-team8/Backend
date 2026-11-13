@@ -76,13 +76,14 @@ class SimulationControllerTest {
 
 	private final List<String> calls = new ArrayList<>();
 	private final ReportStorageService storageService = mock(ReportStorageService.class);
+	private final UUID savedId = UUID.randomUUID();
 
 	@BeforeEach
 	void 로그인_사용자와_저장_결과를_준비한다() {
 		SecurityContextHolder.getContext()
 				.setAuthentication(new TestingAuthenticationToken(new AuthenticatedUser(USER_ID), null));
 		when(storageService.save(eq(USER_ID), anyString(), any()))
-				.thenReturn(new SavedReport(UUID.randomUUID(), Instant.now(), true));
+				.thenReturn(new SavedReport(savedId, Instant.now(), true));
 	}
 
 	@AfterEach
@@ -203,7 +204,9 @@ class SimulationControllerTest {
 						.header("Idempotency-Key", "key-1")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(VALID_BODY))
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.saveStatus").value("SAVED"))
+				.andExpect(jsonPath("$.reportId").value(savedId.toString()));
 
 		ArgumentCaptor<ReportDraft> draft = ArgumentCaptor.forClass(ReportDraft.class);
 		verify(storageService).save(eq(USER_ID), eq("key-1"), draft.capture());
@@ -223,9 +226,26 @@ class SimulationControllerTest {
 		mockMvc.perform(post("/api/simulations")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(VALID_BODY))
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.saveStatus").value("NOT_SAVED"))
+				.andExpect(jsonPath("$.reportId").value(org.hamcrest.Matchers.nullValue()));
 
 		verify(storageService, never()).save(any(), any(), any());
+	}
+
+	@Test
+	void 같은_키로_이미_저장돼_있으면_저장된_것으로_알린다() throws Exception {
+		when(storageService.save(eq(USER_ID), eq("key-1"), any()))
+				.thenReturn(new SavedReport(savedId, Instant.now(), false));
+		MockMvc mockMvc = mockMvcWith(query -> twoCardResult(), null);
+
+		mockMvc.perform(post("/api/simulations")
+						.header("Idempotency-Key", "key-1")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(VALID_BODY))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.saveStatus").value("SAVED"))
+				.andExpect(jsonPath("$.reportId").value(savedId.toString()));
 	}
 
 	@Test
@@ -237,7 +257,9 @@ class SimulationControllerTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(VALID_BODY))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.recommendations.length()").value(2));
+				.andExpect(jsonPath("$.recommendations.length()").value(2))
+				.andExpect(jsonPath("$.saveStatus").value("FAILED"))
+				.andExpect(jsonPath("$.reportId").value(org.hamcrest.Matchers.nullValue()));
 	}
 
 	@Test

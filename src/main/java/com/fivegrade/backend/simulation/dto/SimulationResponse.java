@@ -3,12 +3,13 @@ package com.fivegrade.backend.simulation.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * POST /api/simulations 공개 응답(초안).
  *
- * 지금까지 합의한 필드만 담는다. conversion, saveStatus, disclaimer 등 미확정 필드는
- * 공개 응답 계약(#61)이 확정된 뒤에 추가한다. 내부 결과(SimulationReportResult)를 그대로 내보내지 않고
+ * 지금까지 합의한 필드만 담는다. conversion, disclaimer 등 미확정 필드는 공개 응답 계약(#61)이 확정된 뒤에 추가한다.
+ * 자동 저장 결과(saveStatus, reportId)는 기능명세 S-05 #15(저장 안내 문구)에 필요해서 포함한다. 내부 결과(SimulationReportResult)를 그대로 내보내지 않고
  * SimulationResponseMapper 에서 이 모양으로 바꾼다. 필드 이름을 바꿀 때는 매퍼만 고치면 된다.
  *
  * 값이 없는 필드(gradeGap, evidence 일부, warnings.rank)는 키를 빼지 않고 null로 내려간다.
@@ -19,13 +20,18 @@ import java.util.List;
  * @param warnings        안내 코드. 없으면 빈 배열. 유사 학과·자율전공으로 넓힌 안내는 결과 전체 안내(rank null)로 한 번만
  * 내려가고, 선호 전형이 아닌 전형으로 넓힌 안내(OTHER_TRACK_USED)는 내려가지 않는다. 카드의 넓힌 경로는 candidateKind 로 알 수 있다.
  * @param report          컨설팅 리포트
+ * @param saveStatus      리포트 자동 저장 결과. SAVED(저장됨, 같은 Idempotency-Key 로 이미 저장된 경우 포함),
+ * FAILED(저장 실패, 분석 결과는 그대로 내려감), NOT_SAVED(저장 대상 아님, 추천 0장)
+ * @param reportId        저장된 리포트 ID. SAVED 일 때만 값이 있고 나머지는 null
  */
 public record SimulationResponse(
 		BigDecimal displayAverage,
 		List<SubjectResult> subjects,
 		List<RecommendationItem> recommendations,
 		List<WarningItem> warnings,
-		ReportBody report
+		ReportBody report,
+		String saveStatus,
+		UUID reportId
 ) {
 
 	/** 요청 과목 행 하나. 사용자가 입력한 5등급 값을 그대로 돌려준다. */
