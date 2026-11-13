@@ -4,9 +4,11 @@ import com.fivegrade.backend.conversion.calculation.FiveGradeAverageCalculator;
 import com.fivegrade.backend.recommendation.service.RecommendationService;
 import com.fivegrade.backend.report.generation.ReportGenerator;
 import com.fivegrade.backend.report.generation.TemplateReportGenerator;
+import com.fivegrade.backend.report.service.ReportStorageService;
 import com.fivegrade.backend.simulation.service.DefaultRecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.RecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
+import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +49,11 @@ public class SimulationConfig {
 	@Bean
 	SimulationReportAssembler simulationReportAssembler(ReportGenerator reportGenerator) {
 		return new SimulationReportAssembler(reportGenerator);
+	}
+
+	@Bean
+	SimulationReportSaver simulationReportSaver(ReportStorageService reportStorageService) {
+		return new SimulationReportSaver(reportStorageService);
 	}
 
 }
