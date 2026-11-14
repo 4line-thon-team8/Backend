@@ -2,12 +2,21 @@ package com.fivegrade.backend.simulation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fivegrade.backend.auth.model.AuthenticatedUser;
 import com.fivegrade.backend.common.error.BusinessException;
 import com.fivegrade.backend.common.error.ErrorCode;
 import com.fivegrade.backend.common.error.GlobalExceptionHandler;
@@ -20,18 +29,30 @@ import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.recommendation.dto.WarningCode;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
 import com.fivegrade.backend.recommendation.service.RecommendationService;
+import com.fivegrade.backend.report.dto.ReportDraft;
+import com.fivegrade.backend.report.dto.SavedReport;
 import com.fivegrade.backend.report.generation.TemplateReportGenerator;
+import com.fivegrade.backend.report.service.ReportStorageService;
 import com.fivegrade.backend.simulation.dto.ApplicationPreference;
 import com.fivegrade.backend.simulation.dto.SubjectInput;
 import com.fivegrade.backend.simulation.service.DefaultRecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
+import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationRequestValidator;
 import com.fivegrade.backend.simulation.service.SimulationService;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -51,7 +72,24 @@ class SimulationControllerTest {
 			}
 			""";
 
+	private static final long USER_ID = 7L;
+
 	private final List<String> calls = new ArrayList<>();
+	private final ReportStorageService storageService = mock(ReportStorageService.class);
+	private final UUID savedId = UUID.randomUUID();
+
+	@BeforeEach
+	void 로그인_사용자와_저장_결과를_준비한다() {
+		SecurityContextHolder.getContext()
+				.setAuthentication(new TestingAuthenticationToken(new AuthenticatedUser(USER_ID), null));
+		when(storageService.save(eq(USER_ID), anyString(), any()))
+				.thenReturn(new SavedReport(savedId, Instant.now(), true));
+	}
+
+	@AfterEach
+	void 로그인_정보를_비운다() {
+		SecurityContextHolder.clearContext();
+	}
 
 	@Test
 	void 검증한_뒤_추천을_하고_응답을_조립한다() throws Exception {
@@ -158,6 +196,108 @@ class SimulationControllerTest {
 				.andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
 	}
 
+	@Test
+	void 추천이_있으면_로그인_사용자의_최소_항목만_저장한다() throws Exception {
+		MockMvc mockMvc = mockMvcWith(query -> twoCardResult(), null);
+
+		mockMvc.perform(post("/api/simulations")
+						.header("Idempotency-Key", "key-1")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(VALID_BODY))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.saveStatus").value("SAVED"))
+				.andExpect(jsonPath("$.reportId").value(savedId.toString()));
+
+		ArgumentCaptor<ReportDraft> draft = ArgumentCaptor.forClass(ReportDraft.class);
+		verify(storageService).save(eq(USER_ID), eq("key-1"), draft.capture());
+		assertEquals(2, draft.getValue().recommendations().size());
+		assertEquals("가대학교", draft.getValue().recommendations().get(0).universityName());
+		assertEquals("SAFE", draft.getValue().recommendations().get(0).label());
+		assertEquals(10L, draft.getValue().recommendations().get(0).unitId());
+		assertEquals("UNRATED", draft.getValue().recommendations().get(1).label());
+		// 인사·요약 문장은 희망 학과·선호 전형을 요약한 것이라 저장하지 않는다(기능명세 3.3).
+		assertNull(draft.getValue().greetingSummary());
+	}
+
+	@Test
+	void 추천이_0장이면_저장하지_않는다() throws Exception {
+		MockMvc mockMvc = mockMvcWith(query -> RecommendationResult.empty(), null);
+
+		mockMvc.perform(post("/api/simulations")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(VALID_BODY))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.saveStatus").value("NOT_SAVED"))
+				.andExpect(jsonPath("$.reportId").value(org.hamcrest.Matchers.nullValue()));
+
+		verify(storageService, never()).save(any(), any(), any());
+	}
+
+	@Test
+	void 같은_키로_이미_저장돼_있으면_저장된_것으로_알린다() throws Exception {
+		when(storageService.save(eq(USER_ID), eq("key-1"), any()))
+				.thenReturn(new SavedReport(savedId, Instant.now(), false));
+		MockMvc mockMvc = mockMvcWith(query -> twoCardResult(), null);
+
+		mockMvc.perform(post("/api/simulations")
+						.header("Idempotency-Key", "key-1")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(VALID_BODY))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.saveStatus").value("SAVED"))
+				.andExpect(jsonPath("$.reportId").value(savedId.toString()));
+	}
+
+	@Test
+	void 저장이_실패해도_분석_응답은_그대로_200이다() throws Exception {
+		when(storageService.save(eq(USER_ID), anyString(), any())).thenThrow(new IllegalStateException("db down"));
+		MockMvc mockMvc = mockMvcWith(query -> twoCardResult(), null);
+
+		mockMvc.perform(post("/api/simulations")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(VALID_BODY))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.recommendations.length()").value(2))
+				.andExpect(jsonPath("$.saveStatus").value("FAILED"))
+				.andExpect(jsonPath("$.reportId").value(org.hamcrest.Matchers.nullValue()));
+	}
+
+	@Test
+	void Idempotency_Key_헤더가_없으면_요청마다_새_키로_저장한다() throws Exception {
+		MockMvc mockMvc = mockMvcWith(query -> twoCardResult(), null);
+
+		for (int i = 0; i < 2; i++) {
+			mockMvc.perform(post("/api/simulations")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(VALID_BODY))
+					.andExpect(status().isOk());
+		}
+
+		ArgumentCaptor<String> keys = ArgumentCaptor.forClass(String.class);
+		verify(storageService, org.mockito.Mockito.times(2)).save(eq(USER_ID), keys.capture(), any());
+		assertTrue(!keys.getAllValues().get(0).equals(keys.getAllValues().get(1)));
+	}
+
+	@Test
+	void Idempotency_Key가_비었거나_너무_길면_400이고_분석을_시작하지_않는다() throws Exception {
+		MockMvc mockMvc = mockMvcWith(query -> {
+			calls.add("recommend");
+			return twoCardResult();
+		}, null);
+
+		for (String key : List.of(" ", "k".repeat(101))) {
+			mockMvc.perform(post("/api/simulations")
+							.header("Idempotency-Key", key)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(VALID_BODY))
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+		}
+
+		assertTrue(calls.isEmpty());
+		verify(storageService, never()).save(any(), any(), any());
+	}
+
 	/** 검증기와 추천 서비스만 가짜로 두고, 평균 계산·설명 생성·응답 변환은 실제 클래스를 쓴다. */
 	private MockMvc mockMvcWith(RecommendationService recommendationService, BusinessException validationFailure) {
 		SimulationRequestValidator validator = new SimulationRequestValidator(null, null) {
@@ -182,7 +322,10 @@ class SimulationControllerTest {
 				recommendationService);
 		SimulationReportAssembler assembler = new SimulationReportAssembler(new TemplateReportGenerator());
 
-		return MockMvcBuilders.standaloneSetup(new SimulationController(validator, service, assembler))
+		SimulationReportSaver saver = new SimulationReportSaver(storageService);
+
+		return MockMvcBuilders.standaloneSetup(new SimulationController(validator, service, assembler, saver))
+				.setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
 				.setControllerAdvice(new GlobalExceptionHandler())
 				.build();
 	}
