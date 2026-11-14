@@ -16,7 +16,8 @@ import java.util.List;
  * @param displayAverage  화면 표시용 참고 평균(소수 둘째 자리)
  * @param subjects        요청 순서와 subjectRef를 유지한 과목별 입력 등급
  * @param recommendations 추천 원서 0~6장. rank 순서
- * @param warnings        안내 코드. 없으면 빈 배열
+ * @param warnings        안내 코드. 없으면 빈 배열. 유사 학과·자율전공으로 넓힌 안내는 결과 전체 안내(rank null)로 한 번만
+ * 내려가고, 선호 전형이 아닌 전형으로 넓힌 안내(OTHER_TRACK_USED)는 내려가지 않는다. 카드의 넓힌 경로는 candidateKind 로 알 수 있다.
  * @param report          컨설팅 리포트
  */
 public record SimulationResponse(
