@@ -55,7 +55,7 @@ class AuthHttpSecurityTest {
 
     @Test
     void publicDictionariesIgnoreStaleTokens() throws Exception {
-        for (String path : new String[]{"/api/majors", "/api/subjects"}) {
+        for (String path : new String[]{"/api/majors"}) {
             mvc.perform(get(path)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
                     .andExpect(status().isOk())
@@ -130,7 +130,7 @@ class AuthHttpSecurityTest {
             user.requireOwner(99L);
         }
 
-        @GetMapping({"/api/majors", "/api/subjects"})
+        @GetMapping("/api/majors")
         Map<String, String> dictionary() {
             return Map.of("result", "ok");
         }
@@ -155,6 +155,13 @@ class AuthHttpSecurityTest {
                 .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, "Bearer"))
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
                 .andExpect(jsonPath("$", aMapWithSize(2)))
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void subjectsIsNoLongerPublic() throws Exception {
+        mvc.perform(get("/api/subjects"))
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 
