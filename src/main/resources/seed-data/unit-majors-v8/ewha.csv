@@ -228,3 +228,5 @@ dept_name,track_name,major_code
 뇌인지과학부(자연),학생부종합(미래인재전형-서류형),LIFE_SCI
 뇌인지과학부(자연),학생부종합(미래인재전형-면접형),PSYCHOLOGY
 뇌인지과학부(자연),학생부종합(미래인재전형-면접형),LIFE_SCI
+스크랜튼학부,학생부종합(미래인재전형-서류형),UNDECLARED
+스크랜튼학부,학생부종합(미래인재전형-면접형),UNDECLARED

@@ -27,7 +27,7 @@ class SeedUnitMajorMapTest {
 
 	@Test
 	void 적재_개수가_CSV와_같다() {
-		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_635);
+		assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM unit_major_map", Integer.class)).isEqualTo(19_856);
 	}
 
 	@Test
@@ -38,7 +38,7 @@ class SeedUnitMajorMapTest {
 		// 국방·군사·안보처럼 학과 사전에 대응하는 코드가 없는 모집단위는 연결하지 않았다.
 		// 제약공학·수산생명의학 등 이름만으로는 전문직 학과(의예·약학 등)와 같다고 볼 수 없는 모집단위는
 		// 전문직 코드가 아닌 관련 학과(생명공학·화학공학·동물자원 등)에만 연결했다.
-		assertThat(mapped).isEqualTo(11_706);
+		assertThat(mapped).isEqualTo(11_732);
 		assertThat(mapped * 100 / total).isGreaterThanOrEqualTo(90);
 	}
 
@@ -142,6 +142,40 @@ class SeedUnitMajorMapTest {
 	@Test
 	void 전남대_에너지공학계열은_에너지공학에만_연결된다() {
 		assertThat(majorCodesOf("전남대학교", "에너지공학계열")).containsExactly("ENERGY_ENG");
+	}
+
+	@Test
+	void 전수_점검에서_바로잡은_매핑이_유지된다() {
+		// 이름이 가리키는 공학·학과 코드가 빠졌거나, 이름과 다른 코드에 연결되어 있던 모집단위들이다.
+		assertThat(majorCodesOf("홍익대학교", "기계ㆍ시스템디자인공학과")).contains("MECHANICAL_ENG");
+		assertThat(majorCodesOf("건국대학교", "항공우주·모빌리티공학과")).contains("AEROSPACE_ENG");
+		assertThat(majorCodesOf("제주대학교", "해양산업경찰학과")).containsExactly("PUBLIC_ADMIN");
+		assertThat(majorCodesOf("경희대학교", "조리&푸드디자인학과"))
+				.containsExactlyInAnyOrder("FOOD_NUTRITION", "TOURISM");
+	}
+
+	@Test
+	void 학과_매핑_3차_보정이_유지된다() {
+		// 구성 전공이 확인된 모집단위에 학과 코드를 연결하고, 일부 코드만 있던 학부에 빠진 전공을 보충했다.
+		assertThat(majorCodesOf("광운대학교", "정보융합학부")).containsExactlyInAnyOrder("DATA_SCIENCE", "SOFTWARE", "COMPUTER_ENG");
+		assertThat(majorCodesOf("인천대학교", "창의인재개발학과")).containsExactly("EDUCATION");
+		assertThat(majorCodesOf("이화여자대학교", "스크랜튼학부")).containsExactly("UNDECLARED");
+		assertThat(majorCodesOf("한신대학교", "글로벌융합계열")).contains("INTL_TRADE", "ECONOMICS", "POLITICAL_SCI");
+		assertThat(majorCodesOf("아주대학교", "경제정치사회융합학부")).containsExactlyInAnyOrder("POLITICAL_SCI", "ECONOMICS", "SOCIOLOGY");
+		assertThat(majorCodesOf("가톨릭대학교", "정보통신전자공학부")).contains("INFO_COMM_ENG", "ELECTRONIC_ENG");
+	}
+
+	@Test
+	void 학과_매핑_4차_웹_검증_보정이_유지된다() {
+		// 학교 공식 페이지로 구성 전공을 확인한 뒤 빠져 있던 코드를 보충했다.
+		assertThat(majorCodesOf("한국외국어대학교", "Language & Trade학부")).contains("INTL_TRADE", "FINANCE");
+		assertThat(majorCodesOf("한국외국어대학교", "Global Business & Technology학부")).contains("BUSINESS", "MIS");
+		assertThat(majorCodesOf("강남대학교", "상경학부")).contains("BUSINESS", "ECONOMICS", "FINANCE", "INTL_TRADE");
+		assertThat(majorCodesOf("명지대학교", "반도체・ICT대학")).containsExactlyInAnyOrder("INFO_COMM_ENG",
+				"SEMICONDUCTOR", "ELECTRICAL_ENG", "ELECTRONIC_ENG", "COMPUTER_ENG", "INDUSTRIAL_ENG");
+		assertThat(majorCodesOf("충남대학교", "리더십과조직과학전공")).containsExactly("UNDECLARED");
+		assertThat(majorCodesOf("가톨릭대학교", "정보통신전자공학부")).contains("SEMICONDUCTOR");
+		assertThat(majorCodesOf("숙명여자대학교", "IT공학전공")).contains("INFO_COMM_ENG", "COMPUTER_ENG", "SOFTWARE");
 	}
 
 	private List<String> majorCodesOf(String universityName, String deptName) {
