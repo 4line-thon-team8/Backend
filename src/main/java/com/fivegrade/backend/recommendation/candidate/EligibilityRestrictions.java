@@ -37,7 +37,10 @@ public final class EligibilityRestrictions {
 	 */
 	private static final List<RestrictedUnit> RESTRICTED_UNITS = List.of(
 			// 협성대 신학과는 교과성적우수자 전형도 세례증명서가 필수다.
-			new RestrictedUnit("협성대학교", "신학과", "학생부교과(교과성적우수자)")
+			new RestrictedUnit("협성대학교", "신학과", "학생부교과(교과성적우수자)"),
+			// 한신대 신학 전공은 참인재 전형에서 목회자(목사·선교사·신부) 추천서가 필수다.
+			// 같은 계열의 미디어융합기독교교육 등 다른 전공과 다른 전형(학생부우수자·학교장추천)은 일반 학생도 지원할 수 있다.
+			new RestrictedUnit("한신대학교", "신학", "학생부교과(참인재)")
 	);
 
 	private EligibilityRestrictions() {
