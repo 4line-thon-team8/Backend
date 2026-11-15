@@ -1080,3 +1080,11 @@ dept_name,track_name,major_code
 환경소재공학과,학생부종합Ⅲ(특수교육대상자전형),MATERIALS_ENG
 환경소재공학과,학생부종합Ⅰ[면접(300)],MATERIALS_ENG
 환경소재공학과,학생부종합Ⅰ[서류],MATERIALS_ENG
+리더십과조직과학전공,학생부교과(일반전형),UNDECLARED
+리더십과조직과학전공,학생부교과(지역인재전형),UNDECLARED
+리더십과조직과학전공,학생부종합Ⅲ(농어촌학생전형),UNDECLARED
+리더십과조직과학전공,학생부종합Ⅲ(특수교육대상자전형),UNDECLARED
+리더십과조직과학전공,학생부종합Ⅲ(정부위탁전형),UNDECLARED
+리더십과조직과학전공,학생부종합Ⅰ[면접(300)],UNDECLARED
+리더십과조직과학전공,학생부종합Ⅰ[서류],UNDECLARED
+리더십과조직과학전공,학생부종합Ⅲ(특성화고졸재직자전형),UNDECLARED
