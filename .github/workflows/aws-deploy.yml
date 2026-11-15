@@ -1,0 +1,76 @@
+name: AWS demo deploy
+on:
+  workflow_dispatch:
+    inputs:
+      enable_ai:
+        description: Enable AI only after synthetic-data verification and notice approval
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: fivegrade-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      AWS_REGION: ap-northeast-2
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+    steps:
+      - name: Require main release
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build release image
+        run: |
+          docker build --platform linux/amd64 -t "fivegrade-backend:$GITHUB_SHA" .
+          mkdir -p "$RUNNER_TEMP/payload"
+          docker save "fivegrade-backend:$GITHUB_SHA" | gzip > "$RUNNER_TEMP/payload/image.tar.gz"
+      - name: Prepare private runtime files
+        env:
+          API_DOMAIN: ${{ secrets.API_DOMAIN }}
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+          RDS_DATABASE: ${{ secrets.RDS_DATABASE }}
+          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ENABLE_AI: ${{ inputs.enable_ai }}
+        run: python3 deploy/aws/prepare-deployment.py
+      - name: Obtain temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-duration-seconds: 3600
+      - name: Temporarily allow runner SSH
+        id: ingress
+        env:
+          GROUP_ID: ${{ vars.EC2_SECURITY_GROUP_ID }}
+        run: |
+          set -euo pipefail
+          runner_ip=$(curl -4 -fsS https://checkip.amazonaws.com)
+          python3 -c 'import ipaddress,sys; assert ipaddress.IPv4Address(sys.argv[1]).is_global' "$runner_ip"
+          rule_id=$(aws ec2 authorize-security-group-ingress --group-id "$GROUP_ID" --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=$runner_ip/32,Description=fivegrade-gh-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT}]" --query 'SecurityGroupRules[0].SecurityGroupRuleId' --output text)
+          echo "rule_id=$rule_id" >> "$GITHUB_OUTPUT"
+      - name: Transfer and start release
+        run: |
+          set -euo pipefail
+          incoming="fivegrade/incoming-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/known_hosts" -o ConnectTimeout=20)
+          ssh "${opts[@]}" "$EC2_USER@$EC2_HOST" "umask 077; mkdir -p '$incoming'"
+          scp "${opts[@]}" "$RUNNER_TEMP/payload/"{image.tar.gz,.env,runtime.env,compose.aws.yaml,Caddyfile,deploy-remote.sh} "$EC2_USER@$EC2_HOST:$incoming/"
+          ssh "${opts[@]}" "$EC2_USER@$EC2_HOST" "bash '$incoming/deploy-remote.sh' \"\$HOME/$incoming\""
+      - name: Remove temporary SSH rule
+        if: ${{ always() && steps.ingress.outputs.rule_id != '' }}
+        env:
+          RULE_ID: ${{ steps.ingress.outputs.rule_id }}
+          GROUP_ID: ${{ vars.EC2_SECURITY_GROUP_ID }}
+        run: aws ec2 revoke-security-group-ingress --group-id "$GROUP_ID" --security-group-rule-ids "$RULE_ID"
+      - name: Remove runner private files
+        if: ${{ always() }}
+        run: rm -rf "$RUNNER_TEMP/payload" "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"
