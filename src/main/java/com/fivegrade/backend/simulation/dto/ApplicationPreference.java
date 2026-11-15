@@ -1,5 +1,6 @@
 package com.fivegrade.backend.simulation.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -20,15 +21,19 @@ import org.hibernate.validator.constraints.UniqueElements;
  */
 public record ApplicationPreference(
 
+		@Schema(description = "희망 학과 코드 1~3개(중복 불가). GET /api/majors의 code 값을 쓴다.", example = "[\"KOREAN_LIT\", \"ENGLISH_LIT\"]")
 		@NotEmpty
 		@Size(max = ApplicationPreference.MAX_DESIRED_MAJORS)
 		@UniqueElements
 		List<@NotBlank @Pattern(regexp = "[A-Z][A-Z0-9_]{0,29}") String> desiredMajorCodes,
 
+		@Schema(description = "선호 전형(SUBJECT=교과, HOLISTIC=학생부종합, ANY=상관없음). 생략하면 ANY.", defaultValue = "ANY", example = "ANY")
 		PreferredTrack preferredTrack,
 
+		@Schema(description = "상향(소신) 지원 카드를 포함할지 여부. 생략하면 false.", defaultValue = "false", example = "true")
 		Boolean includeReachCard,
 
+		@Schema(description = "비슷한 학과로 후보 확대를 허용할지 여부. 생략하면 true.", defaultValue = "true", example = "true")
 		Boolean allowSimilarMajors
 
 ) {

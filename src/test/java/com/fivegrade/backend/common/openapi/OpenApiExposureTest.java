@@ -56,6 +56,19 @@ class OpenApiExposureTest {
 					.andExpect(status().is(not(404)));
 		}
 
+		@Test
+		void 분석_요청과_응답_필드에_설명과_예시가_있다() throws Exception {
+			MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
+			mockMvc.perform(get("/v3/api-docs"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.components.schemas.SimulationRequest.properties.analysisConsent.description").exists())
+					.andExpect(jsonPath("$.components.schemas.SubjectInput.properties.gradeValue.description").exists())
+					.andExpect(jsonPath("$.components.schemas.SubjectInput.properties.subjectCode.example").value("SUBJ_0001"))
+					.andExpect(jsonPath("$.components.schemas.SimulationResponse.properties.saveStatus.description").exists())
+					.andExpect(jsonPath("$.components.schemas.ReportDetail.properties.recommendations.description").exists());
+		}
+
 	}
 
 	@Nested

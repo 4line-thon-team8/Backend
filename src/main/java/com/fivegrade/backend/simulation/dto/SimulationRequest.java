@@ -1,5 +1,6 @@
 package com.fivegrade.backend.simulation.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
@@ -24,15 +25,18 @@ import java.util.List;
  */
 public record SimulationRequest(
 
+		@Schema(description = "과목별 5등급제 성적. 최소 1개, 최대 100개. subjectRef는 요청 안에서 겹칠 수 없고, 같은 subjectCode는 여러 행으로 보낼 수 있다.")
 		@NotEmpty
 		@Size(max = SimulationRequest.MAX_SUBJECTS)
 		@UniqueSubjectRefs
 		List<@NotNull @Valid SubjectInput> subjects,
 
+		@Schema(description = "지원 방향(희망 학과, 선호 전형, 옵션)")
 		@NotNull
 		@Valid
 		ApplicationPreference applicationPreference,
 
+		@Schema(description = "분석 동의. 반드시 true여야 하며 false이거나 빠지면 400.", example = "true")
 		@NotNull
 		@AssertTrue
 		Boolean analysisConsent
