@@ -59,3 +59,6 @@ application-secret.properties
 *.h2.db
 *.tmp
 *.swp
+
+# AWS runtime secrets
+deploy/aws/runtime.env

@@ -1,0 +1,47 @@
+services:
+  app:
+    image: ${APP_IMAGE:?Set APP_IMAGE in .env}
+    restart: unless-stopped
+    env_file:
+      - path: runtime.env
+        format: raw
+    environment:
+      SERVER_PORT: "8080"
+      SERVER_ADDRESS: "0.0.0.0"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://${DB_HOST:?Set DB_HOST}:5432/${DB_NAME:?Set DB_NAME}?sslmode=verify-full&sslrootcert=/app/certs/global-bundle.pem"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./certs/global-bundle.pem:/app/certs/global-bundle.pem:ro
+    mem_limit: 1536m
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN in .env}
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:
