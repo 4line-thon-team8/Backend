@@ -75,6 +75,22 @@ class EligibilityRestrictionsTest {
 	}
 
 	@Test
+	void restrictsHanshinTheologyOnlyInChamInjaeTrack() {
+		String chamInjae = "학생부교과(참인재)";
+
+		// 한신대 신학 전공은 참인재 전형에서 목회자 추천서가 필수라 제외한다.
+		assertTrue(EligibilityRestrictions.isRestricted("한신대학교", "신학", chamInjae));
+		// 같은 전형의 다른 전공(미디어융합기독교교육 등)은 목회자 추천 요건이 없어 남긴다.
+		assertFalse(EligibilityRestrictions.isRestricted("한신대학교", "미디어융합기독교교육", chamInjae));
+		assertFalse(EligibilityRestrictions.isRestricted("한신대학교", "한국어문학", chamInjae));
+		// 신학이라도 다른 전형(학생부우수자·학교장추천)에는 추천서 요건이 없어 남긴다.
+		assertFalse(EligibilityRestrictions.isRestricted("한신대학교", "신학", "학생부교과(학생부우수자)"));
+		assertFalse(EligibilityRestrictions.isRestricted("한신대학교", "신학", "학생부교과(학교장추천)"));
+		// 다른 대학의 같은 이름 학과는 영향을 받지 않는다.
+		assertFalse(EligibilityRestrictions.isRestricted("다른대학교", "신학", chamInjae));
+	}
+
+	@Test
 	void treatsMissingNameAsOpen() {
 		assertFalse(EligibilityRestrictions.isRestricted(null));
 	}
