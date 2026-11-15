@@ -1,0 +1,102 @@
+dept_name,track_name,major_code
+간호학과,학생부교과(학교장추천),NURSING
+간호학과,학생부종합(기회균형 I),NURSING
+간호학과,학생부종합(재림교회목회자추천),NURSING
+간호학과,학생부종합(세움인재),NURSING
+간호학과,학생부종합(기회균형 II),NURSING
+간호학과,학생부교과(농어촌),NURSING
+건축학과(5년제),학생부교과(학교장추천),ARCHITECTURE
+건축학과(5년제),학생부교과(특성화고교),ARCHITECTURE
+건축학과(5년제),학생부종합(기회균형 I),ARCHITECTURE
+건축학과(5년제),학생부종합(재림교회목회자추천),ARCHITECTURE
+건축학과(5년제),학생부종합(세움인재),ARCHITECTURE
+건축학과(5년제),학생부교과(농어촌),ARCHITECTURE
+경영학과,학생부교과(학교장추천),BUSINESS
+경영학과,학생부교과(특성화고교),BUSINESS
+경영학과,학생부종합(기회균형 I),BUSINESS
+경영학과,학생부종합(세움인재),BUSINESS
+경영학과,학생부종합(특수교육대상자),BUSINESS
+경영학과,학생부교과(농어촌),BUSINESS
+경영학과,학생부교과(서해5도),BUSINESS
+경영학과,(학생부교과(특성화고졸재직자),BUSINESS
+글로벌한국학과,학생부교과(학교장추천),OTHER_FOREIGN_LIT
+글로벌한국학과,학생부종합(세움인재),OTHER_FOREIGN_LIT
+글로벌한국학과,학생부종합(특수교육대상자),OTHER_FOREIGN_LIT
+글로벌한국학과,학생부교과(농어촌),OTHER_FOREIGN_LIT
+데이터클라우드공학과,학생부교과(학교장추천),DATA_SCIENCE
+데이터클라우드공학과,학생부종합(재림교회목회자추천),DATA_SCIENCE
+데이터클라우드공학과,학생부종합(세움인재),DATA_SCIENCE
+데이터클라우드공학과,학생부종합(S/W인재),DATA_SCIENCE
+동물자원과학과,학생부교과(학교장추천),ANIMAL_SCI
+동물자원과학과,학생부종합(기회균형 I),ANIMAL_SCI
+동물자원과학과,학생부종합(세움인재),ANIMAL_SCI
+동물자원과학과,학생부교과(농어촌),ANIMAL_SCI
+물리치료학과,학생부교과(학교장추천),PHYSICS
+물리치료학과,학생부종합(기회균형 I),PHYSICS
+물리치료학과,학생부종합(재림교회목회자추천),PHYSICS
+물리치료학과,학생부종합(세움인재),PHYSICS
+물리치료학과,학생부종합(기회균형 II),PHYSICS
+물리치료학과,학생부교과(농어촌),PHYSICS
+물리치료학과,학생부교과(서해5도),PHYSICS
+바이오융합공학과,학생부교과(학교장추천),BIO_ENG
+바이오융합공학과,학생부종합(세움인재),BIO_ENG
+바이오융합공학과,학생부교과(농어촌),BIO_ENG
+보건관리학과,학생부교과(학교장추천),HEALTH_TECH
+보건관리학과,학생부종합(세움인재),HEALTH_TECH
+보건관리학과,학생부종합(기회균형 II),HEALTH_TECH
+보건관리학과,학생부교과(농어촌),HEALTH_TECH
+사회복지학과,학생부교과(학교장추천),SOCIAL_WELFARE
+사회복지학과,학생부종합(세움인재),SOCIAL_WELFARE
+사회복지학과,학생부종합(기회균형 II),SOCIAL_WELFARE
+사회복지학과,학생부종합(특수교육대상자),SOCIAL_WELFARE
+사회복지학과,학생부교과(농어촌),SOCIAL_WELFARE
+사회복지학과,학생부교과(서해5도),SOCIAL_WELFARE
+상담심리학과,학생부교과(학교장추천),PSYCHOLOGY
+상담심리학과,학생부종합(세움인재),PSYCHOLOGY
+상담심리학과,학생부교과(농어촌),PSYCHOLOGY
+상담심리학과,학생부교과(서해5도),PSYCHOLOGY
+식품영양학과,학생부교과(학교장추천),FOOD_NUTRITION
+식품영양학과,학생부종합(기회균형 I),FOOD_NUTRITION
+식품영양학과,학생부종합(세움인재),FOOD_NUTRITION
+식품영양학과,학생부교과(농어촌),FOOD_NUTRITION
+식품영양학과,학생부교과(서해5도),FOOD_NUTRITION
+신학과,학생부종합(신학특별),RELIGION
+약학과,학생부교과(학교장추천),PHARMACY
+약학과,학생부종합(재림교회목회자추천),PHARMACY
+약학과,학생부종합(세움인재),PHARMACY
+약학과,학생부종합(기회균형 II),PHARMACY
+약학과,학생부종합(특수교육대상자),PHARMACY
+약학과,학생부교과(농어촌),PHARMACY
+영어영문학과,학생부교과(학교장추천),ENGLISH_LIT
+영어영문학과,학생부종합(기회균형 I),ENGLISH_LIT
+영어영문학과,학생부종합(세움인재),ENGLISH_LIT
+영어영문학과,학생부종합(특수교육대상자),ENGLISH_LIT
+영어영문학과,학생부교과(농어촌),ENGLISH_LIT
+유아교육과,학생부종합(재림교회목회자추천),EDUCATION
+유아교육과,학생부종합(세움인재),EDUCATION
+유아교육과,학생부종합(기회균형 II),EDUCATION
+유아교육과,학생부교과(농어촌),EDUCATION
+인공지능융합학부,학생부교과(학교장추천),AI
+인공지능융합학부,학생부교과(특성화고교),AI
+인공지능융합학부,학생부종합(기회균형 I),AI
+인공지능융합학부,학생부종합(세움인재),AI
+인공지능융합학부,학생부종합(S/W인재),AI
+인공지능융합학부,학생부종합(기회균형 II),AI
+인공지능융합학부,학생부교과(농어촌),AI
+인공지능융합학부,학생부교과(서해5도),AI
+컴퓨터공학부,학생부교과(학교장추천),COMPUTER_ENG
+컴퓨터공학부,학생부교과(특성화고교),COMPUTER_ENG
+컴퓨터공학부,학생부종합(기회균형 I),COMPUTER_ENG
+컴퓨터공학부,학생부종합(세움인재),COMPUTER_ENG
+컴퓨터공학부,학생부종합(S/W인재),COMPUTER_ENG
+컴퓨터공학부,학생부교과(농어촌),COMPUTER_ENG
+항공관광외국어학부,학생부종합(세움인재),AEROSPACE_ENG
+화학생명과학과,학생부교과(학교장추천),CHEMISTRY
+화학생명과학과,학생부종합(기회균형 I),CHEMISTRY
+화학생명과학과,학생부종합(재림교회목회자추천),CHEMISTRY
+화학생명과학과,학생부종합(세움인재),CHEMISTRY
+화학생명과학과,학생부교과(농어촌),CHEMISTRY
+환경디자인원예학과,학생부교과(학교장추천),AGRICULTURE
+환경디자인원예학과,학생부종합(기회균형 I),AGRICULTURE
+환경디자인원예학과,학생부종합(세움인재),AGRICULTURE
+환경디자인원예학과,학생부교과(농어촌),AGRICULTURE

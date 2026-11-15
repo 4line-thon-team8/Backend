@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:18
+    container_name: fivegrade-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-fivegrade}
+      POSTGRES_USER: ${DB_USER:-fivegrade}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?.env 파일에 DB_PASSWORD를 설정하세요}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18 이미지는 /var/lib/postgresql 를 마운트한다. (/data 가 아님)
+      - fivegrade-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fivegrade} -d ${DB_NAME:-fivegrade}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  fivegrade-db-data:
