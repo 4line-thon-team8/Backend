@@ -1,5 +1,6 @@
 package com.fivegrade.backend.simulation.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -19,14 +20,17 @@ import jakarta.validation.constraints.Size;
  */
 public record SubjectInput(
 
+		@Schema(description = "요청 행과 응답 과목을 연결하는 비식별 식별자. 요청 안에서 유일해야 하고 최대 50자.", example = "row-1")
 		@NotBlank
 		@Size(max = SubjectInput.MAX_REF_LENGTH)
 		String subjectRef,
 
+		@Schema(description = "과목 코드. 과목 코드 사전의 허용 코드만 가능하며 형식은 대문자·숫자·밑줄.", example = "SUBJ_0001")
 		@NotBlank
 		@Pattern(regexp = "[A-Z0-9_]{1,50}")
 		String subjectCode,
 
+		@Schema(description = "5등급제 등급(정수 1~5). 소수나 문자열은 거부한다.", minimum = "1", maximum = "5", example = "2")
 		@NotNull
 		@Min(1)
 		@Max(5)
