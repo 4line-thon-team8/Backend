@@ -1,6 +1,7 @@
 package com.fivegrade.backend.simulation.config;
 
 import com.fivegrade.backend.conversion.calculation.FiveGradeAverageCalculator;
+import com.fivegrade.backend.holistic.service.HolisticEvaluator;
 import com.fivegrade.backend.recommendation.service.RecommendationService;
 import com.fivegrade.backend.report.generation.ReportGenerator;
 import com.fivegrade.backend.report.service.ReportStorageService;
@@ -35,9 +36,10 @@ public class SimulationConfig {
 	SimulationService simulationService(
 			FiveGradeAverageCalculator averageCalculator,
 			RecommendationQueryMapper queryMapper,
-			RecommendationService recommendationService
+			RecommendationService recommendationService,
+			HolisticEvaluator holisticEvaluator
 	) {
-		return new SimulationService(averageCalculator, queryMapper, recommendationService);
+		return new SimulationService(averageCalculator, queryMapper, recommendationService, holisticEvaluator);
 	}
 
 	@Bean
