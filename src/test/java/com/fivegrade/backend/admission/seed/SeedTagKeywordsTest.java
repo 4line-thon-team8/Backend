@@ -3,6 +3,8 @@ package com.fivegrade.backend.admission.seed;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fivegrade.backend.TestcontainersConfiguration;
+import com.fivegrade.backend.admission.dto.TagEntryResponse;
+import com.fivegrade.backend.admission.repository.TagKeywordRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ class SeedTagKeywordsTest {
 
 	@Autowired
 	private JdbcTemplate jdbc;
+
+	@Autowired
+	private TagKeywordRepository tagKeywordRepository;
 
 	@Test
 	void 키워드_개수가_CSV와_같다() {
@@ -48,6 +53,15 @@ class SeedTagKeywordsTest {
 				""", String.class);
 
 		assertThat(tags).contains("전자·반도체");
+	}
+
+	@Test
+	void 저장소_쿼리가_키워드와_태그_이름을_그대로_꺼낸다() {
+		// 쿼리 문법과 결과 매핑은 DB 없이 확인할 수 없어서, 적재된 시드로 확인한다.
+		List<TagEntryResponse> entries = tagKeywordRepository.findAllEntries();
+
+		assertThat(entries).hasSize(673);
+		assertThat(entries).contains(new TagEntryResponse("반도체", "전자·반도체"));
 	}
 
 	@Test
