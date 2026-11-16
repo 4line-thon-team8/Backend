@@ -76,7 +76,7 @@ class HolisticAnalysisServiceTest {
 		assertThat(result).isInstanceOf(Applied.class);
 		Applied applied = (Applied) result;
 		assertThat(applied.rulesVersion()).isEqualTo("0.1.0");
-		// 신호 7개(5단계) + 품질 1.0 → 지표 수준 5.0. 학업(A3)·진로(B3)·공동체(C1) 모두 5.0
+		// 규칙이 있는 지표(학업 A2·A3, 진로 B3, 공동체 C1~C4)에 모두 강한 신호가 있으면 각 5.0. 평균이 규칙 수에 흔들리지 않게 전부 채운다.
 		assertThat(applied.elementLevels().get("ACADEMIC")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
 		assertThat(applied.elementLevels().get("MAJOR_FIT")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
 		assertThat(applied.elementLevels().get("COMMUNITY")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
@@ -91,15 +91,19 @@ class HolisticAnalysisServiceTest {
 				List.of(new IndicatorSignal("A3", 7, List.of(1, 2), 1.0))));
 
 		Applied applied = (Applied) result;
-		// 학업 5.0, 진로 1.0, 공동체 1.0 → 균등 평균 7/3
-		assertThat(applied.overallLevel()).isEqualTo(7.0 / 3.0, org.assertj.core.data.Offset.offset(DELTA));
+		// 학업은 A2(근거 없음 1.0)와 A3(5.0)의 평균 3.0, 진로 1.0, 공동체 1.0 → 균등 평균 5/3
+		assertThat(applied.overallLevel()).isEqualTo(5.0 / 3.0, org.assertj.core.data.Offset.offset(DELTA));
 	}
 
 	private static List<IndicatorSignal> strongSignals() {
 		return List.of(
+				new IndicatorSignal("A2", 7, List.of(1, 2), 1.0),
 				new IndicatorSignal("A3", 7, List.of(1, 2), 1.0),
 				new IndicatorSignal("B3", 7, List.of(1, 2), 1.0),
-				new IndicatorSignal("C1", 7, List.of(1, 2), 1.0));
+				new IndicatorSignal("C1", 7, List.of(1, 2), 1.0),
+				new IndicatorSignal("C2", 7, List.of(1, 2), 1.0),
+				new IndicatorSignal("C3", 7, List.of(1, 2), 1.0),
+				new IndicatorSignal("C4", 7, List.of(1, 2), 1.0));
 	}
 
 	private static SectionChars chars(int subject, int club) {
