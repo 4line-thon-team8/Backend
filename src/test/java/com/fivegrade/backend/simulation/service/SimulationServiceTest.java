@@ -469,7 +469,8 @@ class SimulationServiceTest {
 						null,
 						null
 				),
-				true
+				true,
+				null
 		);
 	}
 }
