@@ -16,7 +16,7 @@ class HolisticRuleCatalogTest {
 
 	@Test
 	void 실제_사전이_로드되고_기본_구성을_갖는다() {
-		assertThat(catalog.rulesVersion()).isEqualTo("0.2.0");
+		assertThat(catalog.rulesVersion()).isEqualTo("0.3.0");
 		assertThat(catalog.types()).hasSize(10);
 		assertThat(catalog.indicators()).isNotEmpty();
 		assertThat(catalog.rules()).isNotEmpty();
@@ -27,6 +27,7 @@ class HolisticRuleCatalogTest {
 
 	@Test
 	void 현재_버전과_직전_버전을_받아_준다() {
+		assertThat(catalog.isAcceptedVersion("0.3.0")).isTrue();
 		assertThat(catalog.isAcceptedVersion("0.2.0")).isTrue();
 		assertThat(catalog.isAcceptedVersion("0.1.0")).isTrue();
 		assertThat(catalog.isAcceptedVersion("0.0.9")).isFalse();
