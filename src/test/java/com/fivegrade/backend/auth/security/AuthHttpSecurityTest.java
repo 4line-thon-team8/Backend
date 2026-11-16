@@ -55,7 +55,7 @@ class AuthHttpSecurityTest {
 
     @Test
     void publicDictionariesIgnoreStaleTokens() throws Exception {
-        for (String path : new String[]{"/api/majors", "/api/tag-map"}) {
+        for (String path : new String[]{"/api/majors", "/api/tag-map", "/api/universities"}) {
             mvc.perform(get(path)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
                     .andExpect(status().isOk())
@@ -104,6 +104,9 @@ class AuthHttpSecurityTest {
         mvc.perform(post("/api/tag-map")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
                 .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/universities")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer expired"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Configuration(proxyBeanMethods = false)
@@ -140,6 +143,11 @@ class AuthHttpSecurityTest {
 
         @GetMapping("/api/tag-map")
         Map<String, String> tagMap() {
+            return Map.of("result", "ok");
+        }
+
+        @GetMapping("/api/universities")
+        Map<String, String> universities() {
             return Map.of("result", "ok");
         }
     }
