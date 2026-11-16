@@ -16,6 +16,8 @@ public final class PublicApiPaths {
             PATHS.matcher(HttpMethod.POST, "/api/auth/signup"),
             PATHS.matcher(HttpMethod.POST, "/api/auth/login"),
             PATHS.matcher(HttpMethod.GET, "/api/majors"),
-            PATHS.matcher(HttpMethod.GET, "/api/majors/**")
+            PATHS.matcher(HttpMethod.GET, "/api/majors/**"),
+            PATHS.matcher(HttpMethod.GET, "/api/tag-map"),
+            PATHS.matcher(HttpMethod.GET, "/api/universities")
     );
 }
