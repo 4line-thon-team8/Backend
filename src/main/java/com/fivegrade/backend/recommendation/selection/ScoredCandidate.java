@@ -1,8 +1,10 @@
 package com.fivegrade.backend.recommendation.selection;
 
+import com.fivegrade.backend.holistic.scoring.DocumentAdjustment;
 import com.fivegrade.backend.recommendation.dto.CandidateKind;
 import com.fivegrade.backend.recommendation.dto.CardEvidence;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
+import com.fivegrade.backend.recommendation.probability.TrackKind;
 
 /**
  * 합격 가능성 구간 계산을 마친 후보. 카드로 고르기 전 단계의 값이다.
@@ -18,6 +20,9 @@ import com.fivegrade.backend.recommendation.probability.AdmissionBand;
  * @param gradeGap          5등급 환산 예측 70%컷 - 사용자 5등급 평균. UNRATED 이면 null
  * @param evidence          근거 지표
  * @param lowConfidence     예측 오차 폭(σ)이 커서 신뢰도가 낮은지 여부
+ * @param trackKind         전형 계열(교과·학종). 전형 구성 정책이 쓴다. 모르면 null
+ * @param documentShare     전형에서 서류가 차지하는 비중(0~1). 모르면 null
+ * @param documentAdjustment 서류 보정 결과. 보정하지 않았으면 null
  */
 public record ScoredCandidate(
 		long unitId,
@@ -30,8 +35,29 @@ public record ScoredCandidate(
 		Double probability,
 		Double gradeGap,
 		CardEvidence evidence,
-		boolean lowConfidence
+		boolean lowConfidence,
+		TrackKind trackKind,
+		Double documentShare,
+		DocumentAdjustment documentAdjustment
 ) {
+
+	/** 서류 보정과 전형 계열 정보가 없는 후보. 기존 호출부와 테스트가 그대로 쓴다. */
+	public ScoredCandidate(
+			long unitId,
+			long universityId,
+			String universityName,
+			String departmentName,
+			String admissionTypeName,
+			CandidateKind kind,
+			AdmissionBand band,
+			Double probability,
+			Double gradeGap,
+			CardEvidence evidence,
+			boolean lowConfidence
+	) {
+		this(unitId, universityId, universityName, departmentName, admissionTypeName, kind, band,
+				probability, gradeGap, evidence, lowConfidence, null, null, null);
+	}
 
 	/** 같은 대학의 같은 학과인지 구분하는 키. 전형이 달라도 같은 학과는 한 번만 추천한다. */
 	String departmentKey() {
