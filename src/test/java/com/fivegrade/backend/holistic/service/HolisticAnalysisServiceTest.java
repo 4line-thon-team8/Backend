@@ -64,7 +64,7 @@ class HolisticAnalysisServiceTest {
 	}
 
 	@Test
-	void 신호가_하나도_없으면_최저_수준으로_보지_않고_반영하지_않는다() {
+	void 신호가_하나도_없으면_반영하지_않는다() {
 		assertThat(service.evaluate(request("0.1.0", chars(300, 300), List.of())))
 				.isEqualTo(new Skipped(SkipReason.INSUFFICIENT_SIGNALS));
 	}
@@ -76,23 +76,33 @@ class HolisticAnalysisServiceTest {
 		assertThat(result).isInstanceOf(Applied.class);
 		Applied applied = (Applied) result;
 		assertThat(applied.rulesVersion()).isEqualTo("0.1.0");
-		// 규칙이 있는 지표(학업 A2·A3, 진로 B3, 공동체 C1~C4)에 모두 강한 신호가 있으면 각 5.0. 평균이 규칙 수에 흔들리지 않게 전부 채운다.
+		// 신호가 관찰된 지표(학업 A2·A3, 진로 B3, 공동체 C1~C4)는 모두 5.0
 		assertThat(applied.elementLevels().get("ACADEMIC")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
 		assertThat(applied.elementLevels().get("MAJOR_FIT")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
 		assertThat(applied.elementLevels().get("COMMUNITY")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
-		// 규칙은 있는데 신호가 없는 발전가능성(D4)은 근거 없음으로 1.0
-		assertThat(applied.elementLevels().get("POTENTIAL")).isEqualTo(1.0, org.assertj.core.data.Offset.offset(DELTA));
+		// 신호가 없는 발전가능성(D4)은 관찰되지 않은 것이라 수준 자체가 없다.
+		assertThat(applied.elementLevels()).doesNotContainKey("POTENTIAL");
 		assertThat(applied.overallLevel()).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
 	}
 
 	@Test
-	void 신호가_일부_요소에만_있으면_나머지_요소는_최저_수준으로_평균에_들어간다() {
+	void 신호가_없는_지표와_요소는_평균에_넣지_않는다() {
 		HolisticEvaluation result = service.evaluate(request("0.1.0", chars(300, 300),
-				List.of(new IndicatorSignal("A3", 7, List.of(1, 2), 1.0))));
+				List.of(new IndicatorSignal("A3", 7, List.of(1, 2), 1.0),
+						new IndicatorSignal("C1", 7, List.of(1, 2), 1.0))));
 
 		Applied applied = (Applied) result;
-		// 학업은 A2(근거 없음 1.0)와 A3(5.0)의 평균 3.0, 진로 1.0, 공동체 1.0 → 균등 평균 5/3
-		assertThat(applied.overallLevel()).isEqualTo(5.0 / 3.0, org.assertj.core.data.Offset.offset(DELTA));
+		// 학업은 A2가 관찰되지 않아도 A3(5.0)만으로 5.0, 진로는 관찰된 지표가 없어 제외, 공동체 5.0
+		assertThat(applied.elementLevels().get("ACADEMIC")).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
+		assertThat(applied.elementLevels()).doesNotContainKey("MAJOR_FIT");
+		assertThat(applied.overallLevel()).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
+	}
+
+	@Test
+	void 신호가_한_축에만_있으면_서류_수준을_만들지_못해_반영하지_않는다() {
+		assertThat(service.evaluate(request("0.1.0", chars(300, 300),
+				List.of(new IndicatorSignal("A3", 7, List.of(1, 2), 1.0)))))
+				.isEqualTo(new Skipped(SkipReason.INSUFFICIENT_SIGNALS));
 	}
 
 	private static List<IndicatorSignal> strongSignals() {

@@ -52,11 +52,6 @@ public record IndicatorLevelParameters(int[] countCuts, double countWeight, doub
 		return Math.min(5.0, Math.max(1.0, level));
 	}
 
-	/** 신호가 하나도 없는 지표의 수준 */
-	public double noEvidenceLevel() {
-		return 1.0;
-	}
-
 	@Override
 	public int[] countCuts() {
 		return countCuts.clone();

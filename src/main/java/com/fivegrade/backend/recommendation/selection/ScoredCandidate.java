@@ -1,6 +1,7 @@
 package com.fivegrade.backend.recommendation.selection;
 
 import com.fivegrade.backend.holistic.scoring.DocumentAdjustment;
+import com.fivegrade.backend.holistic.scoring.DocumentSignal;
 import com.fivegrade.backend.recommendation.dto.CandidateKind;
 import com.fivegrade.backend.recommendation.dto.CardEvidence;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
@@ -23,6 +24,7 @@ import com.fivegrade.backend.recommendation.probability.TrackKind;
  * @param trackKind         전형 계열(교과·학종). 전형 구성 정책이 쓴다. 모르면 null
  * @param documentShare     전형에서 서류가 차지하는 비중(0~1). 모르면 null
  * @param documentAdjustment 서류 보정 결과. 보정하지 않았으면 null
+ * @param documentSignal    이 후보에 적용한 서류 입력(적합도 표시용). 없으면 null
  */
 public record ScoredCandidate(
 		long unitId,
@@ -38,8 +40,30 @@ public record ScoredCandidate(
 		boolean lowConfidence,
 		TrackKind trackKind,
 		Double documentShare,
-		DocumentAdjustment documentAdjustment
+		DocumentAdjustment documentAdjustment,
+		DocumentSignal documentSignal
 ) {
+
+	/** 서류 입력 원본을 따로 담지 않는 후보. 기존 호출부와 테스트가 그대로 쓴다. */
+	public ScoredCandidate(
+			long unitId,
+			long universityId,
+			String universityName,
+			String departmentName,
+			String admissionTypeName,
+			CandidateKind kind,
+			AdmissionBand band,
+			Double probability,
+			Double gradeGap,
+			CardEvidence evidence,
+			boolean lowConfidence,
+			TrackKind trackKind,
+			Double documentShare,
+			DocumentAdjustment documentAdjustment
+	) {
+		this(unitId, universityId, universityName, departmentName, admissionTypeName, kind, band,
+				probability, gradeGap, evidence, lowConfidence, trackKind, documentShare, documentAdjustment, null);
+	}
 
 	/** 서류 보정과 전형 계열 정보가 없는 후보. 기존 호출부와 테스트가 그대로 쓴다. */
 	public ScoredCandidate(
@@ -56,7 +80,7 @@ public record ScoredCandidate(
 			boolean lowConfidence
 	) {
 		this(unitId, universityId, universityName, departmentName, admissionTypeName, kind, band,
-				probability, gradeGap, evidence, lowConfidence, null, null, null);
+				probability, gradeGap, evidence, lowConfidence, null, null, null, null);
 	}
 
 	/** 같은 대학의 같은 학과인지 구분하는 키. 전형이 달라도 같은 학과는 한 번만 추천한다. */

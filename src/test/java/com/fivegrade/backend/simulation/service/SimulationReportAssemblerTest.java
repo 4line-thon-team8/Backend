@@ -251,7 +251,8 @@ class SimulationReportAssemblerTest {
         boolean global = switch (code) {
             case NO_CANDIDATES,
                  FEWER_THAN_SIX_CARDS,
-                 REACH_CARD_NOT_AVAILABLE -> true;
+                 REACH_CARD_NOT_AVAILABLE,
+                 HOLISTIC_SKIPPED -> true;
             default -> false;
         };
 
@@ -596,6 +597,9 @@ class SimulationReportAssemblerTest {
 
             case LOW_CONFIDENCE_CARD ->
                     "추천 근거가 되는 입결 자료가 적어 신뢰도가 다소 낮으니 결과 해석에 주의해 주세요";
+
+            case HOLISTIC_SKIPPED ->
+                    "작성하신 서술 분석을 이번 결과에는 반영하지 못해 성적만으로 추천했어요.";
         };
     }
 

@@ -63,12 +63,23 @@ class ElementLevelCalculatorTest {
 	}
 
 	@Test
-	void 규칙이_있는데_신호가_없으면_근거_없음으로_가장_낮은_수준이다() {
+	void 신호가_전혀_없으면_지표와_요소_수준이_모두_비어_있다() {
 		ElementLevelCalculator.Result result = calculator.compute(OBSERVABLE, List.of());
 
-		assertEquals(1.0, result.indicatorLevels().get("A3"), DELTA);
-		assertEquals(1.0, result.elementLevels().get("ACADEMIC"), DELTA);
-		assertEquals(1.0, result.potential(), DELTA);
+		assertTrue(result.indicatorLevels().isEmpty());
+		assertTrue(result.elementLevels().isEmpty());
+		assertNull(result.potential());
+	}
+
+	@Test
+	void 규칙이_있어도_신호가_없는_지표는_평균에서_제외한다() {
+		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
+		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+				new Observation("A3", 7, 1.0)));
+
+		// A2는 관찰되지 않았을 뿐이므로 A3(5.0)만 평균에 들어간다.
+		assertEquals(5.0, result.elementLevels().get("ACADEMIC"), DELTA);
+		assertFalse(result.indicatorLevels().containsKey("A2"));
 	}
 
 	@Test
@@ -85,17 +96,17 @@ class ElementLevelCalculatorTest {
 	}
 
 	@Test
-	void 같은_요소의_지표는_평균한다() {
+	void 같은_요소의_관찰된_지표는_평균한다() {
 		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
 		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
-				new Observation("A3", 7, 1.0)));
+				new Observation("A3", 7, 1.0), new Observation("A2", 1, 0.0)));
 
-		// A3=5.0, A2=근거 없음 1.0 → 평균 3.0
-		assertEquals(3.0, result.elementLevels().get("ACADEMIC"), DELTA);
+		// A3=5.0, A2=1.6 → 평균 3.3
+		assertEquals(3.3, result.elementLevels().get("ACADEMIC"), DELTA);
 	}
 
 	@Test
-	void 관찰할_지표가_없는_요소는_수준이_없고_3축_수준에도_null이다() {
+	void 신호가_관찰된_지표가_없는_요소는_수준이_없고_3축_수준에도_null이다() {
 		Map<String, String> observable = Map.of("A3", "ACADEMIC", "C1", "COMMUNITY");
 		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
 				new Observation("A3", 4, 0.5), new Observation("C1", 2, 0.5)));

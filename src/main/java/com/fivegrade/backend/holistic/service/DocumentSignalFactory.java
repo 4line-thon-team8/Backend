@@ -79,7 +79,31 @@ public class DocumentSignalFactory {
 			return null;
 		}
 		BigDecimal share = profile.getDocumentShare();
-		return new DocumentSignal(level.get(), share == null ? null : share.doubleValue() / 100.0);
+		return new DocumentSignal(level.get(), share == null ? null : share.doubleValue() / 100.0,
+				basisOf(levels, weights));
+	}
+
+	/** 전형 비중 x |요소 수준 - 3(중립)|이 큰 요소 최대 2개. 중립이면 근거로 삼지 않는다. */
+	private static List<String> basisOf(
+			DocumentLevelCalculator.ElementLevels levels,
+			DocumentLevelCalculator.AxisWeights weights
+	) {
+		Map<String, Double> contribution = new java.util.LinkedHashMap<>();
+		put(contribution, "ACADEMIC", levels.academic(), weights.academic());
+		put(contribution, "MAJOR_FIT", levels.career(), weights.career());
+		put(contribution, "COMMUNITY", levels.community(), weights.community());
+		return contribution.entrySet().stream()
+				.filter(entry -> entry.getValue() > 0)
+				.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+				.limit(2)
+				.map(Map.Entry::getKey)
+				.toList();
+	}
+
+	private static void put(Map<String, Double> target, String axis, Double level, Double weight) {
+		if (level != null && weight != null && weight > 0) {
+			target.put(axis, weight * Math.abs(level - 3.0));
+		}
 	}
 
 	private static Double percent(BigDecimal value) {
