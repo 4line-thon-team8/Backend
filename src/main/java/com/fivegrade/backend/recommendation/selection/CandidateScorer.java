@@ -1,8 +1,13 @@
 package com.fivegrade.backend.recommendation.selection;
 
+import com.fivegrade.backend.holistic.scoring.DocumentAdjuster;
+import com.fivegrade.backend.holistic.scoring.DocumentAdjustmentParameters;
+import com.fivegrade.backend.holistic.scoring.DocumentAdjustment;
+import com.fivegrade.backend.holistic.scoring.DocumentSignal;
 import com.fivegrade.backend.recommendation.candidate.CandidateUnit;
 import com.fivegrade.backend.recommendation.candidate.UnitYearData;
 import com.fivegrade.backend.recommendation.dto.CardEvidence;
+import com.fivegrade.backend.recommendation.probability.AdmissionBand;
 import com.fivegrade.backend.recommendation.probability.AdmissionBandCalculator;
 import com.fivegrade.backend.recommendation.probability.BandAssessment;
 import com.fivegrade.backend.recommendation.probability.CutForecast;
@@ -27,6 +32,7 @@ public final class CandidateScorer {
 	private final AdmissionBandCalculator bandCalculator;
 	private final GradeScaleConverter scaleConverter;
 	private final ProbabilityParameters parameters;
+	private final DocumentAdjuster documentAdjuster;
 
 	public CandidateScorer() {
 		this(ProbabilityParameters.DEFAULT);
@@ -37,6 +43,8 @@ public final class CandidateScorer {
 		this.bandCalculator = new AdmissionBandCalculator(parameters);
 		this.scaleConverter = new GradeScaleConverter();
 		this.parameters = parameters;
+		this.documentAdjuster = new DocumentAdjuster(
+				DocumentAdjustmentParameters.DEFAULT, parameters);
 	}
 
 	/**
@@ -50,6 +58,22 @@ public final class CandidateScorer {
 			List<Integer> recentYears,
 			double studentNine,
 			double fiveAverage
+	) {
+		return score(unit, recentYears, studentNine, fiveAverage, null);
+	}
+
+	/**
+	 * 서류 보정을 반영한 점수 계산. 학종 서술 분석 결과가 있을 때 후보 전형별 서류 입력을 넘긴다.
+	 * documentSignal 이 null 이면 서류를 반영하지 않으며 결과는 기존 계산과 같다.
+	 *
+	 * @param documentSignal 이 후보 전형 기준의 서류 수준·비중. 반영하지 않으면 null
+	 */
+	public ScoredCandidate score(
+			CandidateUnit unit,
+			List<Integer> recentYears,
+			double studentNine,
+			double fiveAverage,
+			DocumentSignal documentSignal
 	) {
 		List<YearlyCut> cuts = unit.years().stream()
 				.filter(UnitYearData::hasBothCuts)
@@ -73,6 +97,19 @@ public final class CandidateScorer {
 				? assessment.probability().getAsDouble()
 				: null;
 
+		TrackKind trackKind = TrackKind.fromLabel(unit.trackType());
+		DocumentAdjustment adjustment = null;
+		AdmissionBand band = assessment.band();
+		Double documentShare = documentSignal == null ? null : documentSignal.share();
+		if (documentSignal != null) {
+			adjustment = documentAdjuster.adjust(
+					forecast, studentNine, assessment, documentSignal.level(), documentSignal.share());
+			if (adjustment.applied()) {
+				band = adjustment.adjustedBand();
+				probability = adjustment.adjustedProbability();
+			}
+		}
+
 		return new ScoredCandidate(
 				unit.unitId(),
 				unit.universityId(),
@@ -80,11 +117,14 @@ public final class CandidateScorer {
 				unit.departmentName(),
 				unit.trackName(),
 				unit.kind(),
-				assessment.band(),
+				band,
 				probability,
 				gradeGap,
 				evidenceOf(unit, assessment.basisYears()),
-				lowConfidence
+				lowConfidence,
+				trackKind,
+				documentShare,
+				adjustment
 		);
 	}
 

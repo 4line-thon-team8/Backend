@@ -31,13 +31,25 @@ public final class AdmissionBandCalculator {
 	 * @param studentGrade 컷과 같은 기준의 학생 등급
 	 */
 	public BandAssessment assess(CutForecast forecast, double studentGrade) {
+		return assess(forecast, studentGrade, 0.0, 0.0);
+	}
+
+	/**
+	 * 서류 보정을 반영한 평가. 학생 등급을 gradeShift만큼 우수한 쪽으로 옮기고, σ에 extraSigma를 제곱합으로 더한다.
+	 * 하위 성적 판정(lowGradeStart)은 보정 전 학생 등급으로 한다. 서류가 좋아도 하위 성적의 안정 기준은 완화하지 않는다.
+	 *
+	 * @param gradeShift 학생 등급에서 뺄 값. 양수면 유리하다. 0이면 보정 없음
+	 * @param extraSigma 추가 불확실성 σ. 0이면 더하지 않는다.
+	 */
+	public BandAssessment assess(CutForecast forecast, double studentGrade, double gradeShift, double extraSigma) {
 		if (forecast == null) {
 			return BandAssessment.unrated();
 		}
 
 		double center = forecast.high() + parameters.driftShift();
-		double sigma = parameters.sigma(forecast);
-		double margin = center - studentGrade;
+		double baseSigma = parameters.sigma(forecast);
+		double sigma = extraSigma == 0.0 ? baseSigma : Math.sqrt(baseSigma * baseSigma + extraSigma * extraSigma);
+		double margin = center - (studentGrade - gradeShift);
 		double probability = NormalDistribution.cdf(margin / sigma);
 
 		return new BandAssessment(
