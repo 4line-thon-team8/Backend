@@ -4,10 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fivegrade.backend.holistic.scoring.DocumentAdjustment;
+import com.fivegrade.backend.holistic.scoring.DocumentSignal;
 import com.fivegrade.backend.recommendation.dto.CandidateKind;
 import com.fivegrade.backend.recommendation.dto.CardEvidence;
+import com.fivegrade.backend.recommendation.dto.DocumentFit;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
+import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.recommendation.dto.WarningCode;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
 import java.util.ArrayList;
@@ -93,6 +97,45 @@ class RecommendationAssemblerTest {
 				List.of(candidate(CandidateKind.DESIRED_MAJOR, AdmissionBand.UNRATED, false)), false);
 
 		assertNull(result.cards().get(0).gradeGap());
+	}
+
+	@Test
+	void 서류_보정을_적용한_카드는_보정_전_구간과_서류_적합도를_함께_담는다() {
+		DocumentAdjustment adjustment = new DocumentAdjustment(
+				true, 0.4, AdmissionBand.REACH, AdmissionBand.MATCH, 0.5, DocumentAdjustment.Reason.APPLIED);
+		ScoredCandidate base = candidate(CandidateKind.DESIRED_MAJOR, AdmissionBand.MATCH, false);
+		ScoredCandidate adjusted = new ScoredCandidate(
+				base.unitId(), base.universityId(), base.universityName(), base.departmentName(),
+				base.admissionTypeName(), base.kind(), base.band(), base.probability(), base.gradeGap(),
+				base.evidence(), false, null, 0.7, adjustment,
+				new DocumentSignal(4.2, 0.7, List.of("ACADEMIC", "MAJOR_FIT")));
+
+		RecommendedCard card = assembler.assemble(List.of(adjusted), false).cards().getFirst();
+
+		assertEquals(AdmissionBand.MATCH, card.band());
+		assertEquals(AdmissionBand.REACH, card.baseBand());
+		assertEquals(DocumentFit.Level.HIGH, card.documentFit().level());
+		assertEquals(List.of("ACADEMIC", "MAJOR_FIT"), card.documentFit().basis());
+	}
+
+	@Test
+	void 서류_보정을_하지_않은_카드는_보정_전_구간이_없고_입력이_있으면_적합도만_담는다() {
+		DocumentAdjustment notApplied = DocumentAdjustment.none(
+				AdmissionBand.FAR, null, DocumentAdjustment.Reason.BAND_NOT_ADJUSTABLE);
+		ScoredCandidate base = candidate(CandidateKind.DESIRED_MAJOR, AdmissionBand.FAR, false);
+		ScoredCandidate withSignal = new ScoredCandidate(
+				base.unitId(), base.universityId(), base.universityName(), base.departmentName(),
+				base.admissionTypeName(), base.kind(), base.band(), base.probability(), base.gradeGap(),
+				base.evidence(), false, null, 0.7, notApplied, new DocumentSignal(1.5, 0.7));
+
+		RecommendedCard plain = assembler.assemble(
+				List.of(candidate(CandidateKind.DESIRED_MAJOR, AdmissionBand.MATCH, false)), false).cards().getFirst();
+		RecommendedCard card = assembler.assemble(List.of(withSignal), false).cards().getFirst();
+
+		assertNull(plain.baseBand());
+		assertNull(plain.documentFit());
+		assertNull(card.baseBand());
+		assertEquals(DocumentFit.Level.LOW, card.documentFit().level());
 	}
 
 	private List<ScoredCandidate> sixDesiredCards() {

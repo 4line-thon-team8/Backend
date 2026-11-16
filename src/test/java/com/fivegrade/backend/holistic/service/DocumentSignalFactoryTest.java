@@ -39,6 +39,24 @@ class DocumentSignalFactoryTest {
 	}
 
 	@Test
+	void 서류_수준에_크게_작용한_요소를_비중과_중립_거리가_큰_순서로_최대_두_개_남긴다() {
+		// 학업 60%(4.0 → 거리 1, 기여 0.6), 진로 40%(2.0 → 거리 1, 기여 0.4), 공동체 0%는 제외
+		HolisticTrackProfile profile = profile(1L, "A전형", 2028, "학종", "70", "60", "40", "0");
+		Function<CandidateUnit, DocumentSignal> resolver = factory(profile).resolverFor(List.of(unit(1L, "학종", "A전형")), LEVELS);
+
+		assertThat(resolver.apply(unit(1L, "학종", "A전형")).basis()).containsExactly("ACADEMIC", "MAJOR_FIT");
+	}
+
+	@Test
+	void 수준이_중립인_요소는_근거에_넣지_않는다() {
+		// 공동체 수준이 3.0(중립)이라 비중이 커도 근거가 아니다.
+		HolisticTrackProfile profile = profile(1L, "A전형", 2028, "학종", "70", "10", "10", "80");
+		Function<CandidateUnit, DocumentSignal> resolver = factory(profile).resolverFor(List.of(unit(1L, "학종", "A전형")), LEVELS);
+
+		assertThat(resolver.apply(unit(1L, "학종", "A전형")).basis()).doesNotContain("COMMUNITY");
+	}
+
+	@Test
 	void 같은_전형의_여러_연도_중_가장_최근_행을_쓴다() {
 		HolisticTrackProfile newer = profile(1L, "A전형", 2028, "학종", "60", "100", "0", "0");
 		HolisticTrackProfile older = profile(1L, "A전형", 2027, "학종", "30", "0", "100", "0");

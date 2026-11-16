@@ -2,6 +2,7 @@ package com.fivegrade.backend.simulation.dto;
 
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import com.fivegrade.backend.report.generation.ConsultingReport;
 import com.fivegrade.backend.report.generation.ReportSection;
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.Objects;
 
 /**
  * 설명까지 조립한 내부 결과. 공개 응답 계약 확정 전 Controller에서 직접 반환하지 않는다.
+ * holistic 은 서술 분석 반영 결과이며 저장하지 않는다. null 이면 서술 분석을 보내지 않은 것이다.
  * 저장 시에도 이 객체 전체를 직렬화하지 않고 최소 저장 계약으로 별도 매핑한다.
  */
 public record SimulationReportResult(
@@ -17,8 +19,20 @@ public record SimulationReportResult(
         List<SimulationAnalysis.SubjectGrade> subjects,
         List<ExplainedCard> recommendations,
         List<RecommendationWarning> warnings,
-        ConsultingReport report
+        ConsultingReport report,
+        HolisticEvaluation holistic
 ) {
+
+    /** 서술 분석 결과가 없는 내부 결과. 서술 분석을 보내지 않은 것과 같다. */
+    public SimulationReportResult(
+            BigDecimal displayAverage,
+            List<SimulationAnalysis.SubjectGrade> subjects,
+            List<ExplainedCard> recommendations,
+            List<RecommendationWarning> warnings,
+            ConsultingReport report
+    ) {
+        this(displayAverage, subjects, recommendations, warnings, report, null);
+    }
 
     public SimulationReportResult {
         Objects.requireNonNull(displayAverage);

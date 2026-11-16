@@ -7,9 +7,10 @@ import java.util.Map;
 /**
  * 지표 신호로 지표 수준을 만들고, 같은 평가요소의 지표들을 평균해 요소 수준(1~5)을 만든다.
  *
- * 규칙 사전에 규칙이 있는 지표만 "관찰할 수 있는 지표"로 본다. 규칙이 없는 지표는 신호가 없는 것이
- * 아니라 측정하지 못한 것이므로 평균에 넣지 않는다. 관찰할 수 있는 지표가 없는 요소는 수준이 null 이다.
- * 관찰할 수 있는 지표인데 신호가 오지 않았다면 근거가 없는 것으로 보고 가장 낮은 수준을 준다.
+ * 규칙 사전에 규칙이 있는 지표만 "관찰할 수 있는 지표"로 본다. 규칙이 없는 지표는 측정하지 못한 것이므로
+ * 평균에 넣지 않는다. 관찰할 수 있는 지표라도 이번 요청에서 신호가 오지 않았다면 "없다"가 아니라
+ * "관찰되지 않았다"로 보고 마찬가지로 평균에서 제외한다(A안).
+ * 신호가 있는 지표가 하나도 없는 요소는 수준이 없다(요소 수준 맵에 들어 있지 않다).
  *
  * Spring과 DB에 의존하지 않는 순수 Java 클래스다.
  */
@@ -25,8 +26,8 @@ public final class ElementLevelCalculator {
 	}
 
 	/**
-	 * @param indicatorLevels 관찰할 수 있는 지표의 수준(1~5)
-	 * @param elementLevels   요소별 수준(1~5). 관찰할 수 있는 지표가 없는 요소는 들어 있지 않다.
+	 * @param indicatorLevels 신호가 관찰된 지표의 수준(1~5)
+	 * @param elementLevels   요소별 수준(1~5). 신호가 관찰된 지표가 없는 요소는 들어 있지 않다.
 	 */
 	public record Result(Map<String, Double> indicatorLevels, Map<String, Double> elementLevels) {
 
@@ -71,9 +72,10 @@ public final class ElementLevelCalculator {
 		Map<String, double[]> elementSums = new HashMap<>();
 		for (Map.Entry<String, String> entry : observableIndicators.entrySet()) {
 			Observation observation = byId.get(entry.getKey());
-			double level = observation == null
-					? parameters.noEvidenceLevel()
-					: parameters.level(observation.count(), observation.quality());
+			if (observation == null) {
+				continue;
+			}
+			double level = parameters.level(observation.count(), observation.quality());
 			indicatorLevels.put(entry.getKey(), level);
 			double[] sum = elementSums.computeIfAbsent(entry.getValue(), key -> new double[2]);
 			sum[0] += level;

@@ -1,6 +1,9 @@
 package com.fivegrade.backend.recommendation.selection;
 
+import com.fivegrade.backend.holistic.scoring.DocumentAdjustment;
+import com.fivegrade.backend.holistic.scoring.DocumentSignal;
 import com.fivegrade.backend.recommendation.dto.CandidateKind;
+import com.fivegrade.backend.recommendation.dto.DocumentFit;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
@@ -58,8 +61,21 @@ public final class RecommendationAssembler {
 				candidate.band(),
 				candidate.kind(),
 				candidate.gradeGap(),
-				candidate.evidence()
+				candidate.evidence(),
+				baseBandOf(candidate),
+				documentFitOf(candidate)
 		);
+	}
+
+	/** 서류 보정을 적용한 카드만 보정 전 구간을 남긴다. */
+	private AdmissionBand baseBandOf(ScoredCandidate candidate) {
+		DocumentAdjustment adjustment = candidate.documentAdjustment();
+		return adjustment != null && adjustment.applied() ? adjustment.baseBand() : null;
+	}
+
+	private DocumentFit documentFitOf(ScoredCandidate candidate) {
+		DocumentSignal signal = candidate.documentSignal();
+		return signal == null ? null : DocumentFit.of(signal.level(), signal.basis());
 	}
 
 	private void addCardWarnings(List<RecommendationWarning> warnings, int rank, ScoredCandidate candidate) {

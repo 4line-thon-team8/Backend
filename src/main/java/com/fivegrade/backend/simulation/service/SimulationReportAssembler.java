@@ -1,6 +1,9 @@
 package com.fivegrade.backend.simulation.service;
 
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
+import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
+import com.fivegrade.backend.recommendation.dto.WarningCode;
 import com.fivegrade.backend.report.generation.ReportGenerator;
 import com.fivegrade.backend.report.generation.ReportGenerator.GeneratedReport;
 import com.fivegrade.backend.simulation.dto.SimulationAnalysis;
@@ -44,9 +47,24 @@ public final class SimulationReportAssembler {
                 analysis.displayAverage(),
                 analysis.subjects(),
                 cards,
-                result.warnings(),
-                generated.report()
+                withHolisticWarning(result.warnings(), analysis.holistic()),
+                generated.report(),
+                analysis.holistic()
         );
+    }
+
+    /** 서술 분석을 보냈는데 반영하지 못했다면 결과 전체 안내를 하나 덧붙인다. 보내지 않은 경우는 안내하지 않는다. */
+    private List<RecommendationWarning> withHolisticWarning(
+            List<RecommendationWarning> warnings,
+            HolisticEvaluation holistic
+    ) {
+        if (holistic instanceof HolisticEvaluation.Skipped skipped
+                && skipped.reason() != HolisticEvaluation.SkipReason.NOT_PROVIDED) {
+            List<RecommendationWarning> merged = new ArrayList<>(warnings);
+            merged.add(RecommendationWarning.forResult(WarningCode.HOLISTIC_SKIPPED));
+            return merged;
+        }
+        return warnings;
     }
 
     /** 추천 결과의 불일치를 설명 생성 전에 거부한다. */

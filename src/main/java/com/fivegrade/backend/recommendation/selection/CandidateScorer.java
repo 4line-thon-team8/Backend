@@ -124,7 +124,8 @@ public final class CandidateScorer {
 				lowConfidence,
 				trackKind,
 				documentShare,
-				adjustment
+				adjustment,
+				documentSignal
 		);
 	}
 

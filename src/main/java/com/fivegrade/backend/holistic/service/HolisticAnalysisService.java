@@ -57,8 +57,8 @@ public class HolisticAnalysisService implements HolisticEvaluator {
 		if (request.coverage().sectionChars().total() < catalog.limits().minNarrativeChars()) {
 			return skipped(SkipReason.TOO_SHORT);
 		}
-		// 규칙이 아직 적어 신호가 하나도 안 잡힌 것은 근거가 없다는 뜻이 아니라 측정하지 못했다는 뜻일 수 있다.
-		// 이때 모든 요소를 최저 수준으로 보면 서류를 부당하게 낮게 반영하므로 서류를 반영하지 않는다.
+		// 신호가 하나도 안 잡힌 것은 근거가 없다는 뜻이 아니라 측정하지 못했다는 뜻일 수 있다.
+		// 신호가 없는 지표는 평균에서 빠지므로(A안) 판단할 재료가 없으면 서류를 반영하지 않는다.
 		if (request.indicatorSignals().isEmpty()) {
 			return skipped(SkipReason.INSUFFICIENT_SIGNALS);
 		}
