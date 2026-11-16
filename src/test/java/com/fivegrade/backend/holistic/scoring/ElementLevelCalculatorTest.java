@@ -1,0 +1,129 @@
+package com.fivegrade.backend.holistic.scoring;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.fivegrade.backend.holistic.scoring.ElementLevelCalculator.Observation;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+
+/**
+ * 지표 신호 → 지표 수준 → 요소 수준 계산을 확인한다. DB나 Spring 없이 실행한다.
+ */
+class ElementLevelCalculatorTest {
+
+	private static final double DELTA = 1e-9;
+
+	/** 규칙이 있는 지표: 탐구력(학업), 진로 탐색(전공 적합), 협업(공동체), 심화·확장(발전가능성) */
+	private static final Map<String, String> OBSERVABLE = Map.of(
+			"A3", "ACADEMIC", "B3", "MAJOR_FIT", "C1", "COMMUNITY", "D4", "POTENTIAL");
+
+	private final ElementLevelCalculator calculator = new ElementLevelCalculator();
+
+	@Test
+	void 신호_수는_경계에_따라_1에서_5단계가_된다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+
+		assertEquals(1, parameters.countLevel(0));
+		assertEquals(2, parameters.countLevel(1));
+		assertEquals(3, parameters.countLevel(2));
+		assertEquals(3, parameters.countLevel(3));
+		assertEquals(4, parameters.countLevel(4));
+		assertEquals(4, parameters.countLevel(6));
+		assertEquals(5, parameters.countLevel(7));
+		assertEquals(5, parameters.countLevel(500));
+	}
+
+	@Test
+	void 지표_수준은_신호_수와_품질을_섞고_1에서_5_안에_있다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+
+		// 신호 7개(5단계) + 품질 1.0(5점) → 5
+		assertEquals(5.0, parameters.level(7, 1.0), DELTA);
+		// 신호 1개(2단계) + 품질 0(1점) → 0.6*2 + 0.4*1 = 1.6
+		assertEquals(1.6, parameters.level(1, 0.0), DELTA);
+		// 범위를 벗어난 품질은 0~1 로 맞춘다.
+		assertEquals(parameters.level(3, 1.0), parameters.level(3, 9.0), DELTA);
+		assertEquals(parameters.level(3, 0.0), parameters.level(3, -3.0), DELTA);
+	}
+
+	@Test
+	void 신호가_많고_품질이_높을수록_수준이_올라간다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+		double previous = 0;
+		for (int count = 0; count <= 8; count++) {
+			double level = parameters.level(count, 0.5);
+			assertTrue(level >= previous);
+			previous = level;
+		}
+		assertTrue(parameters.level(3, 0.9) > parameters.level(3, 0.1));
+	}
+
+	@Test
+	void 규칙이_있는데_신호가_없으면_근거_없음으로_가장_낮은_수준이다() {
+		ElementLevelCalculator.Result result = calculator.compute(OBSERVABLE, List.of());
+
+		assertEquals(1.0, result.indicatorLevels().get("A3"), DELTA);
+		assertEquals(1.0, result.elementLevels().get("ACADEMIC"), DELTA);
+		assertEquals(1.0, result.potential(), DELTA);
+	}
+
+	@Test
+	void 규칙이_없는_지표는_측정하지_못한_것이라_수준에_넣지_않는다() {
+		// 학업 요소에 지표 A2(규칙 없음)와 A3(규칙 있음)이 있어도 A3만 평균에 들어간다.
+		Map<String, String> observable = Map.of("A3", "ACADEMIC");
+		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+				new Observation("A3", 7, 1.0),
+				new Observation("A2", 7, 1.0)));
+
+		assertEquals(5.0, result.elementLevels().get("ACADEMIC"), DELTA);
+		assertFalse(result.indicatorLevels().containsKey("A2"));
+		assertNull(result.elementLevels().get("COMMUNITY"));
+	}
+
+	@Test
+	void 같은_요소의_지표는_평균한다() {
+		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
+		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+				new Observation("A3", 7, 1.0)));
+
+		// A3=5.0, A2=근거 없음 1.0 → 평균 3.0
+		assertEquals(3.0, result.elementLevels().get("ACADEMIC"), DELTA);
+	}
+
+	@Test
+	void 관찰할_지표가_없는_요소는_수준이_없고_3축_수준에도_null이다() {
+		Map<String, String> observable = Map.of("A3", "ACADEMIC", "C1", "COMMUNITY");
+		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+				new Observation("A3", 4, 0.5), new Observation("C1", 2, 0.5)));
+
+		DocumentLevelCalculator.ElementLevels axes = result.axisLevels();
+		assertTrue(axes.academic() != null);
+		assertNull(axes.career());
+		assertTrue(axes.community() != null);
+		assertNull(result.potential());
+	}
+
+	@Test
+	void 잘못된_설정은_거부한다() {
+		boolean rejected = false;
+		try {
+			new IndicatorLevelParameters(new int[] {1, 2, 2, 7}, 0.6, 0.4);
+		} catch (IllegalArgumentException e) {
+			rejected = true;
+		}
+		assertTrue(rejected);
+
+		rejected = false;
+		try {
+			new IndicatorLevelParameters(new int[] {1, 2, 4, 7}, 0.7, 0.4);
+		} catch (IllegalArgumentException e) {
+			rejected = true;
+		}
+		assertTrue(rejected);
+	}
+
+}

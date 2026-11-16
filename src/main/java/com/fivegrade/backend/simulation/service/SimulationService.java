@@ -1,6 +1,8 @@
 package com.fivegrade.backend.simulation.service;
 
 import com.fivegrade.backend.conversion.calculation.FiveGradeAverageCalculator;
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
+import com.fivegrade.backend.holistic.service.HolisticEvaluator;
 import com.fivegrade.backend.recommendation.dto.RecommendationQuery;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 import com.fivegrade.backend.recommendation.service.RecommendationService;
@@ -22,11 +24,22 @@ public final class SimulationService {
     private final FiveGradeAverageCalculator averageCalculator;
     private final RecommendationQueryMapper queryMapper;
     private final RecommendationService recommendationService;
+    private final HolisticEvaluator holisticEvaluator;
 
+    /** 서술 분석을 반영하지 않는 구성. 기존 호출부와 테스트가 그대로 쓴다. */
     public SimulationService(
             FiveGradeAverageCalculator averageCalculator,
             RecommendationQueryMapper queryMapper,
             RecommendationService recommendationService
+    ) {
+        this(averageCalculator, queryMapper, recommendationService, HolisticEvaluator.NONE);
+    }
+
+    public SimulationService(
+            FiveGradeAverageCalculator averageCalculator,
+            RecommendationQueryMapper queryMapper,
+            RecommendationService recommendationService,
+            HolisticEvaluator holisticEvaluator
     ) {
         this.averageCalculator = Objects.requireNonNull(
                 averageCalculator
@@ -38,6 +51,10 @@ public final class SimulationService {
 
         this.recommendationService = Objects.requireNonNull(
                 recommendationService
+        );
+
+        this.holisticEvaluator = Objects.requireNonNull(
+                holisticEvaluator
         );
     }
 
@@ -64,9 +81,17 @@ public final class SimulationService {
                 request.applicationPreference()
         );
 
+        // 서술 분석은 성적 기준 추천을 바꾸지 못하는 경우(보내지 않음, 규칙 버전 불일치 등)에도 오류가 아니다.
+        HolisticEvaluation holistic = Objects.requireNonNull(
+                holisticEvaluator.evaluate(request.holisticAnalysis()),
+                "holistic evaluation is required"
+        );
+
         // 계산·DB 오류는 예외로 전파하고 빈 정상 결과로 바꾸지 않는다.
         RecommendationResult result = Objects.requireNonNull(
-                recommendationService.recommend(query),
+                holistic instanceof HolisticEvaluation.Applied applied
+                        ? recommendationService.recommend(query, applied.context())
+                        : recommendationService.recommend(query),
                 "recommendation result is required"
         );
 
@@ -83,7 +108,8 @@ public final class SimulationService {
         return new SimulationAnalysis(
                 displayAverage,
                 subjects,
-                result
+                result,
+                holistic
         );
     }
 }
