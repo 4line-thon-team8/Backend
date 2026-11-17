@@ -105,6 +105,19 @@ class HolisticAnalysisServiceTest {
 				.isEqualTo(new Skipped(SkipReason.INSUFFICIENT_SIGNALS));
 	}
 
+	@Test
+	void 같은_신호라도_서술이_길면_서류_수준이_내려간다() {
+		List<IndicatorSignal> signals = List.of(
+				new IndicatorSignal("A3", 9, List.of(1, 2), 0.5),
+				new IndicatorSignal("B3", 9, List.of(1, 2), 0.5),
+				new IndicatorSignal("C1", 9, List.of(1, 2), 0.5));
+
+		Applied shortDoc = (Applied) service.evaluate(request("0.1.0", chars(1_500, 1_500), signals));
+		Applied longDoc = (Applied) service.evaluate(request("0.1.0", chars(25_000, 25_000), signals));
+
+		assertThat(shortDoc.overallLevel()).isGreaterThan(longDoc.overallLevel());
+	}
+
 	private static List<IndicatorSignal> strongSignals() {
 		return List.of(
 				new IndicatorSignal("A2", 7, List.of(1, 2), 1.0),

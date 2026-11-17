@@ -66,7 +66,8 @@ public class HolisticAnalysisService implements HolisticEvaluator {
 		List<ElementLevelCalculator.Observation> observations = request.indicatorSignals().stream()
 				.map(signal -> new ElementLevelCalculator.Observation(signal.id(), signal.count(), signal.quality()))
 				.toList();
-		ElementLevelCalculator.Result levels = elementCalculator.compute(observableIndicators(), observations);
+		ElementLevelCalculator.Result levels = elementCalculator.compute(
+				observableIndicators(), observations, request.coverage().sectionChars().total());
 
 		Optional<Double> overall = documentCalculator.compute(
 				levels.axisLevels(), DocumentLevelCalculator.AxisWeights.equal());
