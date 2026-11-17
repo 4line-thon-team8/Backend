@@ -68,8 +68,11 @@ public class DocumentSignalFactory {
 			CandidateUnit unit,
 			DocumentLevelCalculator.ElementLevels levels
 	) {
-		if (profile == null || TrackKind.fromLabel(unit.trackType()) != TrackKind.HOLISTIC) {
+		if (TrackKind.fromLabel(unit.trackType()) != TrackKind.HOLISTIC) {
 			return null;
+		}
+		if (profile == null) {
+			return displayOnlySignal(levels);
 		}
 		DocumentLevelCalculator.AxisWeights weights = new DocumentLevelCalculator.AxisWeights(
 				percent(profile.getAcademicRatio()), percent(profile.getCareerRatio()),
@@ -81,6 +84,17 @@ public class DocumentSignalFactory {
 		BigDecimal share = profile.getDocumentShare();
 		return new DocumentSignal(level.get(), share == null ? null : share.doubleValue() / 100.0,
 				basisOf(levels, weights));
+	}
+
+	/**
+	 * 전형 프로필이 없는 학종 후보. 전형 비중을 모르므로 보정하지 않고, 세 축을 같은 비중으로 본 서류 수준을
+	 * 적합도 표시용으로만 붙인다. 프로필 적재가 끝나지 않은 대학도 서류 적합도 안내를 받을 수 있게 한다.
+	 */
+	private DocumentSignal displayOnlySignal(DocumentLevelCalculator.ElementLevels levels) {
+		DocumentLevelCalculator.AxisWeights even = new DocumentLevelCalculator.AxisWeights(1.0, 1.0, 1.0);
+		return levelCalculator.compute(levels, even)
+				.map(level -> DocumentSignal.displayOnly(level, basisOf(levels, even)))
+				.orElse(null);
 	}
 
 	/** 전형 비중 x |요소 수준 - 3(중립)|이 큰 요소 최대 2개. 중립이면 근거로 삼지 않는다. */
