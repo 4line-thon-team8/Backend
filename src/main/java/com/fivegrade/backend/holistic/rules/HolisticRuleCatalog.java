@@ -30,7 +30,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Component
 public class HolisticRuleCatalog {
 
-	static final String RESOURCE_PATH = "holistic/rules-0.4.0.json";
+	static final String RESOURCE_PATH = "holistic/rules-0.5.0.json";
 
 	/** 영역 코드. FE 분석의 영역 이름과 같다. */
 	public static final Set<String> SECTIONS = Set.of("autonomy", "club", "career", "subject", "behavior");

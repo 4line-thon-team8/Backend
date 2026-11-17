@@ -31,7 +31,7 @@ class HolisticRulesControllerTest {
 	void 규칙_사전을_내려준다() throws Exception {
 		mockMvc.perform(get("/api/holistic-rules"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.rulesVersion").value("0.4.0"))
+				.andExpect(jsonPath("$.rulesVersion").value("0.5.0"))
 				.andExpect(jsonPath("$.limits.evidenceMax").value(150))
 				.andExpect(jsonPath("$.limits.evidenceTextMaxChars").value(30))
 				.andExpect(jsonPath("$.types.length()").value(10))
@@ -64,7 +64,7 @@ class HolisticRulesControllerTest {
 	void 다른_ETag면_본문을_다시_내려준다() throws Exception {
 		mockMvc.perform(get("/api/holistic-rules").header(HttpHeaders.IF_NONE_MATCH, "\"stale\""))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.rulesVersion").value("0.4.0"));
+				.andExpect(jsonPath("$.rulesVersion").value("0.5.0"));
 	}
 
 }
