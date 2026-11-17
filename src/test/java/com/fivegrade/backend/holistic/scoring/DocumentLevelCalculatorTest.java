@@ -37,10 +37,19 @@ class DocumentLevelCalculatorTest {
 	}
 
 	@Test
-	void fewerThanTwoUsableAxesGivesNoLevel() {
-		ElementLevels levels = new ElementLevels(4.0, null, null);
+	void noUsableAxisGivesNoLevel() {
+		ElementLevels levels = new ElementLevels(null, null, null);
 
 		assertTrue(calculator.compute(levels, AxisWeights.equal()).isEmpty());
+	}
+
+	@Test
+	void singleUsableAxisGivesThatAxisLevel() {
+		ElementLevels levels = new ElementLevels(null, 2.5, null);
+		AxisWeights weights = new AxisWeights(50.0, 30.0, 20.0);
+
+		assertEquals(2.5, calculator.compute(levels, weights).orElseThrow(), DELTA);
+		assertEquals(2.5, calculator.compute(levels, AxisWeights.equal()).orElseThrow(), DELTA);
 	}
 
 	@Test
