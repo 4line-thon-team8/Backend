@@ -99,9 +99,19 @@ class HolisticAnalysisServiceTest {
 	}
 
 	@Test
-	void 신호가_한_축에만_있으면_서류_수준을_만들지_못해_반영하지_않는다() {
+	void 신호가_한_축에만_있어도_그_축으로_서류_수준을_만든다() {
+		HolisticEvaluation result = service.evaluate(request("0.1.0", chars(300, 300),
+				List.of(new IndicatorSignal("A3", 7, List.of(1, 2), 1.0))));
+
+		assertThat(result).isInstanceOf(Applied.class);
+		assertThat(((Applied) result).overallLevel()).isEqualTo(5.0, org.assertj.core.data.Offset.offset(DELTA));
+	}
+
+	@Test
+	void 서류_3축에_해당하는_신호가_없으면_발전가능성만_있어도_반영하지_않는다() {
+		// D4(발전가능성)는 서류 수준의 3축에 들어가지 않는다.
 		assertThat(service.evaluate(request("0.1.0", chars(300, 300),
-				List.of(new IndicatorSignal("A3", 7, List.of(1, 2), 1.0)))))
+				List.of(new IndicatorSignal("D4", 7, List.of(1, 2), 1.0)))))
 				.isEqualTo(new Skipped(SkipReason.INSUFFICIENT_SIGNALS));
 	}
 

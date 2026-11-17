@@ -92,12 +92,23 @@ class DocumentSignalFactoryTest {
 	}
 
 	@Test
-	void 판단_가능한_축이_두_개_미만이면_서류_입력이_없다() {
+	void 판단_가능한_축이_하나도_없으면_서류_입력이_없다() {
+		HolisticTrackProfile profile = profile(1L, "A전형", 2028, "학종", "50", "100", "0", "0");
+		ElementLevels none = new ElementLevels(null, null, null);
+		Function<CandidateUnit, DocumentSignal> resolver = factory(profile).resolverFor(List.of(unit(1L, "학종", "A전형")), none);
+
+		assertThat(resolver.apply(unit(1L, "학종", "A전형"))).isNull();
+	}
+
+	@Test
+	void 판단_가능한_축이_하나뿐이면_그_축_수준으로_서류_입력을_만든다() {
 		HolisticTrackProfile profile = profile(1L, "A전형", 2028, "학종", "50", "100", "0", "0");
 		ElementLevels onlyOne = new ElementLevels(4.0, null, null);
 		Function<CandidateUnit, DocumentSignal> resolver = factory(profile).resolverFor(List.of(unit(1L, "학종", "A전형")), onlyOne);
 
-		assertThat(resolver.apply(unit(1L, "학종", "A전형"))).isNull();
+		DocumentSignal signal = resolver.apply(unit(1L, "학종", "A전형"));
+		assertThat(signal).isNotNull();
+		assertThat(signal.level()).isEqualTo(4.0, DELTA);
 	}
 
 	@Test
