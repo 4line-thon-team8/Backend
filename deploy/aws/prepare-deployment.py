@@ -38,6 +38,7 @@ if ai not in ("true", "false"):
 api_key = required("OPENAI_API_KEY") if ai == "true" else ""
 (out / ".env").write_text(f"APP_IMAGE=fivegrade-backend:{sha}\nAPI_DOMAIN={domain}\nDB_HOST={host}\nDB_NAME={database}\n")
 values = {
+    "HOLISTIC_ENABLED": "true",
     "DB_USER": username, "DB_PASSWORD": password,
     "CORS_ALLOWED_ORIGINS": "https://odeunggeup-app.vercel.app",
     "OPENAPI_ENABLED": "false", "REPORT_AI_ENABLED": ai,
