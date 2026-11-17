@@ -26,6 +26,9 @@ import java.util.function.BooleanSupplier;
  *
  * 상향 카드를 요청했는데 소신 카드가 하나도 없고 소신 후보가 있으면, 덜 아까운 카드를 빼고 소신 카드를 넣는다. 같은 대학의 카드를 빼야 들어가는 경우도 시도한다.
  *
+ * 전형 구성 제한({@link TrackMixPolicy})을 주면 후보를 담을 때마다 정책에 묻는다. 제한을 지키면 6장을 못 채울 때만
+ * 마지막에 제한을 풀고 채우며, 푼 상태로 담긴 카드는 {@link Outcome#relaxedUnitIds()}에 남긴다. 기본 정책은 제한이 없다.
+ *
  * 구간 안에서 후보를 고르는 기준(구간별 목표 가능성에 가까운 순)과 최종 지망 순서(소신 → 적정 → 안정 → 보충)는
  * 기획이 확정하기 전의 임시 기준이다. 바꿀 때는 {@link #PREFERRED_PROBABILITY}와 {@link #RANK_ORDER}만 고친다.
  *
@@ -68,13 +71,53 @@ public final class CardSelector {
 	);
 
 	/**
+	 * 선택 결과.
+	 *
+	 * @param cards            지망 순서대로 정렬된 카드. 0~6장
+	 * @param relaxedUnitIds   전형 구성 제한을 풀고 나서야 담긴 카드의 모집단위 ID. 제한이 없으면 비어 있다.
+	 */
+	public record Outcome(List<ScoredCandidate> cards, Set<Long> relaxedUnitIds) {
+	}
+
+	private final TrackMixPolicy policy;
+
+	public CardSelector() {
+		this(NoopTrackMixPolicy.INSTANCE);
+	}
+
+	public CardSelector(TrackMixPolicy policy) {
+		this.policy = policy;
+	}
+
+	/**
 	 * @param candidates       구간 계산을 마친 후보. 같은 모집단위가 두 번 들어 있으면 안 된다.
 	 * @param includeReachCard 상향(소신) 카드를 1장 이상 넣을지 여부
 	 * @return 지망 순서대로 정렬된 선택 결과. 0~6장
 	 */
 	public List<ScoredCandidate> select(List<ScoredCandidate> candidates, boolean includeReachCard) {
-		Selection selection = new Selection(candidates);
+		return selectWithOutcome(candidates, includeReachCard).cards();
+	}
 
+	/** {@link #select}와 같지만, 전형 구성 제한을 푼 카드 정보까지 돌려준다. */
+	public Outcome selectWithOutcome(List<ScoredCandidate> candidates, boolean includeReachCard) {
+		Selection selection = new Selection(candidates, policy);
+
+		fillAllStages(selection);
+
+		if (!selection.isFull() && policy != NoopTrackMixPolicy.INSTANCE) {
+			selection.relax();
+			fillAllStages(selection);
+		}
+
+		if (includeReachCard && selection.count(AdmissionBand.REACH) == 0) {
+			selection.forceOneReach();
+		}
+
+		return new Outcome(selection.ranked(), selection.relaxedUnitIds());
+	}
+
+	/** 경로별 구간 목표 채우기 → 부족분 보충 → 마지막 수단(과잉·먼 카드·평가 불가) 순서로 6장이 찰 때까지 담는다. */
+	private static void fillAllStages(Selection selection) {
 		for (CandidateKind stage : STAGE_ORDER) {
 			if (selection.isFull()) {
 				break;
@@ -92,12 +135,6 @@ public final class CardSelector {
 				selection.addWhile(stage, band, () -> true);
 			}
 		}
-
-		if (includeReachCard && selection.count(AdmissionBand.REACH) == 0) {
-			selection.forceOneReach();
-		}
-
-		return selection.ranked();
 	}
 
 	/** 한 번의 선택 과정에서 고른 카드와 제한 조건 상태를 들고 있는 작업 객체 */
@@ -108,8 +145,12 @@ public final class CardSelector {
 		private final List<ScoredCandidate> selected = new ArrayList<>();
 		private final Map<Long, Integer> universityCounts = new HashMap<>();
 		private final Set<String> departmentKeys = new HashSet<>();
+		private final Set<Long> relaxedUnitIds = new HashSet<>();
+		private final TrackMixPolicy policy;
+		private boolean relaxed;
 
-		Selection(List<ScoredCandidate> candidates) {
+		Selection(List<ScoredCandidate> candidates, TrackMixPolicy policy) {
+			this.policy = policy;
 			for (ScoredCandidate candidate : candidates) {
 				pool.computeIfAbsent(candidate.kind(), kind -> new EnumMap<>(AdmissionBand.class))
 						.computeIfAbsent(candidate.band(), band -> new ArrayList<>())
@@ -120,6 +161,15 @@ public final class CardSelector {
 					list.sort(PREFERENCE);
 				}
 			}
+		}
+
+		/** 이후에 담는 카드는 전형 구성 제한을 무시하고 담는다. */
+		void relax() {
+			relaxed = true;
+		}
+
+		Set<Long> relaxedUnitIds() {
+			return Set.copyOf(relaxedUnitIds);
 		}
 
 		boolean isFull() {
@@ -191,6 +241,12 @@ public final class CardSelector {
 			}
 			if (departmentKeys.contains(candidate.departmentKey())) {
 				return false;
+			}
+			if (!policy.allows(selected, candidate)) {
+				if (!relaxed) {
+					return false;
+				}
+				relaxedUnitIds.add(candidate.unitId());
 			}
 			selected.add(candidate);
 			universityCounts.merge(candidate.universityId(), 1, Integer::sum);

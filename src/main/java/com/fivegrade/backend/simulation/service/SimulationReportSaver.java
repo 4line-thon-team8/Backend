@@ -1,5 +1,7 @@
 package com.fivegrade.backend.simulation.service;
 
+import com.fivegrade.backend.recommendation.dto.RecommendedCard;
+import com.fivegrade.backend.recommendation.probability.AdmissionBand;
 import com.fivegrade.backend.report.dto.RecommendationDraft;
 import com.fivegrade.backend.report.dto.ReportDraft;
 import com.fivegrade.backend.report.dto.SavedReport;
@@ -45,6 +47,11 @@ public class SimulationReportSaver {
 		}
 	}
 
+	/** 저장하는 구간은 응답의 category 와 같이 성적만으로 본 구간이다. 서술 분석 반영 결과는 저장하지 않는다. */
+	private static AdmissionBand gradeBasedBand(RecommendedCard card) {
+		return card.baseBand() != null ? card.baseBand() : card.band();
+	}
+
 	/** 내부 분석 결과를 최소 저장 계약으로 옮긴다. 결과 객체 전체를 직렬화하지 않는다. */
 	static ReportDraft toDraft(SimulationReportResult result) {
 		List<RecommendationDraft> items = result.recommendations().stream()
@@ -53,7 +60,7 @@ public class SimulationReportSaver {
 						explained.card().universityName(),
 						explained.card().departmentName(),
 						explained.card().admissionTypeName(),
-						explained.card().band().name(),
+						gradeBasedBand(explained.card()).name(),
 						explained.reason().text(),
 						explained.card().unitId()))
 				.toList();

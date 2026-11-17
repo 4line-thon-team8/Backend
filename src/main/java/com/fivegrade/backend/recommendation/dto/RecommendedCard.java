@@ -21,6 +21,9 @@ import com.fivegrade.backend.recommendation.probability.AdmissionBand;
  *                          양 끝 근처에서는 근사값이다. 모델 내부의 9등급 기준 여유(margin)와는 다른 값이다.
  *                          반올림은 하지 않고 돌려주며, 표시용 반올림은 응답을 조립하는 쪽에서 한다.
  * @param evidence          근거 지표
+ * @param baseBand          서류 보정을 적용한 카드의 보정 전(성적만으로 본) 구간. 보정하지 않았으면 null.
+ *                          이때 band 는 보정 후 구간이다.
+ * @param documentFit       서류 적합도. 학종 후보에 서류 입력이 있을 때만 값이 있고 나머지는 null
  */
 public record RecommendedCard(
 		int rank,
@@ -31,8 +34,26 @@ public record RecommendedCard(
 		AdmissionBand band,
 		CandidateKind candidateKind,
 		Double gradeGap,
-		CardEvidence evidence
+		CardEvidence evidence,
+		AdmissionBand baseBand,
+		DocumentFit documentFit
 ) {
+
+	/** 서류 반영 정보가 없는 카드. 기존 호출부와 테스트가 그대로 쓴다. */
+	public RecommendedCard(
+			int rank,
+			long unitId,
+			String universityName,
+			String departmentName,
+			String admissionTypeName,
+			AdmissionBand band,
+			CandidateKind candidateKind,
+			Double gradeGap,
+			CardEvidence evidence
+	) {
+		this(rank, unitId, universityName, departmentName, admissionTypeName, band, candidateKind, gradeGap,
+				evidence, null, null);
+	}
 
 	public RecommendedCard {
 		if (rank < 1 || rank > RecommendationResult.MAX_CARDS) {

@@ -1,6 +1,8 @@
 package com.fivegrade.backend.simulation.service;
 
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
+import com.fivegrade.backend.recommendation.probability.AdmissionBand;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.recommendation.dto.WarningCode;
 import com.fivegrade.backend.report.generation.ConsultingReport;
@@ -9,8 +11,10 @@ import com.fivegrade.backend.report.generation.TemplateReportGenerator;
 import com.fivegrade.backend.simulation.dto.SimulationReportResult;
 import com.fivegrade.backend.simulation.dto.SimulationReportResult.ExplainedCard;
 import com.fivegrade.backend.simulation.dto.SimulationResponse;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.DocumentFitItem;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.Evidence;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.Explanation;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.HolisticResult;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.RecommendationItem;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.ReportBody;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.SubjectResult;
@@ -18,8 +22,12 @@ import com.fivegrade.backend.simulation.dto.SimulationResponse.WarningItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -37,6 +45,13 @@ import java.util.UUID;
 public final class SimulationResponseMapper {
 
 	private static final int GRADE_GAP_SCALE = 2;
+
+	private static final String STATUS_APPLIED = "APPLIED";
+	private static final String STATUS_SKIPPED = "SKIPPED";
+
+	/** 서류 보정으로 옮겨 갈 수 있는 구간 */
+	private static final Set<AdmissionBand> ADJUSTABLE_BANDS =
+			EnumSet.of(AdmissionBand.SAFE, AdmissionBand.MATCH, AdmissionBand.REACH);
 
 	static final String SAVE_SAVED = "SAVED";
 	static final String SAVE_FAILED = "FAILED";
@@ -74,7 +89,8 @@ public final class SimulationResponseMapper {
 				warnings,
 				toReport(result.report()),
 				saveStatusOf(saveOutcome),
-				saveOutcome != null && isSaved(saveOutcome) ? saveOutcome.reportId() : null
+				saveOutcome != null && isSaved(saveOutcome) ? saveOutcome.reportId() : null,
+				toHolistic(result.holistic())
 		);
 	}
 
@@ -93,14 +109,40 @@ public final class SimulationResponseMapper {
 		return SAVE_SAVED.equals(saveStatusOf(outcome));
 	}
 
+	private static HolisticResult toHolistic(HolisticEvaluation holistic) {
+		if (holistic == null) {
+			return HolisticResult.notProvided();
+		}
+		return switch (holistic) {
+			case HolisticEvaluation.Applied applied -> {
+				Map<String, BigDecimal> elementLevels = new TreeMap<>();
+				applied.elementLevels().forEach((element, level) -> elementLevels.put(element, round(level)));
+				yield new HolisticResult(
+						STATUS_APPLIED, null, applied.rulesVersion(), elementLevels, round(applied.overallLevel()));
+			}
+			case HolisticEvaluation.Skipped skipped -> skipped.reason() == HolisticEvaluation.SkipReason.NOT_PROVIDED
+					? HolisticResult.notProvided()
+					: new HolisticResult(STATUS_SKIPPED, skipped.reason().name(), null, null, null);
+		};
+	}
+
+	/**
+	 * 서류 보정을 적용한 카드는 category 를 성적만으로 본 구간(baseBand)으로, overallCategory 를 보정 후 구간으로 내린다.
+	 * 보정하지 않은 카드는 category 가 곧 구간이고 overallCategory 는 null 이다.
+	 */
 	private static RecommendationItem toItem(ExplainedCard explained) {
 		RecommendedCard card = explained.card();
+		boolean adjusted = card.baseBand() != null;
+		String category = (adjusted ? card.baseBand() : card.band()).name();
+		String overallCategory = adjusted && ADJUSTABLE_BANDS.contains(card.band()) ? card.band().name() : null;
+		DocumentFitItem fit = card.documentFit() == null ? null : new DocumentFitItem(
+				card.documentFit().level().name(), card.documentFit().basis());
 		return new RecommendationItem(
 				card.rank(),
 				card.universityName(),
 				card.departmentName(),
 				card.admissionTypeName(),
-				card.band().name(),
+				category,
 				card.candidateKind().name(),
 				roundGradeGap(card.gradeGap()),
 				new Evidence(
@@ -109,7 +151,9 @@ public final class SimulationResponseMapper {
 						card.evidence().newOrMergedDepartment(),
 						card.evidence().basisYears()
 				),
-				toExplanation(explained.reason())
+				toExplanation(explained.reason()),
+				overallCategory,
+				fit
 		);
 	}
 
@@ -158,6 +202,10 @@ public final class SimulationResponseMapper {
 
 	private static Explanation toExplanation(ReportSection section) {
 		return new Explanation(section.text(), section.generationMethod());
+	}
+
+	private static BigDecimal round(double value) {
+		return BigDecimal.valueOf(value).setScale(GRADE_GAP_SCALE, RoundingMode.HALF_UP);
 	}
 
 	/** 소수 둘째 자리로 HALF_UP 반올림한다. null(UNRATED)은 그대로 null이다. */

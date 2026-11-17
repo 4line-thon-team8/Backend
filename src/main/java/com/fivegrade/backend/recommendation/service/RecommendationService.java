@@ -1,5 +1,6 @@
 package com.fivegrade.backend.recommendation.service;
 
+import com.fivegrade.backend.holistic.scoring.DocumentContext;
 import com.fivegrade.backend.recommendation.dto.RecommendationQuery;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 
@@ -25,5 +26,15 @@ import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 public interface RecommendationService {
 
 	RecommendationResult recommend(RecommendationQuery query);
+
+	/**
+	 * 서술 분석으로 만든 서류 입력을 반영해 추천한다. 학종 후보의 구간을 후보 전형별로 보정하고
+	 * 서류 수준에 맞춰 학종 카드 장수를 제한한다. 구현이 서류 반영을 지원하지 않으면 반영하지 않는다.
+	 *
+	 * @param context 서류 입력. null 이면 {@link #recommend(RecommendationQuery)} 와 같다.
+	 */
+	default RecommendationResult recommend(RecommendationQuery query, DocumentContext context) {
+		return recommend(query);
+	}
 
 }
