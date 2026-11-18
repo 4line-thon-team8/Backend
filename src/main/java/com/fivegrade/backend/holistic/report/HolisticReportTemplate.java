@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * - 관찰되지 않은 지표와 수준이 낮은 지표는 "없다/부족하다"가 아니라 "근거가 더 필요해 보인다/확인되지 않았다"로 쓴다.
  * - 지표 이름 뒤에는 조사를 붙이지 않는다(받침에 따라 틀려지기 때문). 요소 이름은 모두 받침으로 끝나 조사를 붙일 수 있다.
  */
-public final class HolisticReportTemplate {
+public final class HolisticReportTemplate implements HolisticReportWriter {
 
 	static final int MAX_STRENGTHS = 3;
 	static final int MAX_TO_DEVELOP = 3;
@@ -48,6 +48,7 @@ public final class HolisticReportTemplate {
 	private static final String LIMITED_NARRATIVE =
 			" 읽어 낸 서술 분량이 많지 않아 해석이 달라질 수 있어요.";
 
+	@Override
 	public HolisticReportContent generate(HolisticReportInput input) {
 		List<IndicatorView> observed = input.elements().stream()
 				.flatMap(element -> element.indicators().stream())
@@ -87,7 +88,7 @@ public final class HolisticReportTemplate {
 				strong.stream().map(HolisticReportTemplate::strengthSentence).map(ReportSection::template).toList(),
 				toDevelop,
 				nextSteps,
-				ReportSection.template(caveat(input)));
+				ReportSection.template(caveatText(input)));
 	}
 
 	private static void addDevelop(List<String> ids, List<ReportSection> sections, String id, String text) {
@@ -133,7 +134,8 @@ public final class HolisticReportTemplate {
 				.toList();
 	}
 
-	private static String caveat(HolisticReportInput input) {
+	/** 안내 문장. AI가 문장을 써도 이 안내는 항상 서버 고정 문장을 쓴다. */
+	public static String caveatText(HolisticReportInput input) {
 		return input.narrativeAmount() == NarrativeAmount.LIMITED ? CAVEAT + LIMITED_NARRATIVE : CAVEAT;
 	}
 }

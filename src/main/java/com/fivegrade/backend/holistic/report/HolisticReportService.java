@@ -34,11 +34,13 @@ public class HolisticReportService {
 	private final HolisticEvaluator evaluator;
 	private final HolisticRuleCatalog catalog;
 	private final HolisticReportInputFactory inputFactory = new HolisticReportInputFactory();
-	private final HolisticReportTemplate template = new HolisticReportTemplate();
+	private final HolisticReportWriter writer;
 
-	public HolisticReportService(HolisticEvaluator evaluator, HolisticRuleCatalog catalog) {
+	public HolisticReportService(HolisticEvaluator evaluator, HolisticRuleCatalog catalog,
+			HolisticReportWriter writer) {
 		this.evaluator = evaluator;
 		this.catalog = catalog;
+		this.writer = writer;
 	}
 
 	public HolisticReportResponse create(HolisticAnalysisRequest request) {
@@ -57,7 +59,7 @@ public class HolisticReportService {
 				observedYears(request),
 				tagCounts(request),
 				request.coverage().sectionChars().total());
-		HolisticReportContent content = template.generate(input);
+		HolisticReportContent content = writer.generate(input);
 		return toResponse(applied.rulesVersion(), input, content);
 	}
 

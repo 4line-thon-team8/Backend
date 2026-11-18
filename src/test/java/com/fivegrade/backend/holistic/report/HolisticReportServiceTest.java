@@ -41,7 +41,8 @@ class HolisticReportServiceTest {
 	@Test
 	void 반영하지_못했으면_이유를_담아_SKIPPED로_답한다() {
 		HolisticReportService service = new HolisticReportService(
-				request -> new HolisticEvaluation.Skipped(HolisticEvaluation.SkipReason.TOO_SHORT), catalog);
+				request -> new HolisticEvaluation.Skipped(HolisticEvaluation.SkipReason.TOO_SHORT), catalog,
+				new HolisticReportTemplate());
 
 		HolisticReportResponse response = service.create(request());
 
@@ -53,7 +54,7 @@ class HolisticReportServiceTest {
 
 	@Test
 	void 반영했으면_요소_네_개와_글_리포트를_담는다() {
-		HolisticReportService service = new HolisticReportService(request -> applied(), catalog);
+		HolisticReportService service = new HolisticReportService(request -> applied(), catalog, new HolisticReportTemplate());
 
 		HolisticReportResponse response = service.create(request());
 
@@ -67,7 +68,7 @@ class HolisticReportServiceTest {
 
 	@Test
 	void 신호가_나타난_학년은_정렬해서_내려준다() {
-		HolisticReportService service = new HolisticReportService(request -> applied(), catalog);
+		HolisticReportService service = new HolisticReportService(request -> applied(), catalog, new HolisticReportTemplate());
 
 		HolisticReportResponse response = service.create(request());
 
@@ -78,7 +79,7 @@ class HolisticReportServiceTest {
 
 	@Test
 	void 규칙이_없는_지표는_측정하지_않음으로_내려준다() {
-		HolisticReportService service = new HolisticReportService(request -> applied(), catalog);
+		HolisticReportService service = new HolisticReportService(request -> applied(), catalog, new HolisticReportTemplate());
 
 		HolisticReportResponse response = service.create(request());
 
@@ -87,7 +88,7 @@ class HolisticReportServiceTest {
 
 	@Test
 	void 근거_구절은_응답과_글에_나타나지_않는다() {
-		HolisticReportService service = new HolisticReportService(request -> applied(), catalog);
+		HolisticReportService service = new HolisticReportService(request -> applied(), catalog, new HolisticReportTemplate());
 
 		HolisticReportResponse response = service.create(request());
 
