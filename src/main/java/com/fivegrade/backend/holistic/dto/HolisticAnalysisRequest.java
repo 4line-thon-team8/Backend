@@ -27,6 +27,7 @@ import java.util.List;
  * @param indicatorSignals 지표별 원시 측정값
  * @param interestTags    전공 키워드 태그별 빈도
  * @param evidence        이름·학교를 가린 근거 구절
+ * @param citations       2단계 리포트가 인용할 완결 문장. 선택이며 사용자가 확인해 제외한 문장은 오지 않는다.
  */
 public record HolisticAnalysisRequest(
 
@@ -52,14 +53,31 @@ public record HolisticAnalysisRequest(
 		@Schema(description = "이름·학교를 가린 근거 구절. 최대 150개, 구절은 30자 이하이며 서버에 저장하지 않는다.")
 		@NotNull
 		@Size(max = HolisticAnalysisRequest.MAX_EVIDENCE)
-		List<@NotNull @Valid EvidencePhrase> evidence
+		List<@NotNull @Valid EvidencePhrase> evidence,
+
+		@Schema(description = "리포트가 인용할 이름·학교를 가린 완결 문장(선택). 최대 24개, 문장은 100자 이하이며 서버에 저장하지 않는다.")
+		@Size(max = HolisticAnalysisRequest.MAX_CITATIONS)
+		List<@NotNull @Valid Citation> citations
 
 ) {
+
+	/** 인용 구절 없이 만든 요청. 기존 호출부와의 호환을 위해 둔다. */
+	public HolisticAnalysisRequest(String rulesVersion, Coverage coverage, List<IndicatorSignal> indicatorSignals,
+			List<InterestTag> interestTags, List<EvidencePhrase> evidence) {
+		this(rulesVersion, coverage, indicatorSignals, interestTags, evidence, null);
+	}
+
+	/** 인용 구절 목록. 보내지 않았으면 빈 목록이다. */
+	public List<Citation> citationsOrEmpty() {
+		return citations == null ? List.of() : citations;
+	}
 
 	static final int MAX_INDICATOR_SIGNALS = 20;
 	static final int MAX_INTEREST_TAGS = 30;
 	static final int MAX_EVIDENCE = 150;
 	static final int MAX_EVIDENCE_TEXT = 30;
+	static final int MAX_CITATIONS = 24;
+	public static final int MAX_CITATION_TEXT = 100;
 	static final int MAX_SECTION_CHARS = 200_000;
 
 	/**
@@ -164,12 +182,51 @@ public record HolisticAnalysisRequest(
 		}
 	}
 
+	/**
+	 * 리포트가 인용할 수 있는 완결 문장 하나.
+	 *
+	 * @param id         요청 안에서만 쓰는 번호(c1, c2, ...). 서버는 이 번호를 믿지 않고 새로 붙인다.
+	 * @param text       이름·학교를 가린 문장 한 개
+	 * @param indicators 이 문장이 근거가 된다고 FE가 판정한 지표 ID(통계적 판정이라 틀릴 수 있다)
+	 * @param year       학년(1~3). 구분하지 못했으면 null
+	 * @param section    영역 코드
+	 * @param quality    읽기 품질(0~1)
+	 */
+	public record Citation(
+
+			@NotBlank @Pattern(regexp = "c[0-9]{1,2}") String id,
+
+			@NotBlank @Size(max = HolisticAnalysisRequest.MAX_CITATION_TEXT) String text,
+
+			@NotNull
+			@NotEmpty
+			@Size(max = 10)
+			List<@NotBlank @Size(max = 10) String> indicators,
+
+			@Min(1) @Max(3) Integer year,
+
+			@NotBlank
+			@Pattern(regexp = "autonomy|club|career|subject|behavior")
+			String section,
+
+			@NotNull @DecimalMin("0.0") @DecimalMax("1.0") Double quality
+
+	) {
+
+		/** 문장 본문은 개인정보가 섞일 수 있어 로그·예외에 나가지 않게 가린다. */
+		@Override
+		public String toString() {
+			return "Citation[id=" + id + ", indicators=" + indicators + ", section=" + section + ", year=" + year + "]";
+		}
+	}
+
 	@Override
 	public String toString() {
 		return "HolisticAnalysisRequest[rulesVersion=" + rulesVersion
 				+ ", indicatorSignals=" + (indicatorSignals == null ? 0 : indicatorSignals.size())
 				+ ", interestTags=" + (interestTags == null ? 0 : interestTags.size())
-				+ ", evidence=" + (evidence == null ? 0 : evidence.size()) + "]";
+				+ ", evidence=" + (evidence == null ? 0 : evidence.size())
+				+ ", citations=" + (citations == null ? 0 : citations.size()) + "]";
 	}
 
 }
