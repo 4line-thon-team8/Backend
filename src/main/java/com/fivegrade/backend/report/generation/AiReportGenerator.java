@@ -1,5 +1,6 @@
 package com.fivegrade.backend.report.generation;
 
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 import java.math.BigDecimal;
 import java.text.Normalizer;
@@ -55,8 +56,18 @@ public final class AiReportGenerator implements ReportGenerator {
             BigDecimal displayAverage,
             RecommendationResult recommendation
     ) {
+        return generate(displayAverage, recommendation, null);
+    }
+
+    /** 서술 분석 문장은 템플릿이 만들고, AI는 그 문장을 보존한 채 다듬는다. */
+    @Override
+    public GeneratedReport generate(
+            BigDecimal displayAverage,
+            RecommendationResult recommendation,
+            HolisticEvaluation holistic
+    ) {
         GeneratedReport baseline =
-                template.generate(displayAverage, recommendation);
+                template.generate(displayAverage, recommendation, holistic);
 
         Map<String, String> sources = sources(baseline);
 

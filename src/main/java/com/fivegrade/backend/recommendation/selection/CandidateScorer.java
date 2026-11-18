@@ -101,7 +101,7 @@ public final class CandidateScorer {
 		DocumentAdjustment adjustment = null;
 		AdmissionBand band = assessment.band();
 		Double documentShare = documentSignal == null ? null : documentSignal.share();
-		if (documentSignal != null) {
+		if (documentSignal != null && documentSignal.adjustable()) {
 			adjustment = documentAdjuster.adjust(
 					forecast, studentNine, assessment, documentSignal.level(), documentSignal.share());
 			if (adjustment.applied()) {

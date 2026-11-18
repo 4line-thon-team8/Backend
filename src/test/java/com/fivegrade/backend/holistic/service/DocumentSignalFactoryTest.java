@@ -70,14 +70,30 @@ class DocumentSignalFactoryTest {
 	}
 
 	@Test
-	void 프로필이_없는_후보와_교과_후보는_서류_입력이_없다() {
+	void 교과_후보는_서류_입력이_없다() {
 		HolisticTrackProfile profile = profile(1L, "A전형", 2028, "학종", "50", "100", "0", "0");
-		List<CandidateUnit> units = List.of(unit(1L, "학종", "A전형"), unit(2L, "학종", "A전형"), unit(1L, "교과", "A전형"));
+		List<CandidateUnit> units = List.of(unit(1L, "학종", "A전형"), unit(1L, "교과", "A전형"));
 		Function<CandidateUnit, DocumentSignal> resolver = factory(profile).resolverFor(units, LEVELS);
 
-		assertThat(resolver.apply(unit(2L, "학종", "A전형"))).isNull();
 		assertThat(resolver.apply(unit(1L, "교과", "A전형"))).isNull();
-		assertThat(resolver.apply(unit(1L, "학종", "다른전형"))).isNull();
+	}
+
+	@Test
+	void 프로필이_없는_학종_후보는_보정하지_않고_적합도_표시용_입력만_만든다() {
+		HolisticTrackProfile profile = profile(1L, "A전형", 2028, "학종", "50", "100", "0", "0");
+		List<CandidateUnit> units = List.of(unit(1L, "학종", "A전형"), unit(2L, "학종", "A전형"), unit(1L, "학종", "다른전형"));
+		Function<CandidateUnit, DocumentSignal> resolver = factory(profile).resolverFor(units, LEVELS);
+
+		for (CandidateUnit unit : List.of(unit(2L, "학종", "A전형"), unit(1L, "학종", "다른전형"))) {
+			DocumentSignal signal = resolver.apply(unit);
+
+			assertThat(signal).isNotNull();
+			assertThat(signal.adjustable()).isFalse();
+			assertThat(signal.share()).isNull();
+			// 세 축 균등: (4.0 + 2.0 + 3.0) / 3
+			assertThat(signal.level()).isEqualTo(3.0, DELTA);
+		}
+		assertThat(resolver.apply(unit(1L, "학종", "A전형")).adjustable()).isTrue();
 	}
 
 	@Test

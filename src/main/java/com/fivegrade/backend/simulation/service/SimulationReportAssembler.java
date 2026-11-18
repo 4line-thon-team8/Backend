@@ -29,7 +29,7 @@ public final class SimulationReportAssembler {
         var result = Objects.requireNonNull(analysis.recommendation());
         validateWarningRanks(result);
         GeneratedReport generated = Objects.requireNonNull(
-                generator.generate(analysis.displayAverage(), result)
+                generator.generate(analysis.displayAverage(), result, analysis.holistic())
         );
         if (generated.reasons().size() != result.cards().size()) {
             throw new IllegalStateException("report reason count mismatch");
