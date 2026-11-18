@@ -8,7 +8,7 @@ import com.fivegrade.backend.simulation.dto.SimulationAnalysis;
 import com.fivegrade.backend.simulation.dto.SimulationReportResult;
 import com.fivegrade.backend.simulation.dto.SimulationRequest;
 import com.fivegrade.backend.simulation.dto.SimulationResponse;
-import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
+import com.fivegrade.backend.simulation.service.SimulationReportCoordinator;
 import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationRequestValidator;
 import com.fivegrade.backend.simulation.service.SimulationResponseMapper;
@@ -50,18 +50,18 @@ public class SimulationController {
 
 	private final SimulationRequestValidator validator;
 	private final SimulationService simulationService;
-	private final SimulationReportAssembler assembler;
+	private final SimulationReportCoordinator coordinator;
 	private final SimulationReportSaver reportSaver;
 
 	public SimulationController(
 			SimulationRequestValidator validator,
 			SimulationService simulationService,
-			SimulationReportAssembler assembler,
+			SimulationReportCoordinator coordinator,
 			SimulationReportSaver reportSaver
 	) {
 		this.validator = validator;
 		this.simulationService = simulationService;
-		this.assembler = assembler;
+		this.coordinator = coordinator;
 		this.reportSaver = reportSaver;
 	}
 
@@ -92,7 +92,7 @@ public class SimulationController {
 		validator.validateSubjects(request.subjects());
 
 		SimulationAnalysis analysis = simulationService.analyzeValidated(request);
-		SimulationReportResult result = assembler.assemble(analysis);
+		SimulationReportResult result = coordinator.assemble(analysis, request);
 		SimulationReportSaver.SaveOutcome saved = reportSaver.save(user.id(), reportKey, result);
 
 		return ResponseEntity.ok()

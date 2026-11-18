@@ -3,6 +3,7 @@ package com.fivegrade.backend.simulation.dto;
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.holistic.service.HolisticEvaluation;
+import com.fivegrade.backend.holistic.report.HolisticNarrative;
 import com.fivegrade.backend.report.generation.ConsultingReport;
 import com.fivegrade.backend.report.generation.ReportSection;
 import java.math.BigDecimal;
@@ -20,8 +21,26 @@ public record SimulationReportResult(
         List<ExplainedCard> recommendations,
         List<RecommendationWarning> warnings,
         ConsultingReport report,
-        HolisticEvaluation holistic
+        HolisticEvaluation holistic,
+        HolisticNarrative narrative
 ) {
+
+    /** 기존 조립기는 서술 결과 없이 만들고, 병렬 생성 완료 후 결과를 연결한다. */
+    public SimulationReportResult(
+            BigDecimal displayAverage,
+            List<SimulationAnalysis.SubjectGrade> subjects,
+            List<ExplainedCard> recommendations,
+            List<RecommendationWarning> warnings,
+            ConsultingReport report,
+            HolisticEvaluation holistic
+    ) {
+        this(displayAverage, subjects, recommendations, warnings, report, holistic, HolisticNarrative.empty());
+    }
+
+    public SimulationReportResult withNarrative(HolisticNarrative narrative) {
+        return new SimulationReportResult(displayAverage, subjects, recommendations, warnings,
+                report, holistic, narrative);
+    }
 
     /** 서술 분석 결과가 없는 내부 결과. 서술 분석을 보내지 않은 것과 같다. */
     public SimulationReportResult(
@@ -40,6 +59,7 @@ public record SimulationReportResult(
         recommendations = List.copyOf(recommendations);
         warnings = List.copyOf(warnings);
         Objects.requireNonNull(report);
+        Objects.requireNonNull(narrative);
     }
 
     /** 원본 카드의 값과 순서를 유지하며 이유만 연결한다. */

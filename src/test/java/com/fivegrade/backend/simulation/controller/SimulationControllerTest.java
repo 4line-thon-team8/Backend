@@ -37,6 +37,10 @@ import com.fivegrade.backend.simulation.dto.ApplicationPreference;
 import com.fivegrade.backend.simulation.dto.SubjectInput;
 import com.fivegrade.backend.simulation.service.DefaultRecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
+import com.fivegrade.backend.simulation.service.SimulationReportCoordinator;
+import com.fivegrade.backend.admission.repository.MajorRepository;
+import com.fivegrade.backend.holistic.report.HolisticNarrativeService;
+import java.util.concurrent.ExecutorService;
 import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationRequestValidator;
 import com.fivegrade.backend.simulation.service.SimulationService;
@@ -324,7 +328,9 @@ class SimulationControllerTest {
 
 		SimulationReportSaver saver = new SimulationReportSaver(storageService);
 
-		return MockMvcBuilders.standaloneSetup(new SimulationController(validator, service, assembler, saver))
+		return MockMvcBuilders.standaloneSetup(new SimulationController(validator, service,
+                new SimulationReportCoordinator(assembler, mock(HolisticNarrativeService.class),
+                        mock(MajorRepository.class), mock(ExecutorService.class), 23000), saver))
 				.setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
 				.setControllerAdvice(new GlobalExceptionHandler())
 				.build();

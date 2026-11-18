@@ -10,6 +10,10 @@ import com.fivegrade.backend.simulation.service.RecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
 import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,6 +25,15 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 public class SimulationConfig {
+
+    /** 대기열을 쌓지 않고 최대 4개 작업만 실행한다. 포화 시 호출자가 빈 결과로 대체한다. */
+    @Bean(name = "holisticNarrativeExecutor", destroyMethod = "shutdown")
+    ExecutorService holisticNarrativeExecutor() {
+        return new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(),
+                Thread.ofPlatform().name("holistic-narrative-", 0).factory(),
+                new ThreadPoolExecutor.AbortPolicy());
+    }
 
 	@Bean
 	FiveGradeAverageCalculator fiveGradeAverageCalculator() {

@@ -1,6 +1,9 @@
 package com.fivegrade.backend.simulation.service;
 
 import com.fivegrade.backend.holistic.report.HolisticStrengthSelector;
+import com.fivegrade.backend.holistic.report.HolisticNarrative;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.NarrativeText;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.MajorAdviceItem;
 import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
@@ -94,7 +97,7 @@ public final class SimulationResponseMapper {
 				toReport(result.report()),
 				saveStatusOf(saveOutcome),
 				saveOutcome != null && isSaved(saveOutcome) ? saveOutcome.reportId() : null,
-				toHolistic(result.holistic())
+				toHolistic(result.holistic(), result.narrative())
 		);
 	}
 
@@ -113,7 +116,7 @@ public final class SimulationResponseMapper {
 		return SAVE_SAVED.equals(saveStatusOf(outcome));
 	}
 
-	private static HolisticResult toHolistic(HolisticEvaluation holistic) {
+	private static HolisticResult toHolistic(HolisticEvaluation holistic, HolisticNarrative narrative) {
 		if (holistic == null) {
 			return HolisticResult.notProvided();
 		}
@@ -125,16 +128,23 @@ public final class SimulationResponseMapper {
 						.map(strength -> new StrengthItem(
 								strength.indicatorId(), strength.label(), strength.level(), strength.description()))
 						.toList();
-				// 활동 요약·학과별 조언은 글쓰기 단계에서 채운다. 아직 없으면 null/빈 목록으로 내린다.
+				// 문장별 생성 방식과 희망 학과 순서를 보존한다. 서술 결과는 저장하지 않는다.
 				yield new HolisticResult(
 						STATUS_APPLIED, null, applied.rulesVersion(), elementLevels, round(applied.overallLevel()),
-						null, strengths, List.of());
+						toNarrativeText(narrative.activitySummary()), strengths,
+                        narrative.majorAdvices().stream()
+                                .map(advice -> new MajorAdviceItem(advice.department(), toNarrativeText(advice.advice())))
+                                .toList());
 			}
 			case HolisticEvaluation.Skipped skipped -> skipped.reason() == HolisticEvaluation.SkipReason.NOT_PROVIDED
 					? HolisticResult.notProvided()
 					: new HolisticResult(STATUS_SKIPPED, skipped.reason().name(), null, null, null);
 		};
 	}
+
+    private static NarrativeText toNarrativeText(HolisticNarrative.Text text) {
+        return text == null ? null : new NarrativeText(text.text(), text.generationMethod());
+    }
 
 	/**
 	 * 서류 보정을 적용한 카드는 category 를 성적만으로 본 구간(baseBand)으로, overallCategory 를 보정 후 구간으로 내린다.
