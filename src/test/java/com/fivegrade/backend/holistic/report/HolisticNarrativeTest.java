@@ -2,6 +2,11 @@ package com.fivegrade.backend.holistic.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest;
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.Citation;
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.Coverage;
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.EvidencePhrase;
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.SectionChars;
 import com.fivegrade.backend.holistic.report.HolisticNarrative.Detail;
 import com.fivegrade.backend.holistic.report.HolisticNarrative.MajorAdvice;
 import com.fivegrade.backend.holistic.report.HolisticNarrativeFactsFactory.DesiredMajor;
@@ -339,5 +344,100 @@ class HolisticNarrativeTest {
 		Map<String, Object> input = HolisticNarrativePrompt.inputOf(facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE));
 
 		assertThat(input.toString()).contains("e1").contains("코딩 동아리 활동").doesNotContain("컴퓨터공학과");
+	}
+
+	// ---- 인용 구절(지표 연결이 있는 완결 문장) ----
+
+	private static final String CITED_A3 = "실험 결과를 표로 정리하고 오차의 원인을 분석하여 발표함";
+	private static final String CITED_C3 = "맡은 역할을 끝까지 책임지고 성실하게 수행함";
+
+	private static HolisticNarrativeFacts citedFacts() {
+		HolisticReportInput report = report(List.of(), 5000);
+		return HolisticNarrativeFactsFactory.create(
+				report,
+				HolisticStrengthSelector.withDefaults().select(Map.of("A3", 4.4, "C3", 3.8, "B3", 2.0)),
+				List.of(CSE), MAJOR_TAGS,
+				List.of(new EvidenceInput(CITED_A3, 2, "subject", List.of("A3")),
+						new EvidenceInput(CITED_C3, 2, "subject", List.of("C3"))));
+	}
+
+	private static String evidenceRejection(HolisticNarrativeFacts facts, String text, List<String> refs,
+			List<String> evidenceIds) {
+		Line summary = new Line("관심 분야에 이어서 탐구하는 모습이 보여요.", List.of("A3"));
+		ParsedNarrative parsed = new ParsedNarrative(summary, summary,
+				List.of(new EvidenceLine(new Line(text, refs), evidenceIds)), List.of());
+		return HolisticNarrativeValidator.check(facts, parsed).rejections().stream()
+				.filter(code -> code.startsWith("EVIDENCE_")).findFirst().orElse("OK");
+	}
+
+	@Test
+	void 인용_구절은_100자까지_받고_조각_구절은_30자까지만_받는다() {
+		assertThat(HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(), MAJOR_TAGS,
+				List.of(new EvidenceInput("가".repeat(100), 1, "club", List.of("A3")))).evidence()).hasSize(1);
+		assertThat(HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(), MAJOR_TAGS,
+				List.of(new EvidenceInput("가".repeat(101), 1, "club", List.of("A3")))).evidence()).isEmpty();
+		assertThat(HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(), MAJOR_TAGS,
+				List.of(new EvidenceInput("가".repeat(31), 1, "club"))).evidence()).isEmpty();
+	}
+
+	@Test
+	void 인용한_구절이_강점_지표와_연결돼_있으면_통과한다() {
+		assertThat(evidenceRejection(citedFacts(), "실험 결과를 정리하고 분석한 기록이 있어요.", List.of("A3"), List.of("e1")))
+				.isEqualTo("OK");
+	}
+
+	@Test
+	void 다른_지표에_연결된_구절을_강점의_근거로_들면_버린다() {
+		assertThat(evidenceRejection(citedFacts(), "맡은 역할을 끝까지 해낸 기록이 있어요.", List.of("A3"), List.of("e2")))
+				.isEqualTo("EVIDENCE_NOT_LINKED");
+	}
+
+	@Test
+	void 한_문장이_근거로_드는_구절은_세_개까지다() {
+		assertThat(evidenceRejection(citedFacts(), "실험을 정리한 기록이 있어요.", List.of("A3"),
+				List.of("e1", "e1", "e1", "e1"))).isEqualTo("EVIDENCE_TOO_MANY_EVIDENCE_IDS");
+	}
+
+	@Test
+	void 따옴표_인용은_근거로_든_구절에서_여섯_글자_이상만_받는다() {
+		HolisticNarrativeFacts facts = citedFacts();
+
+		assertThat(evidenceRejection(facts, "「오차의 원인을 분석하여」 발표한 기록이 있어요.", List.of("A3"), List.of("e1"))).isEqualTo("OK");
+		assertThat(evidenceRejection(facts, "「오차」를 다룬 기록이 있어요.", List.of("A3"), List.of("e1"))).isEqualTo("EVIDENCE_QUOTE");
+		assertThat(evidenceRejection(facts, "「끝까지 책임지고 성실하게」 한 기록이 있어요.", List.of("A3"), List.of("e1")))
+				.isEqualTo("EVIDENCE_QUOTE");
+		assertThat(evidenceRejection(facts, "「오차를 줄이는 새 방법을」 찾은 기록이 있어요.", List.of("A3"), List.of("e1")))
+				.isEqualTo("EVIDENCE_QUOTE");
+	}
+
+	@Test
+	void 지표_연결이_없는_조각_구절은_연결_검사를_하지_않는다() {
+		HolisticNarrativeFacts legacy = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
+
+		assertThat(evidenceRejection(legacy, "코딩 동아리에서 활동한 기록이 있어요.", List.of("A3"), List.of("e1"))).isEqualTo("OK");
+	}
+
+	@Test
+	void 입력_자료에는_구절의_지표_연결이_들어간다() {
+		Map<String, Object> input = HolisticNarrativePrompt.inputOf(citedFacts());
+
+		assertThat(input.get("evidence").toString()).contains("indicators=[A3]").contains("indicators=[C3]");
+	}
+
+	@Test
+	void 인용_구절이_있으면_그것만_쓰고_없으면_조각_구절을_쓴다() {
+		Coverage coverage = new Coverage(new SectionChars(1, 1, 1, 1, 1), List.of(1));
+		EvidencePhrase fragment = new EvidencePhrase(List.of("METHOD"), "코딩 동아리 활동", 1, "club");
+		Citation citation = new Citation("c1", CITED_A3, List.of("A3"), 2, "subject", 0.95);
+
+		List<EvidenceInput> withCitation = HolisticNarrativeService.evidenceOf(new HolisticAnalysisRequest(
+				"0.1.0", coverage, List.of(), List.of(), List.of(fragment), List.of(citation)));
+		List<EvidenceInput> fragmentOnly = HolisticNarrativeService.evidenceOf(new HolisticAnalysisRequest(
+				"0.1.0", coverage, List.of(), List.of(), List.of(fragment)));
+
+		assertThat(withCitation).extracting(EvidenceInput::text).containsExactly(CITED_A3);
+		assertThat(withCitation.getFirst().indicators()).containsExactly("A3");
+		assertThat(fragmentOnly).extracting(EvidenceInput::text).containsExactly("코딩 동아리 활동");
+		assertThat(fragmentOnly.getFirst().indicators()).isEmpty();
 	}
 }

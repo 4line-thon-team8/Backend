@@ -36,10 +36,19 @@ public record HolisticNarrativeFacts(
 	/**
 	 * 근거 구절 하나. id 는 서버가 붙인 번호(e1, e2, ...)이며 AI가 문장의 근거로 가리킨다.
 	 *
-	 * @param year    학년(1~3). 모르면 null
-	 * @param section 영역 코드(autonomy, club, career, subject, behavior)
+	 * @param year       학년(1~3). 모르면 null
+	 * @param section    영역 코드(autonomy, club, career, subject, behavior)
+	 * @param indicators 이 구절이 근거라고 판정된 지표. 짧은 조각 구절(기존 evidence)은 연결 정보가 없어 빈 목록이다.
 	 */
-	public record EvidencePhrase(String id, String text, Integer year, String section) {
+	public record EvidencePhrase(String id, String text, Integer year, String section, List<String> indicators) {
+
+		public EvidencePhrase {
+			indicators = List.copyOf(indicators);
+		}
+
+		public EvidencePhrase(String id, String text, Integer year, String section) {
+			this(id, text, year, section, List.of());
+		}
 	}
 
 	public HolisticNarrativeFacts {
