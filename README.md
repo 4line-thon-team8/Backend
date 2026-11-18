@@ -142,6 +142,19 @@ Docker가 켜져 있어야 하고, 로컬 DB(`docker compose`)와는 별개입�
 | --- | --- | --- |
 | `HOLISTIC_ENABLED` | `false` | 요청의 `holisticAnalysis`를 서류 보정과 학종 카드 구성에 반영할지 여부. 꺼져 있으면 보내도 반영하지 않고 성적 기준 결과만 돌려줍니다. |
 
+### 생기부 분석 리포트 문장 생성
+
+기본값은 서버 템플릿 문장이며 외부 AI를 호출하지 않습니다. AI 문장이 검증을 통과하지 못하거나 호출이 실패하면 전체를 템플릿으로 대신합니다.
+
+| 환경변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `HOLISTIC_REPORT_AI_ENABLED` | `false` | AI 문장 생성 사용 여부. `OPENAI_API_KEY`가 있어야 동작합니다. |
+| `HOLISTIC_REPORT_AI_MODEL` | `gpt-4.1-mini-2025-04-14` | 사용할 OpenAI 모델 |
+| `HOLISTIC_REPORT_AI_TIMEOUT_MS` | `20000` | 응답 제한 시간. 최대 30000ms |
+| `HOLISTIC_REPORT_AI_MAX_CONCURRENT` | `4` | 인스턴스당 동시 AI 호출 제한 |
+
+AWS 배포에서는 `aws-deploy` 워크플로의 `enable_ai` 입력이 `REPORT_AI_ENABLED`와 `HOLISTIC_REPORT_AI_ENABLED`를 함께 결정합니다. 기본(`false`)이면 두 기능 모두 꺼집니다.
+
 지표 수준과 서류 보정 값은 실제 생기부 표본으로 검증하기 전의 가설이므로, 검증 전에는 운영에서 켜지 않습니다.
 
 실제 호출 검증 전에는 다음 설정을 사용합니다.
