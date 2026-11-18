@@ -13,6 +13,7 @@ import com.fivegrade.backend.simulation.dto.SimulationReportResult;
 import com.fivegrade.backend.simulation.dto.SimulationRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -59,9 +60,17 @@ public class SimulationReportCoordinator {
         this.timeoutMillis = timeoutMillis;
     }
 
-    public SimulationReportResult assemble(SimulationAnalysis analysis, SimulationRequest request) {
+    /** 서술 결과는 저장용 내부 DTO에 넣지 않고 응답 변환 단계로 별도 전달한다. */
+    public record GeneratedReport(SimulationReportResult result, HolisticNarrative narrative) {
+        public GeneratedReport {
+            Objects.requireNonNull(result);
+            Objects.requireNonNull(narrative);
+        }
+    }
+
+    public GeneratedReport assemble(SimulationAnalysis analysis, SimulationRequest request) {
         if (!(analysis.holistic() instanceof HolisticEvaluation.Applied applied)) {
-            return assembler.assemble(analysis);
+            return new GeneratedReport(assembler.assemble(analysis), HolisticNarrative.empty());
         }
         // DB 조회 순서에 의존하지 않고, 검증된 선택 코드 순서로 일반 값만 준비한다.
         List<DesiredMajor> desired = resolveDesiredMajors(request.applicationPreference().desiredMajorCodes());
@@ -77,7 +86,7 @@ public class SimulationReportCoordinator {
             });
         } catch (RejectedExecutionException failure) {
             LOG.warn("event=holistic_narrative_task_rejected");
-            return assembler.assemble(analysis);
+            return new GeneratedReport(assembler.assemble(analysis), HolisticNarrative.empty());
         }
         // 학종 작업 시작 시점부터 제한한다.
         CompletableFuture<HolisticNarrative> bounded = completion
@@ -93,7 +102,7 @@ public class SimulationReportCoordinator {
                 });
         try {
             SimulationReportResult report = assembler.assemble(analysis);
-            return report.withNarrative(bounded.get());
+            return new GeneratedReport(report, bounded.get());
         } catch (InterruptedException failure) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("report assembly interrupted", failure);

@@ -61,7 +61,8 @@ class SimulationReportCoordinatorTest {
         var narrative = new HolisticNarrative(text, List.of(
                 new HolisticNarrative.MajorAdvice("STAT", "통계학과", HolisticNarrative.Text.template("자료 해석 과정을 정리해 보세요.")),
                 new HolisticNarrative.MajorAdvice("CS", "컴퓨터공학과", text)),
-                new HolisticNarrative.Detail(text, List.of(text), List.of(), List.of(text)));
+                new HolisticNarrative.Detail(text, List.of(text), List.of(),
+                        List.of(HolisticNarrative.Text.template("모집요강을 확인해 보세요."))));
         when(narratives.narrate(eq(applied), isNull(), anyList())).thenAnswer(call -> {
             started.countDown();
             assertTrue(reportStarted.await(3, TimeUnit.SECONDS));
@@ -77,15 +78,15 @@ class SimulationReportCoordinatorTest {
         });
         var result = coordinator(5000).assemble(analysis, request());
         assertEquals(narrative, result.narrative());
-        var response = SimulationResponseMapper.toResponse(result,
-                new SimulationReportSaver.SaveOutcome(SimulationReportSaver.Status.SKIPPED_NO_CARDS, null));
+        var response = SimulationResponseMapper.toResponse(result.result(),
+                new SimulationReportSaver.SaveOutcome(SimulationReportSaver.Status.SKIPPED_NO_CARDS, null), result.narrative());
         assertEquals("LLM", response.holistic().activitySummary().generationMethod());
         assertEquals(List.of("통계학과", "컴퓨터공학과"), response.holistic().majorAdvices().stream().map(a -> a.department()).toList());
         assertEquals("TEMPLATE", response.holistic().majorAdvices().getFirst().advice().generationMethod());
         assertEquals(1, response.holistic().strengths().size());
         assertEquals(text.text(), response.holistic().detail().overview().text());
-        assertEquals("LLM", response.holistic().detail().nextSteps().getFirst().generationMethod());
-        assertNull(SimulationReportSaver.toDraft(result).greetingSummary());
+        assertEquals("TEMPLATE", response.holistic().detail().nextSteps().getFirst().generationMethod());
+        assertNull(SimulationReportSaver.toDraft(result.result()).greetingSummary());
         verify(narratives).narrate(eq(applied), isNull(), anyList());
     }
 

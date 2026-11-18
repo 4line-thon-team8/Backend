@@ -79,7 +79,7 @@ public final class SimulationResponseMapper {
 
 	/** @param saveOutcome 자동 저장 결과. null 이면 저장 대상이 아닌 것(NOT_SAVED)으로 본다. */
 	public static SimulationResponse toResponse(SimulationReportResult result, SimulationReportSaver.SaveOutcome saveOutcome) {
-		return toResponse(result, saveOutcome, result.narrative());
+		return toResponse(result, saveOutcome, null);
 	}
 
 	/**

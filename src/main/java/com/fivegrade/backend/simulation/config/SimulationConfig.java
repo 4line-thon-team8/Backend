@@ -8,6 +8,7 @@ import com.fivegrade.backend.report.service.ReportStorageService;
 import com.fivegrade.backend.simulation.service.DefaultRecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.RecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
+import com.fivegrade.backend.simulation.service.SimulationReportCoordinator;
 import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationService;
 import java.util.concurrent.ExecutorService;
@@ -50,9 +51,10 @@ public class SimulationConfig {
 			FiveGradeAverageCalculator averageCalculator,
 			RecommendationQueryMapper queryMapper,
 			RecommendationService recommendationService,
-			HolisticEvaluator holisticEvaluator
+			HolisticEvaluator holisticEvaluator,
+			SimulationReportCoordinator reportCoordinator
 	) {
-		return new SimulationService(averageCalculator, queryMapper, recommendationService, holisticEvaluator);
+		return new SimulationService(averageCalculator, queryMapper, recommendationService, holisticEvaluator, reportCoordinator);
 	}
 
 	@Bean
