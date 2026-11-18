@@ -1,5 +1,6 @@
 package com.fivegrade.backend.simulation.service;
 
+import com.fivegrade.backend.holistic.report.HolisticStrengthSelector;
 import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import com.fivegrade.backend.recommendation.dto.RecommendationWarning;
 import com.fivegrade.backend.recommendation.probability.AdmissionBand;
@@ -17,6 +18,7 @@ import com.fivegrade.backend.simulation.dto.SimulationResponse.Explanation;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.HolisticResult;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.RecommendationItem;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.ReportBody;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.StrengthItem;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.SubjectResult;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.WarningItem;
 import java.math.BigDecimal;
@@ -45,6 +47,8 @@ import java.util.UUID;
 public final class SimulationResponseMapper {
 
 	private static final int GRADE_GAP_SCALE = 2;
+
+	private static final HolisticStrengthSelector STRENGTH_SELECTOR = HolisticStrengthSelector.withDefaults();
 
 	private static final String STATUS_APPLIED = "APPLIED";
 	private static final String STATUS_SKIPPED = "SKIPPED";
@@ -117,8 +121,14 @@ public final class SimulationResponseMapper {
 			case HolisticEvaluation.Applied applied -> {
 				Map<String, BigDecimal> elementLevels = new TreeMap<>();
 				applied.elementLevels().forEach((element, level) -> elementLevels.put(element, round(level)));
+				List<StrengthItem> strengths = STRENGTH_SELECTOR.select(applied.indicatorLevels()).stream()
+						.map(strength -> new StrengthItem(
+								strength.indicatorId(), strength.label(), strength.level(), strength.description()))
+						.toList();
+				// 활동 요약·학과별 조언은 글쓰기 단계에서 채운다. 아직 없으면 null/빈 목록으로 내린다.
 				yield new HolisticResult(
-						STATUS_APPLIED, null, applied.rulesVersion(), elementLevels, round(applied.overallLevel()));
+						STATUS_APPLIED, null, applied.rulesVersion(), elementLevels, round(applied.overallLevel()),
+						null, strengths, List.of());
 			}
 			case HolisticEvaluation.Skipped skipped -> skipped.reason() == HolisticEvaluation.SkipReason.NOT_PROVIDED
 					? HolisticResult.notProvided()
