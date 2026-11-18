@@ -49,11 +49,19 @@ class AuthHttpIntegrationTest {
         Instant beforeLogin = Instant.now();
         String body = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", aMapWithSize(2)))
+                .andExpect(jsonPath("$", aMapWithSize(3)))
+                .andExpect(jsonPath("$.userId").isString())
                 .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE))
                 .andReturn().getResponse().getContentAsString();
         Instant afterLogin = Instant.now();
         var result = json.readTree(body);
+
+        String expectedUserId = users.findByEmail(email)
+                .orElseThrow()
+                .getId()
+                .toString();
+
+        assertEquals(expectedUserId, result.path("userId").asText());
         String token = result.path("accessToken").asText();
         Instant expiry = Instant.parse(result.path("expiresAt").asText());
         assertFalse(expiry.isBefore(beforeLogin.plus(Duration.ofHours(2))));
@@ -65,6 +73,7 @@ class AuthHttpIntegrationTest {
 
         String secondBody = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertEquals(expectedUserId, json.readTree(secondBody).path("userId").asText());
         String second = json.readTree(secondBody).path("accessToken").asText();
         mvc.perform(delete("/api/users/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + second))
                 .andExpect(status().isNoContent());
