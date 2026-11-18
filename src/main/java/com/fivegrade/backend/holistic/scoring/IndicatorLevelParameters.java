@@ -8,8 +8,11 @@ package com.fivegrade.backend.holistic.scoring;
  * 개수가 아니라 밀도로 단계를 정한다. 예를 들어 rateCuts 가 {0.15, 0.4, 0.9, 1.8} 이면
  * 0.15 미만=1, 0.15~0.4 미만=2, 0.4~0.9 미만=3, 0.9~1.8 미만=4, 1.8 이상=5 다.
  *
- * 경계값은 가상 생기부 50건으로 단계가 순서대로 벌어지는지만 확인한 가설이다.
- * 실제 생기부 표본으로 분포를 확인하기 전에는 이 값을 근거로 한 결론을 내지 않는다.
+ * 경계값은 실제 생기부 21건(구절 5,009개, 라벨 기준)에서 지표별 밀도를 모아 신호가 있는 값의
+ * 20·40·60·80 백분위로 정했다(0.74, 1.23, 1.70, 2.47을 반올림). 이전 경계 {0.15, 0.4, 0.9, 1.8}은
+ * 가상 생기부 50건 기준이라 실제 문서의 중앙값(1000자당 1.7건)보다 훨씬 낮아, 거의 모든 지표가 4~5단계가 되어
+ * 서류 수준이 3.25~4.2에 몰렸고 모든 사용자가 위쪽으로 보정되었다. 새 경계에서는 같은 21건이 2.45~3.75에 분포한다.
+ * 사람이 매긴 서류 수준으로 검증하기 전까지는 표본 21건에 맞춘 값이라는 점을 감안한다.
  *
  * @param rateCuts      신호 밀도(1000자당) 단계의 경계(오름차순, 길이 4). 경계 이상이면 한 단계 올라간다.
  * @param rateWeight    신호 밀도 단계의 반영 비율
@@ -18,7 +21,7 @@ package com.fivegrade.backend.holistic.scoring;
 public record IndicatorLevelParameters(double[] rateCuts, double rateWeight, double qualityWeight) {
 
 	public static final IndicatorLevelParameters DEFAULT =
-			new IndicatorLevelParameters(new double[] {0.15, 0.4, 0.9, 1.8}, 0.6, 0.4);
+			new IndicatorLevelParameters(new double[] {0.7, 1.2, 1.7, 2.5}, 0.6, 0.4);
 
 	public IndicatorLevelParameters {
 		if (rateCuts == null || rateCuts.length != 4) {
