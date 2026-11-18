@@ -37,6 +37,18 @@ import com.fivegrade.backend.simulation.dto.ApplicationPreference;
 import com.fivegrade.backend.simulation.dto.SubjectInput;
 import com.fivegrade.backend.simulation.service.DefaultRecommendationQueryMapper;
 import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
+import com.fivegrade.backend.simulation.service.SimulationReportCoordinator;
+import com.fivegrade.backend.admission.repository.MajorRepository;
+import com.fivegrade.backend.holistic.report.HolisticNarrativeService;
+import com.fivegrade.backend.holistic.report.HolisticNarrative;
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
+import com.fivegrade.backend.holistic.service.HolisticEvaluator;
+import com.fivegrade.backend.holistic.scoring.DocumentContext;
+import com.fivegrade.backend.holistic.scoring.DocumentLevelCalculator.ElementLevels;
+import com.fivegrade.backend.simulation.dto.SimulationAnalysis;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationRequestValidator;
 import com.fivegrade.backend.simulation.service.SimulationService;
@@ -298,6 +310,37 @@ class SimulationControllerTest {
 		verify(storageService, never()).save(any(), any(), any());
 	}
 
+    @Test
+    void 생성된_서술을_명시적_인자로_응답에_연결하고_최소_추천만_저장한다() throws Exception {
+        var applied = new HolisticEvaluation.Applied("0.7.0", Map.of("A3", 4.0),
+                Map.of("ACADEMIC", 4.0), new DocumentContext(new ElementLevels(4.0, 3.0, 3.0), 3.3));
+        var analysis = new SimulationAnalysis(new BigDecimal("2.00"), List.of(), twoCardResult(), applied);
+        var report = new SimulationReportAssembler(new TemplateReportGenerator()).assemble(analysis);
+        var text = HolisticNarrative.Text.llm("관심 분야를 탐색했어요.");
+        var fixed = HolisticNarrative.Text.template("모집요강을 확인해 보세요.");
+        var narrative = new HolisticNarrative(text, List.of(
+                new HolisticNarrative.MajorAdvice("CS", "컴퓨터공학과", text)),
+                new HolisticNarrative.Detail(text, List.of(text), List.of(fixed), List.of(fixed)));
+        var service = mock(SimulationService.class);
+        when(service.analyzeAndGenerate(any())).thenReturn(
+                new SimulationReportCoordinator.GeneratedReport(report, narrative));
+        var mvc = MockMvcBuilders.standaloneSetup(new SimulationController(
+                mock(SimulationRequestValidator.class), service, new SimulationReportSaver(storageService)))
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
+        mvc.perform(post("/api/simulations").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.holistic.activitySummary.text").value(text.text()))
+                .andExpect(jsonPath("$.holistic.activitySummary.generationMethod").value("LLM"))
+                .andExpect(jsonPath("$.holistic.majorAdvices[0].department").value("컴퓨터공학과"))
+                .andExpect(jsonPath("$.holistic.detail.overview.text").value(text.text()))
+                .andExpect(jsonPath("$.holistic.detail.nextSteps[0].generationMethod").value("TEMPLATE"));
+        ArgumentCaptor<ReportDraft> draft = ArgumentCaptor.forClass(ReportDraft.class);
+        verify(storageService).save(eq(USER_ID), anyString(), draft.capture());
+        assertNull(draft.getValue().greetingSummary());
+        assertEquals(2, draft.getValue().recommendations().size());
+    }
+
 	/** 검증기와 추천 서비스만 가짜로 두고, 평균 계산·설명 생성·응답 변환은 실제 클래스를 쓴다. */
 	private MockMvc mockMvcWith(RecommendationService recommendationService, BusinessException validationFailure) {
 		SimulationRequestValidator validator = new SimulationRequestValidator(null, null) {
@@ -316,15 +359,16 @@ class SimulationControllerTest {
 			}
 
 		};
-		SimulationService service = new SimulationService(
-				new FiveGradeAverageCalculator(),
-				new DefaultRecommendationQueryMapper(),
-				recommendationService);
-		SimulationReportAssembler assembler = new SimulationReportAssembler(new TemplateReportGenerator());
+        SimulationReportAssembler assembler = new SimulationReportAssembler(new TemplateReportGenerator());
+        SimulationReportCoordinator coordinator = new SimulationReportCoordinator(
+                assembler, mock(HolisticNarrativeService.class), mock(MajorRepository.class),
+                mock(ExecutorService.class), 23000);
+        SimulationService service = new SimulationService(
+                new FiveGradeAverageCalculator(), new DefaultRecommendationQueryMapper(),
+                recommendationService, HolisticEvaluator.NONE, coordinator);
+        SimulationReportSaver saver = new SimulationReportSaver(storageService);
 
-		SimulationReportSaver saver = new SimulationReportSaver(storageService);
-
-		return MockMvcBuilders.standaloneSetup(new SimulationController(validator, service, assembler, saver))
+        return MockMvcBuilders.standaloneSetup(new SimulationController(validator, service, saver))
 				.setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
 				.setControllerAdvice(new GlobalExceptionHandler())
 				.build();
