@@ -43,4 +43,20 @@ class HolisticStrengthSelectorTest {
 	void 모르는_지표는_무시한다() {
 		assertTrue(selector.select(Map.of("Z9", 5.0)).isEmpty());
 	}
+
+	@Test
+	void 강점_설명은_모든_지표에서_22자_이하다() {
+		HolisticReportParameters params = new HolisticReportParameters(3.5, 2.5, 3000, Map.of(
+				"A2", HolisticReportParameters.Reliability.MID, "A3", HolisticReportParameters.Reliability.MID,
+				"B3", HolisticReportParameters.Reliability.MID, "C1", HolisticReportParameters.Reliability.MID,
+				"C3", HolisticReportParameters.Reliability.MID, "D1", HolisticReportParameters.Reliability.MID,
+				"D3", HolisticReportParameters.Reliability.MID, "D4", HolisticReportParameters.Reliability.MID));
+		HolisticStrengthSelector all = new HolisticStrengthSelector(params);
+		for (String id : List.of("A2", "A3", "B3", "C1", "C3", "D1", "D3", "D4")) {
+			List<Strength> result = all.select(Map.of(id, 4.5));
+			if (!result.isEmpty()) {
+				assertTrue(result.getFirst().description().length() <= 22, id + " " + result.getFirst().description());
+			}
+		}
+	}
 }

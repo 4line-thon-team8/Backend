@@ -15,7 +15,11 @@ import com.fivegrade.backend.simulation.dto.SimulationResponse;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.DocumentFitItem;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.Evidence;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.Explanation;
+import com.fivegrade.backend.holistic.report.HolisticNarrative;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.HolisticDetail;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.HolisticResult;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.MajorAdviceItem;
+import com.fivegrade.backend.simulation.dto.SimulationResponse.NarrativeText;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.RecommendationItem;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.ReportBody;
 import com.fivegrade.backend.simulation.dto.SimulationResponse.StrengthItem;
@@ -75,6 +79,16 @@ public final class SimulationResponseMapper {
 
 	/** @param saveOutcome 자동 저장 결과. null 이면 저장 대상이 아닌 것(NOT_SAVED)으로 본다. */
 	public static SimulationResponse toResponse(SimulationReportResult result, SimulationReportSaver.SaveOutcome saveOutcome) {
+		return toResponse(result, saveOutcome, null);
+	}
+
+	/**
+	 * 활동 요약·학과별 조언·자세히 보기를 함께 내린다. 서류를 반영한 경우(APPLIED)에만 글이 들어가고, 저장 리포트에는 넣지 않는다.
+	 *
+	 * @param narrative 서술 글. null 이면 글 없이 내린다.
+	 */
+	public static SimulationResponse toResponse(SimulationReportResult result,
+			SimulationReportSaver.SaveOutcome saveOutcome, HolisticNarrative narrative) {
 		Objects.requireNonNull(result);
 		int cardCount = result.recommendations().size();
 
@@ -94,7 +108,7 @@ public final class SimulationResponseMapper {
 				toReport(result.report()),
 				saveStatusOf(saveOutcome),
 				saveOutcome != null && isSaved(saveOutcome) ? saveOutcome.reportId() : null,
-				toHolistic(result.holistic())
+				toHolistic(result.holistic(), narrative)
 		);
 	}
 
@@ -113,7 +127,7 @@ public final class SimulationResponseMapper {
 		return SAVE_SAVED.equals(saveStatusOf(outcome));
 	}
 
-	private static HolisticResult toHolistic(HolisticEvaluation holistic) {
+	private static HolisticResult toHolistic(HolisticEvaluation holistic, HolisticNarrative narrative) {
 		if (holistic == null) {
 			return HolisticResult.notProvided();
 		}
@@ -125,15 +139,38 @@ public final class SimulationResponseMapper {
 						.map(strength -> new StrengthItem(
 								strength.indicatorId(), strength.label(), strength.level(), strength.description()))
 						.toList();
-				// 활동 요약·학과별 조언은 글쓰기 단계에서 채운다. 아직 없으면 null/빈 목록으로 내린다.
+				// 활동 요약·학과별 조언·자세히 보기는 글쓰기 단계에서 채운다. 없으면 null/빈 목록으로 내린다.
+				HolisticNarrative text = narrative == null ? HolisticNarrative.empty() : narrative;
 				yield new HolisticResult(
 						STATUS_APPLIED, null, applied.rulesVersion(), elementLevels, round(applied.overallLevel()),
-						null, strengths, List.of());
+						toText(text.activitySummary()), strengths, toAdvices(text), toDetail(text.detail()));
 			}
 			case HolisticEvaluation.Skipped skipped -> skipped.reason() == HolisticEvaluation.SkipReason.NOT_PROVIDED
 					? HolisticResult.notProvided()
 					: new HolisticResult(STATUS_SKIPPED, skipped.reason().name(), null, null, null);
 		};
+	}
+
+	private static NarrativeText toText(HolisticNarrative.Text text) {
+		return text == null ? null : new NarrativeText(text.text(), text.generationMethod());
+	}
+
+	private static List<NarrativeText> toTexts(List<HolisticNarrative.Text> texts) {
+		return texts.stream().map(SimulationResponseMapper::toText).toList();
+	}
+
+	private static List<MajorAdviceItem> toAdvices(HolisticNarrative narrative) {
+		return narrative.majorAdvices().stream()
+				.map(advice -> new MajorAdviceItem(advice.department(), toText(advice.advice())))
+				.toList();
+	}
+
+	private static HolisticDetail toDetail(HolisticNarrative.Detail detail) {
+		if (detail == null) {
+			return null;
+		}
+		return new HolisticDetail(toText(detail.overview()), toTexts(detail.strengthEvidence()),
+				toTexts(detail.improvements()), toTexts(detail.nextSteps()));
 	}
 
 	/**

@@ -69,6 +69,7 @@ public record SimulationResponse(
 	 * @param activitySummary 활동 요약. 글을 만들지 못했거나 아직 지원하지 않으면 null
 	 * @param strengths     역량 강점(최대 3개, 강한 순). 없으면 빈 목록
 	 * @param majorAdvices  희망 학과별 조언(희망 학과 입력 순서). 없으면 빈 목록
+	 * @param detail        강점 카드 '자세히 보기'. 글을 만들 수 없으면 null. 저장된 리포트에는 들어 있지 않다.
 	 */
 	public record HolisticResult(
 			@Schema(description = "APPLIED=반영함, SKIPPED=보냈지만 반영하지 못함, NOT_PROVIDED=보내지 않음", allowableValues = {"APPLIED", "SKIPPED", "NOT_PROVIDED"})
@@ -86,12 +87,22 @@ public record SimulationResponse(
 			@Schema(description = "역량 강점. 최대 3개, 강한 순. 해당 없으면 빈 목록")
 			List<StrengthItem> strengths,
 			@Schema(description = "희망 학과별 조언. 희망 학과 입력 순서. 해당 없으면 빈 목록")
-			List<MajorAdviceItem> majorAdvices
+			List<MajorAdviceItem> majorAdvices,
+			@Schema(description = "강점 카드 '자세히 보기'. APPLIED이고 글을 만들 수 있을 때만 값이 있다. 저장된 리포트에는 들어 있지 않다.", nullable = true)
+			HolisticDetail detail
 	) {
 
 		public HolisticResult {
 			strengths = strengths == null ? List.of() : List.copyOf(strengths);
 			majorAdvices = majorAdvices == null ? List.of() : List.copyOf(majorAdvices);
+		}
+
+		/** 자세히 보기 없이 만든다(기존 호출 호환). */
+		public HolisticResult(String status, String skipReason, String rulesVersion,
+				java.util.Map<String, BigDecimal> elementLevels, BigDecimal overallLevel,
+				NarrativeText activitySummary, List<StrengthItem> strengths, List<MajorAdviceItem> majorAdvices) {
+			this(status, skipReason, rulesVersion, elementLevels, overallLevel,
+					activitySummary, strengths, majorAdvices, null);
 		}
 
 		/** 활동 요약·강점·학과별 조언 없이 만든다(반영하지 않은 경우 등). */
@@ -102,6 +113,24 @@ public record SimulationResponse(
 
 		public static HolisticResult notProvided() {
 			return new HolisticResult("NOT_PROVIDED", null, null, null, null);
+		}
+	}
+
+	/** 강점 카드 '자세히 보기'. 목록은 최대 3개, 없으면 빈 목록. */
+	public record HolisticDetail(
+			@Schema(description = "활동 흐름 요약", nullable = true)
+			NarrativeText overview,
+			@Schema(description = "강점을 뒷받침하는 근거 문장. 최대 3개. 해당 없으면 빈 목록")
+			List<NarrativeText> strengthEvidence,
+			@Schema(description = "보완하면 좋은 점. 최대 3개. 해당 없으면 빈 목록")
+			List<NarrativeText> improvements,
+			@Schema(description = "다음에 준비할 것. 최대 3개. 해당 없으면 빈 목록")
+			List<NarrativeText> nextSteps
+	) {
+		public HolisticDetail {
+			strengthEvidence = strengthEvidence == null ? List.of() : List.copyOf(strengthEvidence);
+			improvements = improvements == null ? List.of() : List.copyOf(improvements);
+			nextSteps = nextSteps == null ? List.of() : List.copyOf(nextSteps);
 		}
 	}
 
