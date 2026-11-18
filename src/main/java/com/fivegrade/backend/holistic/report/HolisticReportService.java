@@ -50,7 +50,14 @@ public class HolisticReportService {
 			return HolisticReportResponse.skipped(skipped.reason());
 		}
 
-		HolisticReportInput input = inputFactory.create(
+		HolisticReportInput input = createInput(applied, request);
+		HolisticReportContent content = writer.generate(input);
+		return toResponse(applied.rulesVersion(), input, content);
+	}
+
+	/** 평가 결과와 요청으로 리포트 입력 자료를 만든다. 활동 요약·학과별 조언도 같은 자료를 쓴다. */
+	public HolisticReportInput createInput(HolisticEvaluation.Applied applied, HolisticAnalysisRequest request) {
+		return inputFactory.create(
 				indicatorDefs(),
 				observableIds(),
 				applied.indicatorLevels(),
@@ -59,8 +66,6 @@ public class HolisticReportService {
 				observedYears(request),
 				tagCounts(request),
 				request.coverage().sectionChars().total());
-		HolisticReportContent content = writer.generate(input);
-		return toResponse(applied.rulesVersion(), input, content);
 	}
 
 	private List<HolisticReportInputFactory.IndicatorDef> indicatorDefs() {

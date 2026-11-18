@@ -228,7 +228,7 @@ public final class OpenAiHolisticReportClient implements HolisticReportAiClient 
 	}
 
 	/** 수신 도중 크기 제한을 적용해 큰 본문을 메모리에 쌓지 않는다. */
-	private static final class LimitedBody implements HttpResponse.BodySubscriber<String> {
+	static final class LimitedBody implements HttpResponse.BodySubscriber<String> {
 
 		private final HttpResponse.BodySubscriber<String> delegate =
 				HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
