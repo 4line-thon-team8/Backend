@@ -44,6 +44,9 @@ values = {
     "OPENAPI_ENABLED": "false", "REPORT_AI_ENABLED": ai,
     "REPORT_AI_MODEL": "gpt-4.1-mini-2025-04-14",
     "REPORT_AI_TIMEOUT_MS": "12000", "REPORT_AI_MAX_CONCURRENT": "4",
+    "HOLISTIC_REPORT_AI_ENABLED": ai,
+    "HOLISTIC_REPORT_AI_MODEL": "gpt-4.1-mini-2025-04-14",
+    "HOLISTIC_REPORT_AI_TIMEOUT_MS": "20000", "HOLISTIC_REPORT_AI_MAX_CONCURRENT": "4",
     "OPENAI_API_KEY": api_key,
 }
 (out / "runtime.env").write_text("".join(f"{key}={value}\n" for key, value in values.items()))
