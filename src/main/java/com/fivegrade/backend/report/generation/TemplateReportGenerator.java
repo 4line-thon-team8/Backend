@@ -1,5 +1,7 @@
 package com.fivegrade.backend.report.generation;
 
+import com.fivegrade.backend.holistic.service.HolisticEvaluation;
+import com.fivegrade.backend.recommendation.dto.DocumentFit;
 import com.fivegrade.backend.recommendation.dto.RecommendationResult;
 import com.fivegrade.backend.recommendation.dto.RecommendedCard;
 import com.fivegrade.backend.recommendation.dto.WarningCode;
@@ -7,7 +9,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /** 기획 확정 문구를 사용한다. 화면 안내는 공개 warnings와 FE에서 담당한다. */
 public final class TemplateReportGenerator implements ReportGenerator {
@@ -23,10 +27,30 @@ public final class TemplateReportGenerator implements ReportGenerator {
             "이 리포트는 과거 입결을 바탕으로 한 참고용 추정이에요. "
                     + "최신 모집요강을 꼭 확인하고, 최종 지원 결정은 직접 판단해 주세요.";
 
+    private static final Map<String, String> ELEMENT_NAMES = Map.of(
+            "ACADEMIC", "학업역량",
+            "MAJOR_FIT", "전공적합성",
+            "COMMUNITY", "공동체역량",
+            "POTENTIAL", "발전가능성"
+    );
+
+    /** 요소 수준이 이 값 이상이면 강점, 이하이면 보완할 점으로 안내한다. 검증 전 가설값이다. */
+    private static final double STRONG_FROM = 3.5;
+    private static final double WEAK_UNTIL = 2.5;
+
     @Override
     public GeneratedReport generate(
             BigDecimal displayAverage,
             RecommendationResult recommendation
+    ) {
+        return generate(displayAverage, recommendation, null);
+    }
+
+    @Override
+    public GeneratedReport generate(
+            BigDecimal displayAverage,
+            RecommendationResult recommendation,
+            HolisticEvaluation holistic
     ) {
         Objects.requireNonNull(displayAverage);
         Objects.requireNonNull(recommendation);
@@ -36,12 +60,14 @@ public final class TemplateReportGenerator implements ReportGenerator {
         String assessment = "참고 평균은 "
                 + displayAverage.setScale(2, RoundingMode.HALF_UP).toPlainString()
                 + "이에요. "
-                + AVERAGE_NOTICE;
+                + AVERAGE_NOTICE
+                + holisticAssessment(holistic);
 
         String strategy = count == 0
                 ? warningText(WarningCode.NO_CANDIDATES, count)
                 : "추천 후보별 지원 구간과 최신 모집요강을 함께 확인해 주세요. "
-                + "수능최저 충족 여부와 지원 자격도 별도로 확인해 주세요.";
+                + "수능최저 충족 여부와 지원 자격도 별도로 확인해 주세요."
+                + holisticStrategy(recommendation);
 
         // 부족·확장·소신 미포함 안내는 공개 warnings에서 한 번만 노출한다.
         ConsultingReport report = new ConsultingReport(
@@ -88,6 +114,11 @@ public final class TemplateReportGenerator implements ReportGenerator {
                     warningText(WarningCode.UNRATED_CARD, 0);
         });
 
+        String fit = documentFitSentence(card);
+        if (!fit.isEmpty()) {
+            sentences.add(fit.strip());
+        }
+
         if (Boolean.TRUE.equals(card.evidence().newOrMergedDepartment())) {
             sentences.add(
                     "신설·통합 모집단위로 입결이 변동할 수 있어요."
@@ -100,6 +131,65 @@ public final class TemplateReportGenerator implements ReportGenerator {
         );
 
         return String.join(" ", sentences);
+    }
+
+    /** 서술 분석을 반영했을 때만 요소별 강점·보완점을 안내한다. 숫자와 합격 단정은 쓰지 않는다. */
+    private static String holisticAssessment(HolisticEvaluation holistic) {
+        if (!(holistic instanceof HolisticEvaluation.Applied applied)) {
+            return "";
+        }
+        Map<String, Double> levels = applied.elementLevels();
+        List<String> strong = namesWhere(levels, level -> level >= STRONG_FROM);
+        List<String> weak = namesWhere(levels, level -> level <= WEAK_UNTIL);
+
+        StringBuilder text = new StringBuilder(" 작성하신 생기부 서술 분석도 함께 살펴봤어요.");
+        if (!strong.isEmpty()) {
+            text.append(" 상대적으로 ").append(String.join(", ", strong)).append("이 잘 드러나는 편이에요.");
+        }
+        if (!weak.isEmpty()) {
+            text.append(" ").append(String.join(", ", weak)).append("은 근거가 더 필요해 보여요.");
+        }
+        if (strong.isEmpty() && weak.isEmpty()) {
+            text.append(" 요소별로 크게 치우치지 않은 편이에요.");
+        }
+        text.append(" 서술 분석은 학종 후보를 볼 때 성적을 보조하는 참고 정보예요.");
+        return text.toString();
+    }
+
+    private static String holisticStrategy(RecommendationResult recommendation) {
+        boolean anyFit = recommendation.cards().stream().anyMatch(card -> card.documentFit() != null);
+        return anyFit
+                ? " 학종 후보에는 서류 적합도를 함께 표시했으니, 서류 준비 방향을 정할 때 참고해 주세요."
+                : "";
+    }
+
+    private static String documentFitSentence(RecommendedCard card) {
+        DocumentFit fit = card.documentFit();
+        if (fit == null) {
+            return "";
+        }
+        String focus = fit.basis().stream()
+                .map(ELEMENT_NAMES::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("과 "));
+        String subject = focus.isEmpty() ? "이 전형이 보는 요소" : "이 전형이 중요하게 보는 " + focus;
+        String sentence = switch (fit.level()) {
+            case HIGH -> "분석한 생기부는 " + subject + " 측면에서 강점이 있는 편이에요.";
+            case MID -> "분석한 생기부는 " + subject + " 측면에서 보통 수준으로 보여요.";
+            case LOW -> "분석한 생기부는 " + subject + " 측면의 근거가 부족해 보여, 서류 보완이 필요할 수 있어요.";
+        };
+        if (card.baseBand() != null && card.baseBand() != card.band()) {
+            sentence += " 서류 적합도를 반영해 지원 구간을 한 단계 조정했어요.";
+        }
+        return sentence;
+    }
+
+    private static List<String> namesWhere(Map<String, Double> levels, java.util.function.DoublePredicate test) {
+        return ELEMENT_NAMES.keySet().stream()
+                .sorted()
+                .filter(key -> levels.containsKey(key) && test.test(levels.get(key)))
+                .map(ELEMENT_NAMES::get)
+                .toList();
     }
 
     /**

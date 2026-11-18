@@ -48,6 +48,20 @@ class CandidateScorerDocumentTest {
 		assertEquals(base.gradeGap(), adjusted.gradeGap());
 	}
 
+	@Test
+	void displayOnlySignalKeepsBandAndProbabilityButKeepsFitForDisplay() {
+		CandidateUnit unit = holisticUnit();
+		DocumentSignal display = DocumentSignal.displayOnly(5.0, List.of("ACADEMIC"));
+
+		ScoredCandidate base = scorer.score(unit, RECENT_YEARS, 3.3, 2.5);
+		ScoredCandidate shown = scorer.score(unit, RECENT_YEARS, 3.3, 2.5, display);
+
+		assertNull(shown.documentAdjustment());
+		assertEquals(base.band(), shown.band());
+		assertEquals(base.probability(), shown.probability());
+		assertEquals(display, shown.documentSignal());
+	}
+
 	private CandidateUnit holisticUnit() {
 		return new CandidateUnit(
 				1L, 10L, "테스트대학", "테스트학과", "학종", "학생부종합(테스트전형)",
