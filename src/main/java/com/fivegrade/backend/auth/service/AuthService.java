@@ -57,7 +57,7 @@ public class AuthService {
         if (!accounts.lockUser(user.getId())) {
             throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED);
         }
-        return new LoginResponse(tokens.issue(user.getId()));
+        return new LoginResponse(tokens.issue(user.getId()), user.getId());
     }
 
     @Transactional
