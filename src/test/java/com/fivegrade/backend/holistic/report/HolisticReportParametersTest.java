@@ -39,6 +39,16 @@ class HolisticReportParametersTest {
 	}
 
 	@Test
+	void 교차검증_구간_하한이_0_60_이상인_지표만_MID다() {
+		for (String id : new String[] {"A2", "A3", "B3", "C1", "C3", "D1"}) {
+			assertThat(parameters.reliabilityOf(id)).as(id).isEqualTo(Reliability.MID);
+		}
+		for (String id : new String[] {"C2", "C4", "D3", "D4"}) {
+			assertThat(parameters.reliabilityOf(id)).as(id).isEqualTo(Reliability.LOW);
+		}
+	}
+
+	@Test
 	void 잘못된_기준은_거부한다() {
 		assertThatThrownBy(() -> new HolisticReportParameters(2.5, 3.5, 3000, Map.of()))
 				.isInstanceOf(IllegalArgumentException.class);

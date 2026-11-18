@@ -6,8 +6,11 @@ import java.util.Map;
  * 리포트에서 쓰는 구간 기준과 지표별 모델 신뢰도. 검증 전 가설 값이므로 이 한 곳에서만 정한다.
  *
  * 구간: 수준이 highFrom 이상이면 HIGH, lowUntil 이하이면 LOW, 그 사이는 MID 다({@code DocumentFit}과 같은 방식).
- * 신뢰도: 서술 분석 모델 0.4.0을 처음 보는 문서(N01)에서 잰 지표별 F1 이 0.60 이상이면 MID, 미만이면 LOW 다.
- * 아직 HIGH 인 지표는 없다. 새 모델·새 정답으로 다시 잰 뒤 이 표를 갱신한다.
+ * 신뢰도: 서술 분석 모델 0.5.0의 문서 단위 교차검증(실제 문서 21편, 문서 하나씩 빼고 학습·평가)에서 잰 지표별 F1 의
+ * 95% 신뢰구간 하한이 0.60 이상이면 MID, 미만이면 LOW 다. 아직 HIGH 인 지표는 없다.
+ * 이 값은 독립 검증(처음 보는 새 문서)이 아니므로, 새 정답 문서로 다시 잰 뒤 이 표를 갱신한다.
+ * (F1 [95% 구간]: A3 .79 [.75,.82], C3 .74 [.69,.78], B3 .73 [.65,.79], C1 .71 [.67,.76], A2 .68 [.63,.72],
+ *  D1 .68 [.60,.74], D3 .66 [.59,.72], C4 .64 [.57,.70], C2 .63 [.52,.71], D4 .60 [.53,.66])
  *
  * @param highFrom         이 수준 이상이면 HIGH
  * @param lowUntil         이 수준 이하이면 LOW
@@ -31,12 +34,12 @@ public record HolisticReportParameters(
 			Map.ofEntries(
 					Map.entry("A2", Reliability.MID),
 					Map.entry("A3", Reliability.MID),
-					Map.entry("B3", Reliability.LOW),
-					Map.entry("C1", Reliability.LOW),
+					Map.entry("B3", Reliability.MID),
+					Map.entry("C1", Reliability.MID),
 					Map.entry("C2", Reliability.LOW),
 					Map.entry("C3", Reliability.MID),
 					Map.entry("C4", Reliability.LOW),
-					Map.entry("D1", Reliability.LOW),
+					Map.entry("D1", Reliability.MID),
 					Map.entry("D3", Reliability.LOW),
 					Map.entry("D4", Reliability.LOW)));
 
