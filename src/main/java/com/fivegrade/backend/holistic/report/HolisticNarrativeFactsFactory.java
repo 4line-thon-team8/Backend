@@ -22,16 +22,20 @@ public final class HolisticNarrativeFactsFactory {
 	public record DesiredMajor(String code, String name) {
 	}
 
+	/** 요청에서 읽은 근거 구절 하나. */
+	public record EvidenceInput(String text, Integer year, String section) {
+	}
+
 	/**
 	 * @param majorTags      학과 코드 → 전공 태그(연관 강도가 높은 순). 없는 학과는 빈 목록으로 본다.
-	 * @param evidencePhrases 근거 구절. 외부 AI 전송 동의 전이면 빈 목록을 넘긴다.
+	 * @param evidence       근거 구절. 외부 AI 전송 스위치가 꺼져 있으면 빈 목록을 넘긴다.
 	 */
 	public static HolisticNarrativeFacts create(
 			HolisticReportInput report,
 			List<Strength> strengths,
 			List<DesiredMajor> desired,
 			Map<String, List<String>> majorTags,
-			List<String> evidencePhrases
+			List<EvidenceInput> evidence
 	) {
 		Set<String> interest = new LinkedHashSet<>(report.interestTags());
 		List<MajorFacts> majors = new ArrayList<>();
@@ -44,12 +48,17 @@ public final class HolisticNarrativeFactsFactory {
 			List<String> overlap = tags.stream().filter(interest::contains).toList();
 			majors.add(new MajorFacts(major.code(), major.name(), tags, overlap));
 		}
-		List<String> evidence = evidencePhrases.stream()
-				.map(String::strip)
-				.filter(text -> !text.isEmpty() && text.length() <= MAX_EVIDENCE_TEXT)
-				.distinct()
-				.limit(MAX_EVIDENCE)
-				.toList();
-		return new HolisticNarrativeFacts(report, strengths, majors, evidence);
+		List<HolisticNarrativeFacts.EvidencePhrase> phrases = new ArrayList<>();
+		Set<String> texts = new LinkedHashSet<>();
+		for (EvidenceInput input : evidence) {
+			String text = input.text() == null ? "" : input.text().strip();
+			if (phrases.size() >= MAX_EVIDENCE || text.isEmpty() || text.length() > MAX_EVIDENCE_TEXT
+					|| !texts.add(text)) {
+				continue;
+			}
+			phrases.add(new HolisticNarrativeFacts.EvidencePhrase(
+					"e" + (phrases.size() + 1), text, input.year(), input.section()));
+		}
+		return new HolisticNarrativeFacts(report, strengths, majors, phrases);
 	}
 }

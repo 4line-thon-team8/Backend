@@ -2,6 +2,7 @@ package com.fivegrade.backend.holistic.report;
 
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest;
 import com.fivegrade.backend.holistic.report.HolisticNarrativeFactsFactory.DesiredMajor;
+import com.fivegrade.backend.holistic.report.HolisticNarrativeFactsFactory.EvidenceInput;
 import com.fivegrade.backend.holistic.service.HolisticEvaluation;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -39,8 +40,10 @@ public class HolisticNarrativeService {
 			List<DesiredMajor> desired) {
 		try {
 			HolisticReportInput report = reportService.createInput(applied, request);
-			List<String> evidence = settings.evidenceEnabled()
-					? request.evidence().stream().map(HolisticAnalysisRequest.EvidencePhrase::text).toList()
+			List<EvidenceInput> evidence = settings.evidenceEnabled()
+					? request.evidence().stream()
+							.map(phrase -> new EvidenceInput(phrase.text(), phrase.year(), phrase.section()))
+							.toList()
 					: List.of();
 			HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(
 					report,

@@ -1,13 +1,16 @@
 package com.fivegrade.backend.holistic.report;
 
+import com.fivegrade.backend.holistic.report.HolisticNarrative.Detail;
 import com.fivegrade.backend.holistic.report.HolisticNarrative.MajorAdvice;
 import com.fivegrade.backend.holistic.report.HolisticNarrative.Text;
 import com.fivegrade.backend.holistic.report.HolisticNarrativeFacts.MajorFacts;
 import com.fivegrade.backend.holistic.report.HolisticReportInput.NarrativeAmount;
 import com.fivegrade.backend.holistic.report.HolisticStrengthSelector.Strength;
+import com.fivegrade.backend.report.generation.ReportSection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -53,13 +56,73 @@ public final class HolisticNarrativeTemplate implements HolisticNarrativeWriter 
 			"희망하는 분야와 이어지는 활동을 과정과 결과가 보이게 구체적으로 기록해 보세요.";
 
 	private static final String LIMITED_NARRATIVE =
-			" 읽어 낸 서술 분량이 많지 않아 해석이 달라질 수 있어요.";
+			"읽어 낸 서술 분량이 많지 않아 해석이 달라질 수 있어요.";
+
+	/** 다음 단계의 마지막에 항상 붙는 서버 고정 문장 */
+	static final String FIXED_NEXT_STEP = "지원하려는 모집요강에서 평가요소 반영 비율을 확인해 보세요.";
+
+	static final int MAX_DETAIL_ITEMS = 3;
 
 	@Override
 	public HolisticNarrative write(HolisticNarrativeFacts facts) {
-		return new HolisticNarrative(summary(facts), facts.majors().stream()
+		Text summary = summary(facts);
+		return new HolisticNarrative(summary, facts.majors().stream()
 				.map(major -> new MajorAdvice(major.code(), major.department(), Text.template(adviceText(major))))
-				.toList());
+				.toList(), detail(facts, summary));
+	}
+
+	/** 자세히 보기. 활동 요약을 쓸 근거가 없으면 만들지 않는다. */
+	private static Detail detail(HolisticNarrativeFacts facts, Text summary) {
+		if (summary == null) {
+			return null;
+		}
+		HolisticReportContent report = new HolisticReportTemplate().generate(facts.report());
+		List<Text> improvements = report.toDevelop().stream()
+				.limit(MAX_DETAIL_ITEMS).map(HolisticNarrativeTemplate::fromReport).toList();
+		List<Text> nextSteps = new ArrayList<>(report.nextSteps().stream()
+				.limit(MAX_DETAIL_ITEMS - 1).map(HolisticNarrativeTemplate::fromReport).toList());
+		nextSteps.add(Text.template(FIXED_NEXT_STEP));
+		return new Detail(overview(facts, summary), strengthEvidence(facts), improvements, nextSteps);
+	}
+
+	private static Text fromReport(ReportSection section) {
+		return Text.template(section.text());
+	}
+
+	/** 자세히 보기의 전체 요약. 활동 요약 문장에 두 번째 문장(분량이 적으면 그 안내, 아니면 확인된 학년)을 붙인다. */
+	static Text overview(HolisticNarrativeFacts facts, Text summary) {
+		String second = null;
+		if (facts.report().narrativeAmount() == NarrativeAmount.LIMITED) {
+			second = LIMITED_NARRATIVE;
+		} else {
+			TreeSet<Integer> years = new TreeSet<>();
+			facts.report().elements().forEach(element ->
+					element.indicators().forEach(indicator -> years.addAll(indicator.observedYears())));
+			if (!years.isEmpty()) {
+				second = "활동은 " + gradesText(years) + "학년 기록에서 확인돼요.";
+			}
+		}
+		return Text.template(second == null ? summary.text() : summary.text() + " " + second);
+	}
+
+	/** 강점마다 확인된 학년을 알려 주는 기본 문장. 활동 내용은 쓰지 않는다. */
+	static List<Text> strengthEvidence(HolisticNarrativeFacts facts) {
+		return facts.strengths().stream()
+				.limit(MAX_DETAIL_ITEMS)
+				.map(strength -> {
+					TreeSet<Integer> years = new TreeSet<>();
+					facts.report().elements().forEach(element -> element.indicators().stream()
+							.filter(indicator -> indicator.id().equals(strength.indicatorId()))
+							.forEach(indicator -> years.addAll(indicator.observedYears())));
+					return Text.template(years.isEmpty()
+							? strength.label() + " 관련 내용이 기록에서 확인돼요."
+							: strength.label() + " 관련 내용이 " + gradesText(years) + "학년 기록에서 확인돼요.");
+				})
+				.toList();
+	}
+
+	private static String gradesText(java.util.Collection<Integer> years) {
+		return years.stream().map(String::valueOf).collect(Collectors.joining("·"));
 	}
 
 	/** 학과 하나의 기본 조언 문장. 검증을 통과하지 못한 AI 조언을 대신할 때도 쓴다. */
@@ -73,23 +136,21 @@ public final class HolisticNarrativeTemplate implements HolisticNarrativeWriter 
 				.orElse(GENERAL_ADVICE);
 	}
 
+	/** 활동 요약 한 문장. 화면에는 첫 문장만 나오므로 관심 분야와 강점을 한 문장에 담는다. */
 	private static Text summary(HolisticNarrativeFacts facts) {
 		if (!facts.canSummarize()) {
 			return null;
 		}
-		List<String> sentences = new ArrayList<>();
 		List<String> tags = facts.report().interestTags().stream().limit(MAX_TAGS).toList();
-		if (!tags.isEmpty()) {
-			sentences.add("관심 분야는 " + String.join(", ", tags) + " 쪽으로 읽혀요.");
-		}
 		List<String> labels = facts.strengths().stream().map(Strength::label).limit(MAX_LABELS).toList();
-		if (!labels.isEmpty()) {
-			sentences.add(String.join(", ", labels) + "에 해당하는 활동이 눈에 띄어요.");
+		String tagText = String.join(", ", tags);
+		String labelText = String.join(", ", labels);
+		if (!tags.isEmpty() && !labels.isEmpty()) {
+			return Text.template(tagText + " 쪽 관심과 함께 " + labelText + "에 해당하는 활동이 눈에 띄어요.");
 		}
-		String text = sentences.stream().collect(Collectors.joining(" "));
-		if (facts.report().narrativeAmount() == NarrativeAmount.LIMITED) {
-			text += LIMITED_NARRATIVE;
+		if (!tags.isEmpty()) {
+			return Text.template("관심 분야는 " + tagText + " 쪽으로 읽혀요.");
 		}
-		return Text.template(text);
+		return Text.template(labelText + "에 해당하는 활동이 눈에 띄어요.");
 	}
 }
