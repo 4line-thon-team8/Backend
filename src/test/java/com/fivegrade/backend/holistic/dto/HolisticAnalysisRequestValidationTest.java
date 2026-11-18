@@ -2,6 +2,7 @@ package com.fivegrade.backend.holistic.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.Citation;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.Coverage;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.EvidencePhrase;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.IndicatorSignal;
@@ -151,6 +152,59 @@ class HolisticAnalysisRequestValidationTest {
 
 	private HolisticAnalysisRequest withSignal(IndicatorSignal signal) {
 		return new HolisticAnalysisRequest("0.1.0", coverage(), List.of(signal), List.of(), List.of());
+	}
+
+	@Test
+	void 인용_구절은_선택이고_형식이_맞으면_통과한다() {
+		HolisticAnalysisRequest none = new HolisticAnalysisRequest("0.1.0", coverage(), List.of(), List.of(), List.of(), null);
+
+		assertThat(validator.validate(none)).isEmpty();
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "가".repeat(100), List.of("A3"), 2, "subject", 0.9)))))
+				.isEmpty();
+	}
+
+	@Test
+	void 인용_구절의_형식이_어긋나면_거부한다() {
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "가".repeat(101), List.of("A3"), 2, "subject", 0.9)))))
+				.anyMatch(path -> path.contains("text"));
+		assertThat(violatedPaths(withCitations(List.of(citation("x1", "문장", List.of("A3"), 2, "subject", 0.9)))))
+				.anyMatch(path -> path.contains("id"));
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "문장", List.of(), 2, "subject", 0.9)))))
+				.anyMatch(path -> path.contains("indicators"));
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "문장", List.of("A3"), 4, "subject", 0.9)))))
+				.anyMatch(path -> path.contains("year"));
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "문장", List.of("A3"), 2, "home", 0.9)))))
+				.anyMatch(path -> path.contains("section"));
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "문장", List.of("A3"), 2, "subject", 1.5)))))
+				.anyMatch(path -> path.contains("quality"));
+	}
+
+	@Test
+	void 인용_구절은_스물네_개를_넘을_수_없다() {
+		List<Citation> many = new ArrayList<>();
+		for (int i = 1; i <= 25; i++) {
+			many.add(citation("c" + i, "문장" + i, List.of("A3"), 1, "club", 0.9));
+		}
+
+		assertThat(violatedPaths(withCitations(many))).contains("citations");
+	}
+
+	@Test
+	void 인용_구절_본문은_toString에_나오지_않는다() {
+		String secret = "비밀문장-홍길동";
+		Citation citation = citation("c1", secret, List.of("A3"), 2, "subject", 0.9);
+
+		assertThat(citation.toString()).doesNotContain(secret);
+		assertThat(withCitations(List.of(citation)).toString()).doesNotContain(secret);
+	}
+
+	private static Citation citation(String id, String text, List<String> indicators, Integer year, String section,
+			Double quality) {
+		return new Citation(id, text, indicators, year, section, quality);
+	}
+
+	private HolisticAnalysisRequest withCitations(List<Citation> citations) {
+		return new HolisticAnalysisRequest("0.1.0", coverage(), List.of(), List.of(), List.of(), citations);
 	}
 
 	private HolisticAnalysisRequest withEvidence(List<EvidencePhrase> evidence) {

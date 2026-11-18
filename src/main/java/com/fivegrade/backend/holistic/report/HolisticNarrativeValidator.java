@@ -26,7 +26,8 @@ import java.util.regex.Pattern;
  *
  * 글 하나씩 판단한다. 어긋난 글은 버리고 그 글만 기본 문장으로 대신한다(통과한 글은 그대로 쓴다).
  * 믿는 것은 (1) 근거 값이 입력에 있는지, (2) 금지 표현이 없는지, (3) 문장에 나온 지표 이름이 근거의 이름인지,
- * (4) 따옴표로 인용한 구절이 서버가 넘긴 근거 구절에 있는지, (5) 문장에 나온 학년이 근거의 학년인지다.
+ * (4) 따옴표로 인용한 구절이 서버가 넘긴 근거 구절에 있는지(강점 근거 문장은 그 문장이 근거로 든 구절에서만),
+ * (5) 문장에 나온 학년이 근거의 학년인지, (6) 근거로 든 구절이 그 강점 지표와 연결돼 있는지다.
  * 문장 내용 자체는 믿지 않는다. 숫자는 "2학년", "2·3학년" 꼴의 학년만 허용한다.
  */
 public final class HolisticNarrativeValidator {
@@ -36,6 +37,10 @@ public final class HolisticNarrativeValidator {
 	static final int MAX_EVIDENCE_LENGTH = 160;
 	static final int MAX_ADVICE_LENGTH = 160;
 	static final int MAX_EVIDENCE_LINES = 3;
+	/** 한 문장이 근거로 삼을 수 있는 구절 수 */
+	static final int MAX_EVIDENCE_IDS_PER_LINE = 3;
+	/** 따옴표 인용의 최소 길이. 한두 글자는 어느 구절에나 들어 있어 인용 검증이 의미가 없다. */
+	static final int MIN_QUOTE_LENGTH = 6;
 
 	private static final Pattern FORBIDDEN = Pattern.compile(
 			"\\d|https?:|www\\.|@|%|합격|불합격|보장|확실|반드시|무조건|확률|점수|등급|입결|경쟁률|대학|학과|전형|"
@@ -87,13 +92,13 @@ public final class HolisticNarrativeValidator {
 		Line summary = null;
 		Line overview = null;
 		if (facts.canSummarize()) {
-			String problem = checkLine(parsed.summary(), catalog, facts, null, MAX_SUMMARY_LENGTH, 1, knownYears);
+			String problem = checkLine(parsed.summary(), catalog, facts, null, MAX_SUMMARY_LENGTH, 1, knownYears, facts.evidenceTexts());
 			if (problem == null) {
 				summary = parsed.summary();
 			} else {
 				rejections.add("SUMMARY_" + problem);
 			}
-			problem = checkLine(parsed.overview(), catalog, facts, null, MAX_OVERVIEW_LENGTH, 2, knownYears);
+			problem = checkLine(parsed.overview(), catalog, facts, null, MAX_OVERVIEW_LENGTH, 2, knownYears, facts.evidenceTexts());
 			if (problem == null) {
 				overview = parsed.overview();
 			} else {
@@ -132,7 +137,7 @@ public final class HolisticNarrativeValidator {
 				advices.remove(item.majorCode());
 				continue;
 			}
-			String problem = checkLine(item.line(), catalog, facts, major, MAX_ADVICE_LENGTH, 2, knownYears);
+			String problem = checkLine(item.line(), catalog, facts, major, MAX_ADVICE_LENGTH, 2, knownYears, facts.evidenceTexts());
 			if (problem == null) {
 				advices.put(item.majorCode(), item.line());
 			} else {
@@ -166,22 +171,32 @@ public final class HolisticNarrativeValidator {
 		if (item.evidenceIds().isEmpty()) {
 			return "NO_EVIDENCE_IDS";
 		}
+		if (item.evidenceIds().size() > MAX_EVIDENCE_IDS_PER_LINE) {
+			return "TOO_MANY_EVIDENCE_IDS";
+		}
 		Map<String, HolisticNarrativeFacts.EvidencePhrase> known = new HashMap<>();
 		facts.evidence().forEach(phrase -> known.put(phrase.id(), phrase));
+		List<String> cited = new ArrayList<>();
 		for (String id : item.evidenceIds()) {
 			HolisticNarrativeFacts.EvidencePhrase phrase = known.get(id);
 			if (phrase == null) {
 				return "UNKNOWN_EVIDENCE_ID";
 			}
+			// 구절에 지표 연결이 있으면 그 구절은 이 문장이 말하는 강점 지표 중 하나의 근거여야 한다.
+			if (!phrase.indicators().isEmpty()
+					&& phrase.indicators().stream().noneMatch(item.line().refs()::contains)) {
+				return "NOT_LINKED";
+			}
 			if (phrase.year() != null) {
 				years.add(phrase.year());
 			}
+			cited.add(phrase.text());
 		}
-		return checkLine(item.line(), catalog, facts, null, MAX_EVIDENCE_LENGTH, 2, years);
+		return checkLine(item.line(), catalog, facts, null, MAX_EVIDENCE_LENGTH, 2, years, cited);
 	}
 
 	private static String checkLine(Line line, Catalog catalog, HolisticNarrativeFacts facts, MajorFacts major,
-			int maxLength, int maxSentences, Collection<Integer> allowedYears) {
+			int maxLength, int maxSentences, Collection<Integer> allowedYears, List<String> quoteSources) {
 		String text = line.text() == null ? "" : line.text().strip();
 		if (text.isEmpty() || text.length() > maxLength) {
 			return "TEXT_LENGTH";
@@ -198,7 +213,7 @@ public final class HolisticNarrativeValidator {
 		if (!gradesWithin(text, allowedYears)) {
 			return "GRADE";
 		}
-		String quote = checkQuotes(text, facts.evidenceTexts());
+		String quote = checkQuotes(text, quoteSources);
 		if (quote != null) {
 			return quote;
 		}
@@ -263,12 +278,12 @@ public final class HolisticNarrativeValidator {
 		return count >= 1 && count <= maxSentences;
 	}
 
-	/** 따옴표로 인용한 구절은 서버가 넘긴 근거 구절 안에 있어야 한다. 근거 구절이 없으면 인용 자체를 받지 않는다. */
+	/** 따옴표로 인용한 구절은 허용된 근거 구절 안에 있고 최소 길이 이상이어야 한다. 근거 구절이 없으면 인용 자체를 받지 않는다. */
 	private static String checkQuotes(String text, List<String> evidence) {
 		Matcher matcher = QUOTE.matcher(text);
 		while (matcher.find()) {
 			String quoted = matcher.group(1).strip();
-			if (quoted.isEmpty() || evidence.stream().noneMatch(phrase -> phrase.contains(quoted))) {
+			if (quoted.length() < MIN_QUOTE_LENGTH || evidence.stream().noneMatch(phrase -> phrase.contains(quoted))) {
 				return "QUOTE";
 			}
 		}

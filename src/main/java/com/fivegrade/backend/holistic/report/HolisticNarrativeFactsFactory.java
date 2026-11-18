@@ -14,6 +14,8 @@ public final class HolisticNarrativeFactsFactory {
 	static final int MAX_MAJORS = 3;
 	static final int MAX_EVIDENCE = 30;
 	static final int MAX_EVIDENCE_TEXT = 30;
+	/** 인용 구절(완결 문장)의 길이 상한. 지표 연결이 있는 구절만 이 상한을 쓴다. */
+	static final int MAX_CITATION_TEXT = 100;
 
 	private HolisticNarrativeFactsFactory() {
 	}
@@ -22,8 +24,20 @@ public final class HolisticNarrativeFactsFactory {
 	public record DesiredMajor(String code, String name) {
 	}
 
-	/** 요청에서 읽은 근거 구절 하나. */
-	public record EvidenceInput(String text, Integer year, String section) {
+	/**
+	 * 요청에서 읽은 근거 구절 하나.
+	 *
+	 * @param indicators 지표 연결. 비어 있으면 짧은 조각 구절(30자 이하), 있으면 인용 구절(100자 이하)로 본다.
+	 */
+	public record EvidenceInput(String text, Integer year, String section, List<String> indicators) {
+
+		public EvidenceInput {
+			indicators = indicators == null ? List.of() : List.copyOf(indicators);
+		}
+
+		public EvidenceInput(String text, Integer year, String section) {
+			this(text, year, section, List.of());
+		}
 	}
 
 	/**
@@ -52,12 +66,13 @@ public final class HolisticNarrativeFactsFactory {
 		Set<String> texts = new LinkedHashSet<>();
 		for (EvidenceInput input : evidence) {
 			String text = input.text() == null ? "" : input.text().strip();
-			if (phrases.size() >= MAX_EVIDENCE || text.isEmpty() || text.length() > MAX_EVIDENCE_TEXT
+			int maxText = input.indicators().isEmpty() ? MAX_EVIDENCE_TEXT : MAX_CITATION_TEXT;
+			if (phrases.size() >= MAX_EVIDENCE || text.isEmpty() || text.length() > maxText
 					|| !texts.add(text)) {
 				continue;
 			}
 			phrases.add(new HolisticNarrativeFacts.EvidencePhrase(
-					"e" + (phrases.size() + 1), text, input.year(), input.section()));
+					"e" + (phrases.size() + 1), text, input.year(), input.section(), input.indicators()));
 		}
 		return new HolisticNarrativeFacts(report, strengths, majors, phrases);
 	}
