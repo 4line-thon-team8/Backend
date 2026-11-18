@@ -69,12 +69,14 @@ class AuthHttpSecurityTest {
     @Test
     void signupAndLoginIgnoreStaleTokens() throws Exception {
         when(auth.login(any())).thenReturn(
-                new LoginResponse(new IssuedAccessToken(
-                        "response-token",
-                        Instant.parse("2026-11-11T03:00:00Z")
-                ))
+                new LoginResponse(
+                        new IssuedAccessToken(
+                                "response-token",
+                                Instant.parse("2026-11-11T03:00:00Z")
+                        ),
+                        7L
+                )
         );
-
         mvc.perform(post("/api/auth/signup")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer expired")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -233,17 +235,30 @@ class AuthHttpSecurityTest {
 
     @Test
     void signupIsPublicAndLoginReturnsOnlyContractFields() throws Exception {
-        mvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(credentials()))
-                .andExpect(status().isCreated()).andExpect(content().string(""));
-        when(auth.login(any())).thenReturn(new LoginResponse(new IssuedAccessToken(
-                "response-token", Instant.parse("2026-11-11T03:00:00Z"))));
-        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .andExpect(status().isCreated())
+                .andExpect(content().string(""));
+
+        when(auth.login(any())).thenReturn(
+                new LoginResponse(
+                        new IssuedAccessToken(
+                                "response-token",
+                                Instant.parse("2026-11-11T03:00:00Z")
+                        ),
+                        7L
+                )
+        );
+
+        mvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(credentials()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", aMapWithSize(2)))
+                .andExpect(jsonPath("$", aMapWithSize(3)))
                 .andExpect(jsonPath("$.accessToken").value("response-token"))
                 .andExpect(jsonPath("$.expiresAt").value("2026-11-11T03:00:00Z"))
+                .andExpect(jsonPath("$.userId").value("7"))
                 .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
     }
 
