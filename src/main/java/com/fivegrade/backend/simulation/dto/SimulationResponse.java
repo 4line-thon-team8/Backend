@@ -66,6 +66,9 @@ public record SimulationResponse(
 	 * @param rulesVersion  APPLIED 일 때 분석에 쓴 규칙 버전
 	 * @param elementLevels APPLIED 일 때 평가요소별 수준(1~5, 소수 둘째 자리). 판단하지 못한 요소는 들어 있지 않다.
 	 * @param overallLevel  APPLIED 일 때 전체 서류 수준(1~5, 소수 둘째 자리)
+	 * @param activitySummary 활동 요약. 글을 만들지 못했거나 아직 지원하지 않으면 null
+	 * @param strengths     역량 강점(최대 3개, 강한 순). 없으면 빈 목록
+	 * @param majorAdvices  희망 학과별 조언(희망 학과 입력 순서). 없으면 빈 목록
 	 */
 	public record HolisticResult(
 			@Schema(description = "APPLIED=반영함, SKIPPED=보냈지만 반영하지 못함, NOT_PROVIDED=보내지 않음", allowableValues = {"APPLIED", "SKIPPED", "NOT_PROVIDED"})
@@ -77,12 +80,60 @@ public record SimulationResponse(
 			@Schema(description = "APPLIED일 때 평가요소(ACADEMIC, MAJOR_FIT, COMMUNITY, POTENTIAL)별 수준 1~5. 판단하지 못한 요소는 없다.", nullable = true)
 			java.util.Map<String, BigDecimal> elementLevels,
 			@Schema(description = "APPLIED일 때 전체 서류 수준 1~5", nullable = true)
-			BigDecimal overallLevel
+			BigDecimal overallLevel,
+			@Schema(description = "활동 요약. APPLIED이고 글을 만들 수 있을 때만 값이 있다. 저장된 리포트에는 들어 있지 않다.", nullable = true)
+			NarrativeText activitySummary,
+			@Schema(description = "역량 강점. 최대 3개, 강한 순. 해당 없으면 빈 목록")
+			List<StrengthItem> strengths,
+			@Schema(description = "희망 학과별 조언. 희망 학과 입력 순서. 해당 없으면 빈 목록")
+			List<MajorAdviceItem> majorAdvices
 	) {
+
+		public HolisticResult {
+			strengths = strengths == null ? List.of() : List.copyOf(strengths);
+			majorAdvices = majorAdvices == null ? List.of() : List.copyOf(majorAdvices);
+		}
+
+		/** 활동 요약·강점·학과별 조언 없이 만든다(반영하지 않은 경우 등). */
+		public HolisticResult(String status, String skipReason, String rulesVersion,
+				java.util.Map<String, BigDecimal> elementLevels, BigDecimal overallLevel) {
+			this(status, skipReason, rulesVersion, elementLevels, overallLevel, null, List.of(), List.of());
+		}
 
 		public static HolisticResult notProvided() {
 			return new HolisticResult("NOT_PROVIDED", null, null, null, null);
 		}
+	}
+
+	/** 생성한 글. generationMethod 는 TEMPLATE(서버 고정 문장) 또는 LLM. */
+	public record NarrativeText(
+			@Schema(description = "글 본문")
+			String text,
+			@Schema(description = "TEMPLATE 또는 LLM", allowableValues = {"TEMPLATE", "LLM"})
+			String generationMethod
+	) {
+	}
+
+	/** 역량 강점 하나. */
+	public record StrengthItem(
+			@Schema(description = "지표 ID (/api/holistic-rules 의 id)", example = "A3")
+			String indicatorId,
+			@Schema(description = "지표 이름 (/api/holistic-rules 의 label 과 같다)", example = "탐구력")
+			String label,
+			@Schema(description = "수준 1~5 정수", example = "4")
+			int level,
+			@Schema(description = "강점 한 줄 설명")
+			String description
+	) {
+	}
+
+	/** 희망 학과 하나에 대한 조언. */
+	public record MajorAdviceItem(
+			@Schema(description = "희망 학과 이름")
+			String department,
+			@Schema(description = "조언")
+			NarrativeText advice
+	) {
 	}
 
 	/** 서류 적합도. 학종 후보에 서류 입력이 있을 때만 카드에 붙는다. */

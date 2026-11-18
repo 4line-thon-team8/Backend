@@ -106,6 +106,12 @@ class SimulationResponseMapperTest {
 		assertEquals(new BigDecimal("2.33"), response.holistic().elementLevels().get("MAJOR_FIT"));
 		assertEquals(new BigDecimal("3.00"), response.holistic().overallLevel());
 		assertNull(response.holistic().skipReason());
+		// A3 수준 4.0 은 HIGH 이고 신뢰도 MID 이므로 강점으로 내려간다. 활동 요약·학과별 조언은 아직 없다.
+		assertEquals(1, response.holistic().strengths().size());
+		assertEquals("A3", response.holistic().strengths().getFirst().indicatorId());
+		assertEquals(4, response.holistic().strengths().getFirst().level());
+		assertNull(response.holistic().activitySummary());
+		assertEquals(List.of(), response.holistic().majorAdvices());
 	}
 
 	@Test
@@ -118,6 +124,11 @@ class SimulationResponseMapperTest {
 		assertEquals("SKIPPED", skipped.holistic().status());
 		assertEquals("TOO_SHORT", skipped.holistic().skipReason());
 		assertEquals("NOT_PROVIDED", notProvided.holistic().status());
+		for (var holistic : List.of(skipped.holistic(), notProvided.holistic())) {
+			assertNull(holistic.activitySummary());
+			assertEquals(List.of(), holistic.strengths());
+			assertEquals(List.of(), holistic.majorAdvices());
+		}
 	}
 
 	@Test
