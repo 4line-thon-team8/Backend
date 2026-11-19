@@ -23,6 +23,12 @@ import java.util.Map;
  * qualityFloor 이하를 1점, qualityCeil 이상을 5점으로 늘려 쓴다. 정규화 없이 1 + 4 × 품질을 쓰면 실제 문서가
  * 모두 1.4~2.3 점대에 몰려 품질이 구분 기준이 되지 못한다.
  *
+ * <h3>품질 게이트</h3>
+ * 내용 없는 표현("성실함", "원만함" 등)은 많이 반복되어도 밀도 단계만 올려 수준이 높아지는 문제가 있다.
+ * 그래서 밀도 단계가 1을 넘는 부분(단계 - 1)에 품질 배율을 곱한다. 배율은 정규화한 품질 q 에 대해
+ * rateGateFloor + (1 - rateGateFloor) × q 이다. 품질이 천장이면 배율 1(밀도 단계 그대로),
+ * 품질이 바닥이면 배율 rateGateFloor 다. 1 이면 게이트를 쓰지 않는다.
+ *
  * 경계값은 실제 생기부 21건에 맞춘 값이다. 사람이 매긴 서류 수준으로 검증하기 전까지는 그 점을 감안한다.
  *
  * @param rateCuts       공통 신호 밀도(1000자당) 경계(오름차순, 길이 4). 지표별 경계가 없을 때 쓴다.
@@ -31,10 +37,11 @@ import java.util.Map;
  * @param qualityWeight  품질의 반영 비율. rateWeight 와 합하여 1이다.
  * @param qualityFloor   품질을 1점으로 보는 값(이하)
  * @param qualityCeil    품질을 5점으로 보는 값(이상). qualityFloor 보다 크다.
+ * @param rateGateFloor  품질이 바닥일 때 밀도 단계(1 초과분)에 곱하는 배율(0 초과 1 이하). 1 이면 게이트를 쓰지 않는다.
  */
 public record IndicatorLevelParameters(
 		double[] rateCuts, Map<String, double[]> indicatorCuts, double rateWeight, double qualityWeight,
-		double qualityFloor, double qualityCeil) {
+		double qualityFloor, double qualityCeil, double rateGateFloor) {
 
 	public static final IndicatorLevelParameters DEFAULT = new IndicatorLevelParameters(
 			new double[] {0.7, 1.2, 1.7, 2.5},
@@ -49,11 +56,18 @@ public record IndicatorLevelParameters(
 				"D1", new double[] {0.52, 0.71, 1.21, 1.58},
 				"D3", new double[] {1.16, 1.80, 2.43, 2.71},
 				"D4", new double[] {0.30, 0.87, 1.46, 2.06}),
-			0.6, 0.4, 0.10, 0.32);
+			0.6, 0.4, 0.10, 0.32, 0.3);
 
 	/** 지표별 경계와 품질 정규화 없이 공통 경계만 쓰는 설정(품질은 0~1 을 그대로 1~5 로 편다). */
 	public IndicatorLevelParameters(double[] rateCuts, double rateWeight, double qualityWeight) {
-		this(rateCuts, Map.of(), rateWeight, qualityWeight, 0.0, 1.0);
+		this(rateCuts, Map.of(), rateWeight, qualityWeight, 0.0, 1.0, 1.0);
+	}
+
+	/** 품질 게이트 없이(배율 1) 지표별 경계와 품질 정규화만 쓰는 설정. */
+	public IndicatorLevelParameters(
+			double[] rateCuts, Map<String, double[]> indicatorCuts, double rateWeight, double qualityWeight,
+			double qualityFloor, double qualityCeil) {
+		this(rateCuts, indicatorCuts, rateWeight, qualityWeight, qualityFloor, qualityCeil, 1.0);
 	}
 
 	public IndicatorLevelParameters {
@@ -71,6 +85,9 @@ public record IndicatorLevelParameters(
 		}
 		if (qualityFloor < 0 || qualityCeil > 1 || qualityFloor >= qualityCeil) {
 			throw new IllegalArgumentException("quality range must satisfy 0 <= floor < ceil <= 1");
+		}
+		if (rateGateFloor <= 0 || rateGateFloor > 1) {
+			throw new IllegalArgumentException("rateGateFloor must be in (0, 1]");
 		}
 		rateCuts = rateCuts.clone();
 		indicatorCuts = Map.copyOf(copy);
@@ -123,7 +140,8 @@ public record IndicatorLevelParameters(
 
 	private double combine(int rateStage, double quality) {
 		double q = Math.min(1.0, Math.max(0.0, (quality - qualityFloor) / (qualityCeil - qualityFloor)));
-		double level = rateWeight * rateStage + qualityWeight * (1 + 4 * q);
+		double gatedStage = 1 + (rateStage - 1) * (rateGateFloor + (1 - rateGateFloor) * q);
+		double level = rateWeight * gatedStage + qualityWeight * (1 + 4 * q);
 		return Math.min(5.0, Math.max(1.0, level));
 	}
 

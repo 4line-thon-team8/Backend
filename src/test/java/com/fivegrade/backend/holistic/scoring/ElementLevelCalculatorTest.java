@@ -74,8 +74,8 @@ class ElementLevelCalculatorTest {
 		assertEquals(5.0, parameters.level(25, CHARS, 1.0), DELTA);
 		// 밀도 1단계 + 품질 0(1점) → 0.6*1 + 0.4*1 = 1.0
 		assertEquals(1.0, parameters.level(1, CHARS, 0.0), DELTA);
-		// 밀도 2단계 + 품질 0(1점) → 0.6*2 + 0.4*1 = 1.6
-		assertEquals(1.6, parameters.level(7, CHARS, 0.0), DELTA);
+		// 밀도 2단계 + 품질 0(1점): 게이트 배율 0.3 → 밀도 단계 1 + (2-1)*0.3 = 1.3 → 0.6*1.3 + 0.4*1 = 1.18
+		assertEquals(1.18, parameters.level(7, CHARS, 0.0), DELTA);
 		// 범위를 벗어난 품질은 0~1 로 맞춘다.
 		assertEquals(parameters.level(3, CHARS, 1.0), parameters.level(3, CHARS, 9.0), DELTA);
 		assertEquals(parameters.level(3, CHARS, 0.0), parameters.level(3, CHARS, -3.0), DELTA);
@@ -200,6 +200,30 @@ class ElementLevelCalculatorTest {
 		assertTrue(median > 2.0 && median < 4.0, "median=" + median);
 		// 중앙값의 2배 밀도에 품질 천장이면 5점
 		assertEquals(5.0, parameters.level("A3", 100, CHARS, 0.32), DELTA);
+	}
+
+	@Test
+	void 품질이_낮으면_밀도가_높아도_수준이_오르지_않는다() {
+		IndicatorLevelParameters gated = IndicatorLevelParameters.DEFAULT;
+		IndicatorLevelParameters ungated = new IndicatorLevelParameters(
+				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.10, 0.32);
+		// 밀도 5단계 + 품질 바닥: 게이트 없음 0.6*5 + 0.4*1 = 3.4, 게이트 있음 0.6*(1+4*0.3) + 0.4*1 = 1.72
+		assertEquals(3.4, ungated.level(25, CHARS, 0.10), DELTA);
+		assertEquals(1.72, gated.level(25, CHARS, 0.10), DELTA);
+		// 품질이 천장이면 게이트는 영향이 없다
+		assertEquals(5.0, gated.level(25, CHARS, 0.32), DELTA);
+		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, 0.32), DELTA);
+		// 품질이 높을수록 같은 밀도에서 수준이 오른다(단조)
+		assertTrue(gated.level(25, CHARS, 0.15) < gated.level(25, CHARS, 0.25));
+		assertTrue(gated.level(25, CHARS, 0.25) < gated.level(25, CHARS, 0.32));
+	}
+
+	@Test
+	void 잘못된_게이트_배율은_거부한다() {
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(
+				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.1, 0.3, 0.0));
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(
+				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.1));
 	}
 
 	@Test
