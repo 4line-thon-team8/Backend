@@ -78,7 +78,7 @@ public final class ElementLevelCalculator {
 			if (observation == null) {
 				continue;
 			}
-			double level = parameters.level(observation.count(), narrativeChars, observation.quality());
+			double level = parameters.level(entry.getKey(), observation.count(), narrativeChars, observation.quality());
 			indicatorLevels.put(entry.getKey(), level);
 			double[] sum = elementSums.computeIfAbsent(entry.getValue(), key -> new double[2]);
 			sum[0] += level;
