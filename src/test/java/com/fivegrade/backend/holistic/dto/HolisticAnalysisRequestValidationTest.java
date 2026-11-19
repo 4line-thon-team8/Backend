@@ -159,13 +159,13 @@ class HolisticAnalysisRequestValidationTest {
 		HolisticAnalysisRequest none = new HolisticAnalysisRequest("0.1.0", coverage(), List.of(), List.of(), List.of(), null);
 
 		assertThat(validator.validate(none)).isEmpty();
-		assertThat(violatedPaths(withCitations(List.of(citation("c1", "가".repeat(100), List.of("A3"), 2, "subject", 0.9)))))
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "가".repeat(150), List.of("A3"), 2, "subject", 0.9)))))
 				.isEmpty();
 	}
 
 	@Test
 	void 인용_구절의_형식이_어긋나면_거부한다() {
-		assertThat(violatedPaths(withCitations(List.of(citation("c1", "가".repeat(101), List.of("A3"), 2, "subject", 0.9)))))
+		assertThat(violatedPaths(withCitations(List.of(citation("c1", "가".repeat(151), List.of("A3"), 2, "subject", 0.9)))))
 				.anyMatch(path -> path.contains("text"));
 		assertThat(violatedPaths(withCitations(List.of(citation("x1", "문장", List.of("A3"), 2, "subject", 0.9)))))
 				.anyMatch(path -> path.contains("id"));
