@@ -34,14 +34,14 @@ public final class HolisticNarrativeValidator {
 
 	static final int MAX_SUMMARY_LENGTH = 120;
 	static final int MAX_OVERVIEW_LENGTH = 200;
-	static final int MAX_EVIDENCE_LENGTH = 160;
+	static final int MAX_EVIDENCE_LENGTH = 240;
 	static final int MAX_ADVICE_LENGTH = 160;
 	static final int MAX_EVIDENCE_LINES = 3;
 	/** 보완할 점 문장 수 상한 */
 	static final int MAX_IMPROVEMENT_LINES = 3;
 	/** 다음 단계 문장 수 상한. 마지막 한 칸은 서버 고정 문장이 쓴다. */
 	static final int MAX_NEXT_STEP_LINES = 2;
-	static final int MAX_DETAIL_LINE_LENGTH = 160;
+	static final int MAX_DETAIL_LINE_LENGTH = 200;
 	/** 한 문장이 근거로 삼을 수 있는 구절 수 */
 	static final int MAX_EVIDENCE_IDS_PER_LINE = 3;
 	/** 따옴표 인용의 최소 길이. 한두 글자는 어느 구절에나 들어 있어 인용 검증이 의미가 없다. */
@@ -315,7 +315,8 @@ public final class HolisticNarrativeValidator {
 		if (LINE_BREAK.matcher(text).find()) {
 			return "FORMAT";
 		}
-		Matcher forbidden = FORBIDDEN.matcher(GRADE.matcher(text).replaceAll(""));
+		// 「」 안은 학생 기록의 원문이라 금지어 검사에서 뺀다(예: 「대학 공학 체험」). 원문 일치는 checkQuotes 가 따로 본다.
+		Matcher forbidden = FORBIDDEN.matcher(GRADE.matcher(QUOTE.matcher(text).replaceAll("")).replaceAll(""));
 		if (forbidden.find()) {
 			HINT.set("word=" + forbidden.group());
 			return "FORBIDDEN";

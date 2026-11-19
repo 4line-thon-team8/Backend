@@ -397,11 +397,11 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
-	void 인용_구절은_100자까지_받고_조각_구절은_30자까지만_받는다() {
+	void 인용_구절은_150자까지_받고_조각_구절은_30자까지만_받는다() {
 		assertThat(HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(), MAJOR_TAGS,
-				List.of(new EvidenceInput("가".repeat(100), 1, "club", List.of("A3")))).evidence()).hasSize(1);
+				List.of(new EvidenceInput("가".repeat(150), 1, "club", List.of("A3")))).evidence()).hasSize(1);
 		assertThat(HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(), MAJOR_TAGS,
-				List.of(new EvidenceInput("가".repeat(101), 1, "club", List.of("A3")))).evidence()).isEmpty();
+				List.of(new EvidenceInput("가".repeat(151), 1, "club", List.of("A3")))).evidence()).isEmpty();
 		assertThat(HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(), MAJOR_TAGS,
 				List.of(new EvidenceInput("가".repeat(31), 1, "club"))).evidence()).isEmpty();
 	}
@@ -614,7 +614,40 @@ class HolisticNarrativeTest {
 
 	@Test
 	void AI_지시문은_보완점과_다음_단계를_요구하고_버전이_올라갔다() {
-		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("6");
+		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("7");
 		assertThat(HolisticNarrativePrompt.INSTRUCTIONS).contains("improvements").contains("nextSteps");
+	}
+
+	@Test
+	void 인용_안의_원문은_금지어_검사에서_빼고_바깥_문장은_계속_검사한다() {
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(
+				report(IT_TAGS, 5000),
+				HolisticStrengthSelector.withDefaults().select(Map.of("A3", 4.4, "C3", 3.8, "B3", 2.0)),
+				List.of(CSE), MAJOR_TAGS,
+				List.of(new EvidenceInput("대학 공학 체험 프로그램에 참여함", 2, "career", List.of("B3"))));
+
+		Line quoted = new Line("「대학 공학 체험 프로그램」에서 알게 된 점을 덧붙이면 좋아요.", List.of("B3"));
+		Line outside = new Line("「대학 공학 체험 프로그램」에서 부족한 점을 덧붙이면 좋아요.", List.of("B3"));
+		Checked ok = HolisticNarrativeValidator.check(facts, withDetail(List.of(new EvidenceLine(quoted, List.of("e1"))), List.of()));
+		Checked bad = HolisticNarrativeValidator.check(facts, withDetail(List.of(new EvidenceLine(outside, List.of("e1"))), List.of()));
+
+		assertThat(ok.improvements()).containsExactly(quoted);
+		assertThat(bad.improvements()).isEmpty();
+		assertThat(bad.rejections()).contains("IMPROVEMENT_FORBIDDEN");
+	}
+
+	@Test
+	void 활동_해설은_인용과_의미_설명_두_문장을_통과시킨다() {
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(
+				report(IT_TAGS, 5000),
+				HolisticStrengthSelector.withDefaults().select(Map.of("A3", 4.4, "C3", 3.8, "B3", 2.0)),
+				List.of(CSE), MAJOR_TAGS,
+				List.of(new EvidenceInput("용액의 농도와 중화 반응 실험에서 측정 과정의 오차 원인을 분석하고 개선 방안을 기술함", 2, "subject", List.of("A3"))));
+		Line line = new Line("2학년 「오차 원인을 분석하고 개선 방안을 기술함」은 실험 결과를 그대로 받아들이지 않고 과정을 다시 점검한 활동이에요. "
+				+ "이런 기록은 결과보다 과정을 따져 보는 탐구 태도를 보여주는 근거로 읽혀요.", List.of("A3"));
+
+		Checked checked = HolisticNarrativeValidator.check(facts, withEvidence(new EvidenceLine(line, List.of("e1"))));
+
+		assertThat(checked.strengthEvidence()).containsExactly(line);
 	}
 }
