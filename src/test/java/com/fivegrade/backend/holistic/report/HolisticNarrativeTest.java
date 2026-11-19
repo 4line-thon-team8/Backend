@@ -156,6 +156,17 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
+	void 인용한_원문이_다로_끝나도_문체는_인용을_빼고_본다() {
+		Checked checked = HolisticNarrative_check("관심 분야는 IT·소프트웨어 쪽이고 「직접 코딩하며 알고리즘을 익혔다.」를 풀어 쓰면 좋아요.");
+		assertThat(checked.rejections()).doesNotContain("SUMMARY_STYLE");
+	}
+
+	private Checked HolisticNarrative_check(String summary) {
+		return HolisticNarrativeValidator.check(facts(IT_TAGS, 5000, List.of(), CSE),
+				narrative(summary, List.of("IT·소프트웨어", "A3"), "결과물의 과정을 단계별로 남겨 보세요.", List.of("IT·소프트웨어")));
+	}
+
+	@Test
 	void 어긋난_글만_버린다() {
 		String advice = "직접 만든 결과물의 과정을 단계별로 남겨 보세요.";
 		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of(), CSE);

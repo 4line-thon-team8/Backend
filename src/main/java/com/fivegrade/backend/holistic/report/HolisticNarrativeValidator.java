@@ -292,7 +292,8 @@ public final class HolisticNarrativeValidator {
 		if (FORBIDDEN.matcher(GRADE.matcher(text).replaceAll("")).find()) {
 			return "FORBIDDEN";
 		}
-		if (!isHaeyo(text, maxSentences)) {
+		// 「」 안은 학생 기록 원문이라 "다."로 끝나는 문장이 들어 있을 수 있다. 문체 검사는 인용을 뺀 나머지 글에만 한다.
+		if (!isHaeyo(QUOTE.matcher(text).replaceAll("인용"), maxSentences)) {
 			return "STYLE";
 		}
 		if (!gradesWithin(text, allowedYears)) {
@@ -401,6 +402,8 @@ public final class HolisticNarrativeValidator {
 			}
 			facts.report().notMeasured().forEach(item -> allLabels.remove(item.label()));
 			facts.report().interestTags().forEach(tag -> refLabels.putIfAbsent(tag, Set.of()));
+			// 프롬프트가 다음 단계의 refs에 희망 학과 태그를 쓰라고 하므로, 학과 태그도 근거로 받는다.
+			facts.majors().forEach(major -> major.tags().forEach(tag -> refLabels.putIfAbsent(tag, Set.of())));
 		}
 	}
 }
