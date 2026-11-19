@@ -25,6 +25,7 @@ public final class SimulationService {
     private final RecommendationQueryMapper queryMapper;
     private final RecommendationService recommendationService;
     private final HolisticEvaluator holisticEvaluator;
+    private final SimulationReportCoordinator reportCoordinator;
 
     /** 서술 분석을 반영하지 않는 구성. 기존 호출부와 테스트가 그대로 쓴다. */
     public SimulationService(
@@ -41,6 +42,16 @@ public final class SimulationService {
             RecommendationService recommendationService,
             HolisticEvaluator holisticEvaluator
     ) {
+        this(averageCalculator, queryMapper, recommendationService, holisticEvaluator, null);
+    }
+
+    public SimulationService(
+            FiveGradeAverageCalculator averageCalculator,
+            RecommendationQueryMapper queryMapper,
+            RecommendationService recommendationService,
+            HolisticEvaluator holisticEvaluator,
+            SimulationReportCoordinator reportCoordinator
+    ) {
         this.averageCalculator = Objects.requireNonNull(
                 averageCalculator
         );
@@ -56,6 +67,15 @@ public final class SimulationService {
         this.holisticEvaluator = Objects.requireNonNull(
                 holisticEvaluator
         );
+        this.reportCoordinator = reportCoordinator;
+    }
+
+    /** 계산 완료 후 기존 리포트와 학종 서술의 병렬 생성을 조정한다. */
+    public SimulationReportCoordinator.GeneratedReport analyzeAndGenerate(SimulationRequest request) {
+        if (reportCoordinator == null) {
+            throw new IllegalStateException("report coordinator is required for report generation");
+        }
+        return reportCoordinator.assemble(analyzeValidated(request), request);
     }
 
     /**

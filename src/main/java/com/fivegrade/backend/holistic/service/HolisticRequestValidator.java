@@ -52,6 +52,7 @@ public class HolisticRequestValidator {
 		validateIndicatorSignals(request);
 		validateInterestTags(request);
 		validateEvidence(request);
+		validateCitations(request);
 		if (request.coverage().sectionChars().total() > catalog.limits().totalSectionCharsMax()) {
 			throw invalid("coverage.sectionChars");
 		}
@@ -101,6 +102,25 @@ public class HolisticRequestValidator {
 				if (!catalog.hasType(type) || !types.add(type)) {
 					throw invalid("evidence.types");
 				}
+			}
+		}
+	}
+
+	/** 인용 구절: 번호가 겹치지 않고, 지표가 규칙 사전에 있고, 제어 문자가 없어야 한다. 개수와 길이는 DTO 검증이 이미 확인했다. */
+	private void validateCitations(HolisticAnalysisRequest request) {
+		Set<String> ids = new HashSet<>();
+		for (HolisticAnalysisRequest.Citation citation : request.citationsOrEmpty()) {
+			if (!ids.add(citation.id())) {
+				throw invalid("citations.id");
+			}
+			Set<String> indicators = new HashSet<>();
+			for (String indicator : citation.indicators()) {
+				if (!catalog.hasIndicator(indicator) || !indicators.add(indicator)) {
+					throw invalid("citations.indicators");
+				}
+			}
+			if (citation.text().chars().anyMatch(Character::isISOControl)) {
+				throw invalid("citations.text");
 			}
 		}
 	}

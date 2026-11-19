@@ -1,5 +1,6 @@
 package com.fivegrade.backend.holistic.report;
 
+import com.fivegrade.backend.holistic.report.HolisticNarrative.Detail;
 import com.fivegrade.backend.holistic.report.HolisticNarrative.MajorAdvice;
 import com.fivegrade.backend.holistic.report.HolisticNarrative.Text;
 import com.fivegrade.backend.holistic.report.HolisticNarrativeFacts.MajorFacts;
@@ -59,6 +60,20 @@ public final class AiHolisticNarrativeGenerator implements HolisticNarrativeWrit
 					? new MajorAdvice(major.code(), major.department(), Text.llm(line.text().strip()))
 					: fallback.majorAdvices().get(i));
 		}
-		return new HolisticNarrative(summary, advices);
+		return new HolisticNarrative(summary, advices, mergeDetail(fallback.detail(), checked));
+	}
+
+	/** 자세히 보기. 보완점·다음 단계는 항상 기본 문장이고, 전체 요약과 강점 근거만 검증을 통과한 AI 글로 바꾼다. */
+	private static Detail mergeDetail(Detail fallback, Checked checked) {
+		if (fallback == null) {
+			return null;
+		}
+		Text overview = checked.overview() != null
+				? Text.llm(checked.overview().text().strip())
+				: fallback.overview();
+		List<Text> evidence = checked.strengthEvidence().isEmpty()
+				? fallback.strengthEvidence()
+				: checked.strengthEvidence().stream().map(line -> Text.llm(line.text().strip())).toList();
+		return new Detail(overview, evidence, fallback.improvements(), fallback.nextSteps());
 	}
 }

@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.fivegrade.backend.common.error.BusinessException;
 import com.fivegrade.backend.common.error.ErrorCode;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest;
+import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.Citation;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.Coverage;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.EvidencePhrase;
 import com.fivegrade.backend.holistic.dto.HolisticAnalysisRequest.IndicatorSignal;
@@ -115,6 +116,47 @@ class HolisticRequestValidatorTest {
 				.hasMessageNotContaining("UNKNOWN");
 	}
 
+	@Test
+	void 사전에_있는_지표를_가진_인용_구절은_통과한다() {
+		assertThatCode(() -> validator.validate(withCitations(
+				citation("c1", "실험 결과를 표로 정리하고 오차의 원인을 분석하여 발표함", "A3"),
+				citation("c2", "맡은 역할을 끝까지 책임지고 성실하게 수행함", "C3", "A2")))).doesNotThrowAnyException();
+	}
+
+	@Test
+	void 인용_구절_번호가_겹치면_거부한다() {
+		assertInvalid(withCitations(citation("c1", "문장 하나", "A3"), citation("c1", "문장 둘", "C3")), "citations.id");
+	}
+
+	@Test
+	void 인용_구절의_지표가_사전에_없거나_겹치면_거부한다() {
+		assertInvalid(withCitations(citation("c1", "문장 하나", "ZZ")), "citations.indicators");
+		assertInvalid(withCitations(citation("c1", "문장 하나", "A3", "A3")), "citations.indicators");
+	}
+
+	@Test
+	void 인용_구절에_제어_문자가_있으면_거부한다() {
+		assertInvalid(withCitations(citation("c1", "문장\n하나", "A3")), "citations.text");
+	}
+
+	@Test
+	void 인용_구절이_없는_요청과_null_요청은_통과한다() {
+		assertThatCode(() -> validator.validate(withCitations())).doesNotThrowAnyException();
+		assertThatCode(() -> validator.validate(request(List.of(), List.of(), List.of(), sectionChars(1, 1, 1, 1, 1))))
+				.doesNotThrowAnyException();
+	}
+
+	@Test
+	void 인용_구절_오류_메시지와_toString에는_문장이_들어가지_않는다() {
+		Citation secret = citation("c1", SECRET, "ZZ");
+
+		assertThatThrownBy(() -> validator.validate(withCitations(secret)))
+				.isInstanceOf(BusinessException.class)
+				.hasMessageNotContaining(SECRET);
+		assertThat(secret.toString()).doesNotContain(SECRET);
+		assertThat(withCitations(secret).toString()).doesNotContain(SECRET);
+	}
+
 	private void assertInvalid(HolisticAnalysisRequest request, String field) {
 		assertThatThrownBy(() -> validator.validate(request))
 				.isInstanceOfSatisfying(BusinessException.class, e -> {
@@ -130,6 +172,15 @@ class HolisticRequestValidatorTest {
 			SectionChars chars
 	) {
 		return new HolisticAnalysisRequest("0.1.0", new Coverage(chars, List.of(1)), signals, tags, evidence);
+	}
+
+	private static Citation citation(String id, String text, String... indicators) {
+		return new Citation(id, text, List.of(indicators), 2, "subject", 0.95);
+	}
+
+	private HolisticAnalysisRequest withCitations(Citation... citations) {
+		return new HolisticAnalysisRequest("0.1.0", new Coverage(sectionChars(1, 1, 1, 1, 1), List.of(1)), List.of(),
+				List.of(), List.of(), List.of(citations));
 	}
 
 	private SectionChars sectionChars(int autonomy, int club, int career, int subject, int behavior) {

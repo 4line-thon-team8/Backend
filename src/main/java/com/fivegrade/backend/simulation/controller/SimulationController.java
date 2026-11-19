@@ -4,11 +4,9 @@ import com.fivegrade.backend.auth.model.AuthenticatedUser;
 import com.fivegrade.backend.common.error.BusinessException;
 import com.fivegrade.backend.common.error.ErrorCode;
 import com.fivegrade.backend.common.error.ErrorResponse;
-import com.fivegrade.backend.simulation.dto.SimulationAnalysis;
 import com.fivegrade.backend.simulation.dto.SimulationReportResult;
 import com.fivegrade.backend.simulation.dto.SimulationRequest;
 import com.fivegrade.backend.simulation.dto.SimulationResponse;
-import com.fivegrade.backend.simulation.service.SimulationReportAssembler;
 import com.fivegrade.backend.simulation.service.SimulationReportSaver;
 import com.fivegrade.backend.simulation.service.SimulationRequestValidator;
 import com.fivegrade.backend.simulation.service.SimulationResponseMapper;
@@ -50,18 +48,15 @@ public class SimulationController {
 
 	private final SimulationRequestValidator validator;
 	private final SimulationService simulationService;
-	private final SimulationReportAssembler assembler;
 	private final SimulationReportSaver reportSaver;
 
 	public SimulationController(
 			SimulationRequestValidator validator,
 			SimulationService simulationService,
-			SimulationReportAssembler assembler,
 			SimulationReportSaver reportSaver
 	) {
 		this.validator = validator;
 		this.simulationService = simulationService;
-		this.assembler = assembler;
 		this.reportSaver = reportSaver;
 	}
 
@@ -91,13 +86,13 @@ public class SimulationController {
 		validator.validateDesiredMajors(request.applicationPreference());
 		validator.validateSubjects(request.subjects());
 
-		SimulationAnalysis analysis = simulationService.analyzeValidated(request);
-		SimulationReportResult result = assembler.assemble(analysis);
+		var generated = simulationService.analyzeAndGenerate(request);
+		SimulationReportResult result = generated.result();
 		SimulationReportSaver.SaveOutcome saved = reportSaver.save(user.id(), reportKey, result);
 
 		return ResponseEntity.ok()
 				.cacheControl(CacheControl.noStore())
-				.body(SimulationResponseMapper.toResponse(result, saved));
+				.body(SimulationResponseMapper.toResponse(result, saved, generated.narrative()));
 	}
 
 	/** 헤더가 없으면 요청마다 새 키를 만들어 저장한다. 헤더가 있는데 비었거나 너무 길면 400이다. */

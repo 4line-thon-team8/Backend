@@ -1,5 +1,6 @@
 package com.fivegrade.backend.holistic.report;
 
+import com.fivegrade.backend.holistic.report.ParsedNarrative.EvidenceLine;
 import com.fivegrade.backend.holistic.report.ParsedNarrative.MajorLine;
 import com.fivegrade.backend.holistic.report.ParsedReport.Line;
 import com.fivegrade.backend.report.generation.AiReportFailure;
@@ -81,7 +82,7 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 			Map<String, Object> body = Map.of(
 					"model", model,
 					"store", false,
-					"max_output_tokens", 1500,
+					"max_output_tokens", 2500,
 					"instructions", HolisticNarrativePrompt.INSTRUCTIONS,
 					"input", json.writeValueAsString(input),
 					"text", Map.of("format", Map.of(
@@ -123,12 +124,13 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 		}
 	}
 
-	private static Map<String, Object> lineSchema(boolean withMajorCode) {
+	/** 글 하나의 스키마. 학과 조언은 majorCode, 강점 근거는 evidenceIds 가 더 붙는다. */
+	private static Map<String, Object> lineSchema(String extraKey, Map<String, Object> extraSchema) {
 		Map<String, Object> properties = new LinkedHashMap<>();
 		List<String> required = new ArrayList<>();
-		if (withMajorCode) {
-			properties.put("majorCode", Map.of("type", "string"));
-			required.add("majorCode");
+		if (extraKey != null) {
+			properties.put(extraKey, extraSchema);
+			required.add(extraKey);
 		}
 		properties.put("text", Map.of("type", "string"));
 		properties.put("refs", Map.of("type", "array", "items", Map.of("type", "string")));
@@ -143,12 +145,16 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 
 	private static Map<String, Object> schema() {
 		Map<String, Object> properties = new LinkedHashMap<>();
-		properties.put("activitySummary", lineSchema(false));
-		properties.put("majorAdvices", Map.of("type", "array", "items", lineSchema(true)));
+		properties.put("activitySummary", lineSchema(null, null));
+		properties.put("overview", lineSchema(null, null));
+		properties.put("strengthEvidence", Map.of("type", "array", "items", lineSchema(
+				"evidenceIds", Map.of("type", "array", "items", Map.of("type", "string")))));
+		properties.put("majorAdvices", Map.of("type", "array", "items", lineSchema(
+				"majorCode", Map.of("type", "string"))));
 		return Map.of(
 				"type", "object",
 				"properties", properties,
-				"required", List.of("activitySummary", "majorAdvices"),
+				"required", List.of("activitySummary", "overview", "strengthEvidence", "majorAdvices"),
 				"additionalProperties", false);
 	}
 
@@ -186,6 +192,24 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 			if (parsed == null || !parsed.isObject()) {
 				throw invalid();
 			}
+			JsonNode evidenceNodes = parsed.path("strengthEvidence");
+			if (!evidenceNodes.isArray() || evidenceNodes.size() > MAX_ITEMS) {
+				throw invalid();
+			}
+			List<EvidenceLine> strengthEvidence = new ArrayList<>();
+			for (JsonNode item : evidenceNodes) {
+				List<String> ids = new ArrayList<>();
+				if (!item.path("evidenceIds").isArray()) {
+					throw invalid();
+				}
+				for (JsonNode id : item.path("evidenceIds")) {
+					if (!id.isString()) {
+						throw invalid();
+					}
+					ids.add(id.asString());
+				}
+				strengthEvidence.add(new EvidenceLine(line(item), ids));
+			}
 			JsonNode advices = parsed.path("majorAdvices");
 			if (!advices.isArray() || advices.size() > MAX_ITEMS) {
 				throw invalid();
@@ -197,7 +221,8 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 				}
 				majorAdvices.add(new MajorLine(item.path("majorCode").asString(), line(item)));
 			}
-			return new ParsedNarrative(line(parsed.path("activitySummary")), majorAdvices);
+			return new ParsedNarrative(line(parsed.path("activitySummary")), line(parsed.path("overview")),
+					strengthEvidence, majorAdvices);
 		} catch (AiReportFailure failure) {
 			throw failure;
 		} catch (RuntimeException malformed) {
