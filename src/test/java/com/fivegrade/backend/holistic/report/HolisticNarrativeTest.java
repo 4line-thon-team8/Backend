@@ -156,6 +156,32 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
+	void 인용한_원문이_다로_끝나도_문체는_인용을_빼고_본다() {
+		Checked checked = HolisticNarrative_check("관심 분야는 IT·소프트웨어 쪽이고 「직접 코딩하며 알고리즘을 익혔다.」를 풀어 쓰면 좋아요.");
+		assertThat(checked.rejections()).doesNotContain("SUMMARY_STYLE");
+	}
+
+	private Checked HolisticNarrative_check(String summary) {
+		return HolisticNarrativeValidator.check(facts(IT_TAGS, 5000, List.of(), CSE),
+				narrative(summary, List.of("IT·소프트웨어", "A3"), "결과물의 과정을 단계별로 남겨 보세요.", List.of("IT·소프트웨어")));
+	}
+
+	@Test
+	void 거절_원인은_글_내용_없이_힌트로만_남긴다() {
+		Checked style = HolisticNarrative_check("관심이 크다.");
+		assertThat(style.diagnostics()).contains("SUMMARY_STYLE:n=1,max=1,end=다.");
+
+		Checked forbidden = HolisticNarrative_check("합격 가능성이 높아요.");
+		assertThat(forbidden.diagnostics()).contains("SUMMARY_FORBIDDEN:word=합격");
+
+		Checked shortQuote = HolisticNarrative_check("「짧은인용」을 풀어 쓰면 좋아요.");
+		assertThat(shortQuote.diagnostics()).contains("SUMMARY_QUOTE:short");
+
+		Checked missingQuote = HolisticNarrative_check("「증거에있는긴인용글」을 풀어 쓰면 좋아요.");
+		assertThat(missingQuote.diagnostics()).contains("SUMMARY_QUOTE:not_in_evidence,len=9");
+	}
+
+	@Test
 	void 어긋난_글만_버린다() {
 		String advice = "직접 만든 결과물의 과정을 단계별로 남겨 보세요.";
 		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of(), CSE);
@@ -548,8 +574,47 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
+	void 근거_구절은_진로_연결_지표에_이어진_것부터_둔다() {
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(),
+				MAJOR_TAGS,
+				List.of(new EvidenceInput("수업 태도가 바르고 성실함", 2, "subject", List.of("A2")),
+						new EvidenceInput("짧은 조각", 2, "subject"),
+						new EvidenceInput(CITED_A3, 2, "subject", List.of("A3"))));
+
+		assertThat(facts.evidence()).extracting(phrase -> phrase.text())
+				.containsExactly(CITED_A3, "수업 태도가 바르고 성실함", "짧은 조각");
+		assertThat(facts.evidence()).extracting(phrase -> phrase.id()).containsExactly("e1", "e2", "e3");
+	}
+
+	@Test
+	void 같은_태그를_가진_학과도_같은_기본_조언을_두_번_받지_않는다() {
+		Map<String, List<String>> tags = Map.of(
+				"MIS", List.of("경영·회계", "IT·소프트웨어"),
+				"BIZ", List.of("경영·회계", "경제·금융"));
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(),
+				List.of(new DesiredMajor("MIS", "경영정보학"), new DesiredMajor("BIZ", "경영학")), tags, List.of());
+
+		List<MajorAdvice> advices = new HolisticNarrativeTemplate().write(facts).majorAdvices();
+
+		assertThat(advices.get(0).advice().text()).contains("조직이나 수치");
+		assertThat(advices.get(1).advice().text()).contains("경제 현상");
+	}
+
+	@Test
+	void 쓸_수_있는_조언이_하나뿐이면_같은_문장을_다시_쓴다() {
+		Map<String, List<String>> tags = Map.of("A", List.of("경영·회계"), "B", List.of("경영·회계"));
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(),
+				List.of(new DesiredMajor("A", "가"), new DesiredMajor("B", "나")), tags, List.of());
+
+		List<MajorAdvice> advices = new HolisticNarrativeTemplate().write(facts).majorAdvices();
+
+		assertThat(advices).hasSize(2);
+		assertThat(advices.get(1).advice().text()).isEqualTo(advices.get(0).advice().text());
+	}
+
+	@Test
 	void AI_지시문은_보완점과_다음_단계를_요구하고_버전이_올라갔다() {
-		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("6");
+		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("7");
 		assertThat(HolisticNarrativePrompt.INSTRUCTIONS).contains("improvements").contains("nextSteps");
 	}
 

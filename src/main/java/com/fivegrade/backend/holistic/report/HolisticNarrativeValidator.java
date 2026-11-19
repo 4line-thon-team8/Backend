@@ -60,7 +60,24 @@ public final class HolisticNarrativeValidator {
 
 	private static final Pattern QUOTE = Pattern.compile("[「『“\"'‘]([^」』”\"'’]*)[」』”\"'’]");
 
+	/** checkLine 이 거절할 때 남기는 원인 힌트. 같은 스레드에서 바로 읽어 가므로 ThreadLocal 로 둔다. */
+	private static final ThreadLocal<String> HINT = new ThreadLocal<>();
+
 	private HolisticNarrativeValidator() {
+	}
+
+	/** 방금 거절한 글의 힌트를 "코드:힌트" 로 diagnostics 에 옮긴다. */
+	private static void note(List<String> diagnostics, String code) {
+		String hint = HINT.get();
+		HINT.remove();
+		if (hint != null) {
+			diagnostics.add(code + ":" + hint);
+		}
+	}
+
+	private static String tail(String text) {
+		String stripped = text == null ? "" : text.strip();
+		return stripped.length() <= 2 ? stripped : stripped.substring(stripped.length() - 2);
 	}
 
 	/**
@@ -73,11 +90,14 @@ public final class HolisticNarrativeValidator {
 	 * @param rejections       버린 글의 사유 코드. 로그에는 이 고정 코드만 남긴다.
 	 * @param improvements     통과한 보완할 점(근거 구절을 든 문장만, 최대 3개)
 	 * @param nextSteps        통과한 다음 단계(근거 구절을 든 문장만, 최대 2개)
+	 * @param diagnostics      거절 원인을 좁히는 힌트(예: "SUMMARY_STYLE:n=2,end=다."). 글 내용은 담지 않고
+	 *                         문장 수·끝 두 글자·걸린 금지어·모르는 근거 이름 정도만 남긴다.
 	 */
 	public record Checked(Line summary, Line overview, List<Line> strengthEvidence, Map<String, Line> advices,
-			List<String> rejections, List<Line> improvements, List<Line> nextSteps) {
+			List<String> rejections, List<Line> improvements, List<Line> nextSteps, List<String> diagnostics) {
 
 		public Checked {
+			diagnostics = List.copyOf(diagnostics);
 			strengthEvidence = List.copyOf(strengthEvidence);
 			improvements = List.copyOf(improvements);
 			nextSteps = List.copyOf(nextSteps);
@@ -86,7 +106,7 @@ public final class HolisticNarrativeValidator {
 		/** 보완할 점·다음 단계 없이 만든다(기존 호출 호환). */
 		public Checked(Line summary, Line overview, List<Line> strengthEvidence, Map<String, Line> advices,
 				List<String> rejections) {
-			this(summary, overview, strengthEvidence, advices, rejections, List.of(), List.of());
+			this(summary, overview, strengthEvidence, advices, rejections, List.of(), List.of(), List.of());
 		}
 	}
 
@@ -106,6 +126,7 @@ public final class HolisticNarrativeValidator {
 	public static Checked check(HolisticNarrativeFacts facts, ParsedNarrative parsed) {
 		Catalog catalog = new Catalog(facts);
 		List<String> rejections = new ArrayList<>();
+		List<String> diagnostics = new ArrayList<>();
 		Set<Integer> knownYears = knownYears(facts);
 
 		Line summary = null;
@@ -116,12 +137,14 @@ public final class HolisticNarrativeValidator {
 				summary = parsed.summary();
 			} else {
 				rejections.add("SUMMARY_" + problem);
+				note(diagnostics, "SUMMARY_" + problem);
 			}
 			problem = checkLine(parsed.overview(), catalog, facts, null, MAX_OVERVIEW_LENGTH, 2, knownYears, facts.evidenceTexts());
 			if (problem == null) {
 				overview = parsed.overview();
 			} else {
 				rejections.add("OVERVIEW_" + problem);
+				note(diagnostics, "OVERVIEW_" + problem);
 			}
 		}
 
@@ -135,6 +158,7 @@ public final class HolisticNarrativeValidator {
 				}
 				if (problem != null) {
 					rejections.add("EVIDENCE_" + problem);
+					note(diagnostics, "EVIDENCE_" + problem);
 				} else if (strengthEvidence.size() < MAX_EVIDENCE_LINES) {
 					strengthEvidence.add(item.line());
 				}
@@ -142,9 +166,9 @@ public final class HolisticNarrativeValidator {
 		}
 
 		List<Line> improvements = checkGrounded(parsed.improvements(), "IMPROVEMENT", MAX_IMPROVEMENT_LINES,
-				catalog, facts, rejections);
+				catalog, facts, rejections, diagnostics);
 		List<Line> nextSteps = checkGrounded(parsed.nextSteps(), "NEXT_STEP", MAX_NEXT_STEP_LINES,
-				catalog, facts, rejections);
+				catalog, facts, rejections, diagnostics);
 
 		Map<String, Line> advices = new LinkedHashMap<>();
 		Map<String, MajorFacts> majors = new HashMap<>();
@@ -166,9 +190,10 @@ public final class HolisticNarrativeValidator {
 				advices.put(item.majorCode(), item.line());
 			} else {
 				rejections.add("ADVICE_" + problem);
+				note(diagnostics, "ADVICE_" + problem);
 			}
 		}
-		return new Checked(summary, overview, strengthEvidence, advices, rejections, improvements, nextSteps);
+		return new Checked(summary, overview, strengthEvidence, advices, rejections, improvements, nextSteps, diagnostics);
 	}
 
 	/**
@@ -177,7 +202,7 @@ public final class HolisticNarrativeValidator {
 	 * 구절에 지표 연결이 있고 문장이 지표를 가리켰다면 그 구절은 그 지표 중 하나의 근거여야 한다.
 	 */
 	private static List<Line> checkGrounded(List<EvidenceLine> items, String code, int max, Catalog catalog,
-			HolisticNarrativeFacts facts, List<String> rejections) {
+			HolisticNarrativeFacts facts, List<String> rejections, List<String> diagnostics) {
 		List<Line> accepted = new ArrayList<>();
 		if (facts.evidence().isEmpty()) {
 			return accepted;
@@ -192,6 +217,7 @@ public final class HolisticNarrativeValidator {
 			}
 			if (problem != null) {
 				rejections.add(code + "_" + problem);
+				note(diagnostics, code + "_" + problem);
 			} else if (accepted.size() < max) {
 				accepted.add(item.line());
 			}
@@ -290,10 +316,15 @@ public final class HolisticNarrativeValidator {
 			return "FORMAT";
 		}
 		// 「」 안은 학생 기록의 원문이라 금지어 검사에서 뺀다(예: 「대학 공학 체험」). 원문 일치는 checkQuotes 가 따로 본다.
-		if (FORBIDDEN.matcher(GRADE.matcher(QUOTE.matcher(text).replaceAll("")).replaceAll("")).find()) {
+		Matcher forbidden = FORBIDDEN.matcher(GRADE.matcher(QUOTE.matcher(text).replaceAll("")).replaceAll(""));
+		if (forbidden.find()) {
+			HINT.set("word=" + forbidden.group());
 			return "FORBIDDEN";
 		}
-		if (!isHaeyo(text, maxSentences)) {
+		// 「」 안은 학생 기록 원문이라 "다."로 끝나는 문장이 들어 있을 수 있다. 문체 검사는 인용을 뺀 나머지 글에만 한다.
+		String styled = QUOTE.matcher(text).replaceAll("인용");
+		if (!isHaeyo(styled, maxSentences)) {
+			HINT.set("n=" + styled.split("\\.").length + ",max=" + maxSentences + ",end=" + tail(styled));
 			return "STYLE";
 		}
 		if (!gradesWithin(text, allowedYears)) {
@@ -312,6 +343,7 @@ public final class HolisticNarrativeValidator {
 			Set<String> labels = catalog.refLabels.get(ref);
 			boolean majorTag = major != null && major.tags().contains(ref);
 			if (labels == null && !majorTag) {
+				HINT.set("ref=" + (ref == null ? "null" : ref.substring(0, Math.min(12, ref.length()))));
 				return "UNKNOWN_REF";
 			}
 			if (labels != null) {
@@ -369,7 +401,9 @@ public final class HolisticNarrativeValidator {
 		Matcher matcher = QUOTE.matcher(text);
 		while (matcher.find()) {
 			String quoted = matcher.group(1).strip();
-			if (quoted.length() < MIN_QUOTE_LENGTH || evidence.stream().noneMatch(phrase -> phrase.contains(quoted))) {
+			boolean tooShort = quoted.length() < MIN_QUOTE_LENGTH;
+			if (tooShort || evidence.stream().noneMatch(phrase -> phrase.contains(quoted))) {
+				HINT.set(tooShort ? "short" : "not_in_evidence,len=" + quoted.length());
 				return "QUOTE";
 			}
 		}
@@ -402,6 +436,8 @@ public final class HolisticNarrativeValidator {
 			}
 			facts.report().notMeasured().forEach(item -> allLabels.remove(item.label()));
 			facts.report().interestTags().forEach(tag -> refLabels.putIfAbsent(tag, Set.of()));
+			// 프롬프트가 다음 단계의 refs에 희망 학과 태그를 쓰라고 하므로, 학과 태그도 근거로 받는다.
+			facts.majors().forEach(major -> major.tags().forEach(tag -> refLabels.putIfAbsent(tag, Set.of())));
 		}
 	}
 }
