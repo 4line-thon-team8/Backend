@@ -16,7 +16,7 @@ public final class HolisticNarrativeFactsFactory {
 	static final int MAX_EVIDENCE = 30;
 	static final int MAX_EVIDENCE_TEXT = 30;
 	/** 인용 구절(완결 문장)의 길이 상한. 지표 연결이 있는 구절만 이 상한을 쓴다. */
-	static final int MAX_CITATION_TEXT = 100;
+	static final int MAX_CITATION_TEXT = 150;
 
 	private HolisticNarrativeFactsFactory() {
 	}
@@ -28,7 +28,7 @@ public final class HolisticNarrativeFactsFactory {
 	/**
 	 * 요청에서 읽은 근거 구절 하나.
 	 *
-	 * @param indicators 지표 연결. 비어 있으면 짧은 조각 구절(30자 이하), 있으면 인용 구절(100자 이하)로 본다.
+	 * @param indicators 지표 연결. 비어 있으면 짧은 조각 구절(30자 이하), 있으면 인용 구절(150자 이하)로 본다.
 	 */
 	public record EvidenceInput(String text, Integer year, String section, List<String> indicators) {
 

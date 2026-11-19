@@ -55,7 +55,7 @@ public record HolisticAnalysisRequest(
 		@Size(max = HolisticAnalysisRequest.MAX_EVIDENCE)
 		List<@NotNull @Valid EvidencePhrase> evidence,
 
-		@Schema(description = "리포트가 인용할 이름·학교를 가린 완결 문장(선택). 최대 24개, 문장은 100자 이하이며 서버에 저장하지 않는다.")
+		@Schema(description = "리포트가 인용할 이름·학교를 가린 완결 문장(선택). 최대 24개, 문장은 150자 이하이며 서버에 저장하지 않는다.")
 		@Size(max = HolisticAnalysisRequest.MAX_CITATIONS)
 		List<@NotNull @Valid Citation> citations
 
@@ -77,7 +77,7 @@ public record HolisticAnalysisRequest(
 	static final int MAX_EVIDENCE = 150;
 	static final int MAX_EVIDENCE_TEXT = 30;
 	static final int MAX_CITATIONS = 24;
-	public static final int MAX_CITATION_TEXT = 100;
+	public static final int MAX_CITATION_TEXT = 150;
 	static final int MAX_SECTION_CHARS = 200_000;
 
 	/**

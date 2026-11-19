@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public final class HolisticNarrativePrompt {
 
-	public static final String VERSION = "6";
+	public static final String VERSION = "7";
 
 	public static final String INSTRUCTIONS = """
 			너는 신중한 입시 컨설턴트다. 학생 생기부 서술을 분석한 결과(입력 JSON)를 바탕으로
