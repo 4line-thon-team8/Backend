@@ -236,6 +236,83 @@ class ElementLevelCalculatorTest {
 				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, -0.1, 0.5));
 	}
 
+	@Test
+	void 앵커가_있으면_밀도가_연속_단계가_되어_계단식에서_같은_단계인_문서도_구분한다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+
+		// 1000자당 2.7건과 3.0건: 계단식으로는 둘 다 3단계지만 연속 단계로는 다르다.
+		assertEquals(3, parameters.rateLevel("A3", 27, CHARS));
+		assertEquals(3, parameters.rateLevel("A3", 30, CHARS));
+		double lower = parameters.rateStage("A3", 27, CHARS);
+		double higher = parameters.rateStage("A3", 30, CHARS);
+		assertTrue(lower > 2.5 && higher < 3.0 && lower < higher, "lower=" + lower + ", higher=" + higher);
+		assertTrue(parameters.level("A3", 27, CHARS, 0.68) < parameters.level("A3", 30, CHARS, 0.68));
+	}
+
+	@Test
+	void 앵커_위치의_밀도는_백분위_단계와_정확히_맞는다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+		long chars = 100_000; // 신호 n건 = 1000자당 n/100건
+
+		// A3 앵커 {1.15, 1.64, 2.65, 3.59, 4.55, 7.07, 8.09} ↔ 단계 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0}
+		assertEquals(1.0, parameters.rateStage("A3", 115, chars), DELTA);
+		assertEquals(1.5, parameters.rateStage("A3", 164, chars), DELTA);
+		assertEquals(2.5, parameters.rateStage("A3", 265, chars), DELTA);
+		assertEquals(3.0, parameters.rateStage("A3", 359, chars), DELTA);
+		assertEquals(3.5, parameters.rateStage("A3", 455, chars), DELTA);
+		assertEquals(4.5, parameters.rateStage("A3", 707, chars), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 809, chars), DELTA);
+		// 두 앵커(1.64, 2.65)의 한가운데 밀도 2.145는 두 단계(1.5, 2.5)의 한가운데 2.0
+		assertEquals(2.0, parameters.rateStage("A3", 429, 200_000), 1e-9);
+	}
+
+	@Test
+	void 앵커_양끝_바깥은_1과_5로_막는다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+
+		assertEquals(1.0, parameters.rateStage("A3", 0, CHARS), DELTA);
+		assertEquals(1.0, parameters.rateStage("A3", 5, CHARS), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 100, CHARS), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 5_000, CHARS), DELTA);
+	}
+
+	@Test
+	void 앵커가_없는_지표는_계단식_정수_단계를_쓴다() {
+		// 공통 경계만 쓰는 설정(지표별 앵커 없음)
+		assertEquals(3.0, COMMON.rateStage("A3", 12, CHARS), DELTA);
+		assertEquals(1.0, COMMON.rateStage("A3", 6, CHARS), DELTA);
+		// 기본 설정이어도 앵커가 없는 지표(ZZ)는 공통 경계의 정수 단계
+		assertEquals(IndicatorLevelParameters.DEFAULT.rateLevel("ZZ", 12, CHARS),
+				IndicatorLevelParameters.DEFAULT.rateStage("ZZ", 12, CHARS), DELTA);
+	}
+
+	@Test
+	void 수준은_밀도에_따라_매끄럽게_오르고_계단식보다_훨씬_많은_값을_만든다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+		long chars = 100_000;
+		java.util.Set<Double> distinct = new java.util.TreeSet<>();
+		double previous = 0;
+		for (int count = 0; count <= 900; count += 5) {
+			double level = parameters.level("A3", count, chars, 0.68);
+			assertTrue(level >= previous, "count=" + count);
+			previous = level;
+			distinct.add(Math.round(level * 100) / 100.0);
+		}
+		// 계단식이면 지표 수준은 최대 5가지 값(품질이 같을 때)이다.
+		assertTrue(distinct.size() > 30, "distinct=" + distinct.size());
+	}
+
+	@Test
+	void 잘못된_앵커는_거부한다() {
+		double[] cuts = {0.7, 1.2, 1.7, 2.5};
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(cuts, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.0,
+				Map.of("A3", new double[] {1, 2, 3, 4, 5, 6})));
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(cuts, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.0,
+				Map.of("A3", new double[] {1, 2, 3, 3, 5, 6, 7})));
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(cuts, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.0,
+				Map.of("A3", new double[] {0, 2, 3, 4, 5, 6, 7})));
+	}
+
 	private static void assertThrowsIllegal(Runnable action) {
 		boolean rejected = false;
 		try {

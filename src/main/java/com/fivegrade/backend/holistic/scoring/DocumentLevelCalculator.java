@@ -12,11 +12,25 @@ import java.util.Optional;
  * 약한 문서였고, 2축 이상을 요구하면 이런 문서의 약함이 서류 보정에 전혀 반영되지 않았다.
  * 약한 서류를 추출 실패로 오해해 깎지 않도록 하향 보정은 이미 상향의 절반으로 제한되어 있다.
  * 비중이 없거나 모두 0이면 판단 가능한 축에 균등 비중을 준다.
+ *
+ * 축을 가중 평균한 값(원 수준)은 지표·축을 평균하는 과정에서 3점 근처로 몰리므로, 마지막에 {@link DocumentLevelSpread}로
+ * 실제 문서 분포 위의 위치에 맞춰 1~5 를 고르게 쓰도록 편다. 기본 생성자는 운영 설정(펴기 적용)이고,
+ * 평균 계산만 보려면 {@link DocumentLevelSpread#IDENTITY}를 넘긴다.
  */
 public final class DocumentLevelCalculator {
 
 	/** 서류 수준 판단에 필요한 최소 축 수 */
 	static final int MIN_AXES = 1;
+
+	private final DocumentLevelSpread spread;
+
+	public DocumentLevelCalculator() {
+		this(DocumentLevelSpread.DEFAULT);
+	}
+
+	public DocumentLevelCalculator(DocumentLevelSpread spread) {
+		this.spread = spread;
+	}
 
 	/** 요소별 수준(1~5). 판단 불가 요소는 null */
 	public record ElementLevels(Double academic, Double career, Double community) {
@@ -30,8 +44,12 @@ public final class DocumentLevelCalculator {
 		}
 	}
 
-	/** @return 서류 수준 m. 판단 가능한 축이 부족하면 비어 있다. */
+	/** @return 서류 수준 m(분포 보정 후). 판단 가능한 축이 부족하면 비어 있다. */
 	public Optional<Double> compute(ElementLevels levels, AxisWeights weights) {
+		return weightedMean(levels, weights).map(spread::apply);
+	}
+
+	private Optional<Double> weightedMean(ElementLevels levels, AxisWeights weights) {
 		Double[] level = {levels.academic(), levels.career(), levels.community()};
 		Double[] weight = {weights.academic(), weights.career(), weights.community()};
 
