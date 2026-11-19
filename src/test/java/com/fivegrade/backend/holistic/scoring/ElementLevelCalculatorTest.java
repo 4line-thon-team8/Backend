@@ -74,8 +74,8 @@ class ElementLevelCalculatorTest {
 		assertEquals(5.0, parameters.level(25, CHARS, 1.0), DELTA);
 		// 밀도 1단계 + 품질 0(1점) → 0.6*1 + 0.4*1 = 1.0
 		assertEquals(1.0, parameters.level(1, CHARS, 0.0), DELTA);
-		// 밀도 2단계 + 품질 0(1점): 게이트 배율 0.3 → 밀도 단계 1 + (2-1)*0.3 = 1.3 → 0.6*1.3 + 0.4*1 = 1.18
-		assertEquals(1.18, parameters.level(7, CHARS, 0.0), DELTA);
+		// 밀도 2단계 + 품질 0(1점): 게이트 배율 0.3 → 밀도 단계 1 + (2-1)*0.3 = 1.3 → 0.5*1.3 + 0.5*1 = 1.15
+		assertEquals(1.15, parameters.level(7, CHARS, 0.0), DELTA);
 		// 범위를 벗어난 품질은 0~1 로 맞춘다.
 		assertEquals(parameters.level(3, CHARS, 1.0), parameters.level(3, CHARS, 9.0), DELTA);
 		assertEquals(parameters.level(3, CHARS, 0.0), parameters.level(3, CHARS, -3.0), DELTA);
@@ -172,8 +172,8 @@ class ElementLevelCalculatorTest {
 	void 지표별_경계로_같은_밀도라도_지표마다_단계가_다르다() {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 
-		// 1000자당 3.0건: 탐구력(A3)은 실제 문서에서 흔해 낮은 단계, 협업 조율(C2)은 드물어 5단계
-		assertEquals(1, parameters.rateLevel("A3", 30, CHARS));
+		// 1000자당 3.0건: 탐구력(A3)은 실제 문서에서 흔해 중간 단계, 협업 조율(C2)은 드물어 5단계
+		assertEquals(3, parameters.rateLevel("A3", 30, CHARS));
 		assertEquals(5, parameters.rateLevel("C2", 30, CHARS));
 		// 지표별 경계가 없는 지표는 공통 경계를 쓴다.
 		assertEquals(parameters.rateLevel(30, CHARS), parameters.rateLevel("ZZ", 30, CHARS));
@@ -183,23 +183,23 @@ class ElementLevelCalculatorTest {
 	void 품질은_바닥과_천장_사이로_늘려서_1에서_5점으로_쓴다() {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 
-		// 밀도 1단계(0.6점) + 품질 바닥 이하(1점 × 0.4) = 1.0, 천장 이상이면 0.6 + 2.0 = 2.6
+		// 밀도 1단계(0.5점) + 품질 바닥 이하(1점 × 0.5) = 1.0, 천장 이상이면 0.5 + 2.5 = 3.0
 		assertEquals(1.0, parameters.level("A3", 1, CHARS, 0.05), DELTA);
-		assertEquals(2.6, parameters.level("A3", 1, CHARS, 0.9), DELTA);
+		assertEquals(3.0, parameters.level("A3", 1, CHARS, 0.9), DELTA);
 		// 바닥과 천장의 가운데는 품질 3점
 		double middle = (parameters.qualityFloor() + parameters.qualityCeil()) / 2;
-		assertEquals(0.6 + 0.4 * 3, parameters.level("A3", 1, CHARS, middle), DELTA);
+		assertEquals(0.5 + 0.5 * 3, parameters.level("A3", 1, CHARS, middle), DELTA);
 	}
 
 	@Test
 	void 서술이_빽빽해도_실제_문서_분포_안에서만_높은_점수를_받는다() {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 
-		// 실제 문서의 중앙값 밀도(A3 4.6, 품질 중앙 0.22)는 한가운데 점수여야 한다.
-		double median = parameters.level("A3", 46, CHARS, 0.22);
+		// 실제 문서의 중앙값 밀도(A3 약 2.6~3.2, 품질 중앙 0.68)는 한가운데 점수여야 한다.
+		double median = parameters.level("A3", 26, CHARS, 0.68);
 		assertTrue(median > 2.0 && median < 4.0, "median=" + median);
 		// 중앙값의 2배 밀도에 품질 천장이면 5점
-		assertEquals(5.0, parameters.level("A3", 100, CHARS, 0.32), DELTA);
+		assertEquals(5.0, parameters.level("A3", 100, CHARS, 0.80), DELTA);
 	}
 
 	@Test
@@ -207,15 +207,15 @@ class ElementLevelCalculatorTest {
 		IndicatorLevelParameters gated = IndicatorLevelParameters.DEFAULT;
 		IndicatorLevelParameters ungated = new IndicatorLevelParameters(
 				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.10, 0.32);
-		// 밀도 5단계 + 품질 바닥: 게이트 없음 0.6*5 + 0.4*1 = 3.4, 게이트 있음 0.6*(1+4*0.3) + 0.4*1 = 1.72
+		// 밀도 5단계 + 품질 바닥: 게이트 없음 0.6*5 + 0.4*1 = 3.4, 게이트 있음 0.5*(1+4*0.3) + 0.5*1 = 1.6
 		assertEquals(3.4, ungated.level(25, CHARS, 0.10), DELTA);
-		assertEquals(1.72, gated.level(25, CHARS, 0.10), DELTA);
+		assertEquals(1.6, gated.level(25, CHARS, 0.45), DELTA);
 		// 품질이 천장이면 게이트는 영향이 없다
-		assertEquals(5.0, gated.level(25, CHARS, 0.32), DELTA);
-		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, 0.32), DELTA);
+		assertEquals(5.0, gated.level(25, CHARS, 0.80), DELTA);
+		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, 0.80), DELTA);
 		// 품질이 높을수록 같은 밀도에서 수준이 오른다(단조)
-		assertTrue(gated.level(25, CHARS, 0.15) < gated.level(25, CHARS, 0.25));
-		assertTrue(gated.level(25, CHARS, 0.25) < gated.level(25, CHARS, 0.32));
+		assertTrue(gated.level(25, CHARS, 0.50) < gated.level(25, CHARS, 0.65));
+		assertTrue(gated.level(25, CHARS, 0.65) < gated.level(25, CHARS, 0.80));
 	}
 
 	@Test
