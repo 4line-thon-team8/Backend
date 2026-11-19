@@ -8,8 +8,10 @@ import com.fivegrade.backend.holistic.report.HolisticReportInput.NarrativeAmount
 import com.fivegrade.backend.holistic.report.HolisticStrengthSelector.Strength;
 import com.fivegrade.backend.report.generation.ReportSection;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -66,9 +68,21 @@ public final class HolisticNarrativeTemplate implements HolisticNarrativeWriter 
 	@Override
 	public HolisticNarrative write(HolisticNarrativeFacts facts) {
 		Text summary = summary(facts);
-		return new HolisticNarrative(summary, facts.majors().stream()
-				.map(major -> new MajorAdvice(major.code(), major.department(), Text.template(adviceText(major))))
-				.toList(), detail(facts, summary));
+		return new HolisticNarrative(summary, advices(facts), detail(facts, summary));
+	}
+
+	/** 학과별 기본 조언. 앞 학과에서 쓴 문장은 피해 다음 태그의 문장을 쓰고, 쓸 문장이 모자라면 같은 문장을 다시 쓴다. */
+	private static List<MajorAdvice> advices(HolisticNarrativeFacts facts) {
+		Set<String> used = new HashSet<>();
+		List<MajorAdvice> advices = new ArrayList<>();
+		for (MajorFacts major : facts.majors()) {
+			List<String> options = adviceOptions(major);
+			String text = options.stream().filter(option -> !used.contains(option)).findFirst()
+					.orElse(options.isEmpty() ? GENERAL_ADVICE : options.getFirst());
+			used.add(text);
+			advices.add(new MajorAdvice(major.code(), major.department(), Text.template(text)));
+		}
+		return advices;
 	}
 
 	/** 자세히 보기. 활동 요약을 쓸 근거가 없으면 만들지 않는다. */
@@ -127,13 +141,19 @@ public final class HolisticNarrativeTemplate implements HolisticNarrativeWriter 
 
 	/** 학과 하나의 기본 조언 문장. 검증을 통과하지 못한 AI 조언을 대신할 때도 쓴다. */
 	static String adviceText(MajorFacts major) {
+		List<String> options = adviceOptions(major);
+		return options.isEmpty() ? GENERAL_ADVICE : options.getFirst();
+	}
+
+	/** 학과 하나에 쓸 수 있는 조언 문장들. 관심 태그와 겹치는 태그가 먼저고, 같은 문장은 한 번만 둔다. */
+	private static List<String> adviceOptions(MajorFacts major) {
 		List<String> ordered = new ArrayList<>(major.overlapTags());
 		ordered.addAll(major.tags());
 		return ordered.stream()
 				.map(TAG_ADVICE::get)
 				.filter(text -> text != null)
-				.findFirst()
-				.orElse(GENERAL_ADVICE);
+				.distinct()
+				.toList();
 	}
 
 	/** 활동 요약 한 문장. 화면에는 첫 문장만 나오므로 관심 분야와 강점을 한 문장에 담는다. */

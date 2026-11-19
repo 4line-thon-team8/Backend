@@ -574,8 +574,47 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
+	void 근거_구절은_진로_연결_지표에_이어진_것부터_둔다() {
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(), List.of(),
+				MAJOR_TAGS,
+				List.of(new EvidenceInput("수업 태도가 바르고 성실함", 2, "subject", List.of("A2")),
+						new EvidenceInput("짧은 조각", 2, "subject"),
+						new EvidenceInput(CITED_A3, 2, "subject", List.of("A3"))));
+
+		assertThat(facts.evidence()).extracting(phrase -> phrase.text())
+				.containsExactly(CITED_A3, "수업 태도가 바르고 성실함", "짧은 조각");
+		assertThat(facts.evidence()).extracting(phrase -> phrase.id()).containsExactly("e1", "e2", "e3");
+	}
+
+	@Test
+	void 같은_태그를_가진_학과도_같은_기본_조언을_두_번_받지_않는다() {
+		Map<String, List<String>> tags = Map.of(
+				"MIS", List.of("경영·회계", "IT·소프트웨어"),
+				"BIZ", List.of("경영·회계", "경제·금융"));
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(),
+				List.of(new DesiredMajor("MIS", "경영정보학"), new DesiredMajor("BIZ", "경영학")), tags, List.of());
+
+		List<MajorAdvice> advices = new HolisticNarrativeTemplate().write(facts).majorAdvices();
+
+		assertThat(advices.get(0).advice().text()).contains("조직이나 수치");
+		assertThat(advices.get(1).advice().text()).contains("경제 현상");
+	}
+
+	@Test
+	void 쓸_수_있는_조언이_하나뿐이면_같은_문장을_다시_쓴다() {
+		Map<String, List<String>> tags = Map.of("A", List.of("경영·회계"), "B", List.of("경영·회계"));
+		HolisticNarrativeFacts facts = HolisticNarrativeFactsFactory.create(report(List.of(), 5000), List.of(),
+				List.of(new DesiredMajor("A", "가"), new DesiredMajor("B", "나")), tags, List.of());
+
+		List<MajorAdvice> advices = new HolisticNarrativeTemplate().write(facts).majorAdvices();
+
+		assertThat(advices).hasSize(2);
+		assertThat(advices.get(1).advice().text()).isEqualTo(advices.get(0).advice().text());
+	}
+
+	@Test
 	void AI_지시문은_보완점과_다음_단계를_요구하고_버전이_올라갔다() {
-		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("5");
+		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("6");
 		assertThat(HolisticNarrativePrompt.INSTRUCTIONS).contains("improvements").contains("nextSteps");
 	}
 }
