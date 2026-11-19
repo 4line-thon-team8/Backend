@@ -35,6 +35,11 @@ pattern("EC2_USER", r"[a-z_][a-z0-9_-]*")
 ai = os.environ.get("ENABLE_AI", "false").lower()
 if ai not in ("true", "false"):
     raise SystemExit("Invalid ENABLE_AI")
+evidence = os.environ.get("ENABLE_NARRATIVE_EVIDENCE", "false").lower()
+if evidence not in ("true", "false"):
+    raise SystemExit("Invalid ENABLE_NARRATIVE_EVIDENCE")
+if evidence == "true" and ai != "true":
+    raise SystemExit("ENABLE_NARRATIVE_EVIDENCE requires ENABLE_AI=true")
 api_key = required("OPENAI_API_KEY") if ai == "true" else ""
 (out / ".env").write_text(f"APP_IMAGE=fivegrade-backend:{sha}\nAPI_DOMAIN={domain}\nDB_HOST={host}\nDB_NAME={database}\n")
 values = {
@@ -45,7 +50,7 @@ values = {
     "REPORT_AI_MODEL": "gpt-4.1-mini-2025-04-14",
     "REPORT_AI_TIMEOUT_MS": "12000", "REPORT_AI_MAX_CONCURRENT": "4",
     "HOLISTIC_REPORT_AI_ENABLED": ai,
-    "HOLISTIC_NARRATIVE_EVIDENCE_ENABLED": "false",
+    "HOLISTIC_NARRATIVE_EVIDENCE_ENABLED": evidence,
     "HOLISTIC_REPORT_AI_MODEL": "gpt-4.1-mini-2025-04-14",
     "HOLISTIC_REPORT_AI_TIMEOUT_MS": "20000", "HOLISTIC_REPORT_AI_MAX_CONCURRENT": "4",
     "OPENAI_API_KEY": api_key,

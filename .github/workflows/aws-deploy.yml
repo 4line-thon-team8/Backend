@@ -6,6 +6,10 @@ on:
         description: Enable AI only after synthetic-data verification and notice approval
         type: boolean
         default: false
+      enable_narrative_evidence:
+        description: Send quoted resume phrases to the external AI report. Enable only after the consent notice is live in the frontend
+        type: boolean
+        default: false
 permissions:
   contents: read
   id-token: write
@@ -40,6 +44,7 @@ jobs:
           EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ENABLE_AI: ${{ inputs.enable_ai }}
+          ENABLE_NARRATIVE_EVIDENCE: ${{ inputs.enable_narrative_evidence }}
         run: python3 deploy/aws/prepare-deployment.py
       - name: Obtain temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
