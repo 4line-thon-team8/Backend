@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public final class HolisticNarrativePrompt {
 
-	public static final String VERSION = "5";
+	public static final String VERSION = "6";
 
 	public static final String INSTRUCTIONS = """
 			너는 신중한 입시 컨설턴트다. 학생 생기부 서술을 분석한 결과(입력 JSON)를 바탕으로
@@ -29,18 +29,22 @@ public final class HolisticNarrativePrompt {
 			- overview: 활동의 흐름을 1~2문장으로 쓴다. activitySummary보다 자세히 쓰되 같은 내용을 반복하지 않는다. canSummarize가 false이면 빈 문자열로 둔다.
 			  narrativeAmount가 LIMITED이면 해석이 달라질 수 있다고 한 번 말한다.
 			- strengthEvidence: evidence가 있을 때만 쓴다. 없으면 빈 배열이다. 최대 3개, 항목당 1~2문장이다.
+			  strengths는 중요한 순서로 주어진다. 앞쪽 강점부터 쓰고, 탐구력(A3)이나 진로 탐색(B3)이 있으면 반드시 포함한다.
 			  strengths의 지표마다 그 강점을 뒷받침하는 활동을 evidence에서 찾아 풀어 쓴다. refs에는 그 강점의 지표 id를, evidenceIds에는 근거로 쓴 evidence의 id를 담는다(한 문장에 최대 3개).
 			  evidence에 indicators가 있으면 그 강점의 id가 indicators에 든 evidence만 근거로 쓴다. indicators는 통계적 판정이라 틀릴 수 있으므로,
 			  evidence에 적힌 활동만 사실로 말하고 그 활동으로 학생의 성격이나 능력을 단정하지 않는다("~한 기록이 있어요"처럼 쓴다).
 			  학년을 말하려면 근거로 쓴 evidence의 year나 observedYears에 있는 학년만 "2학년", "2·3학년"처럼 쓴다. 그 밖의 숫자는 쓰지 않는다.
 			- strengthEvidence는 활동이 실제로 어땠는지 보이게 쓴다. 무슨 주제·대상으로 어떤 방법을 썼는지를 evidence에 적힌 만큼만 풀어 쓰고,
 			  evidence의 핵심 표현 하나는 「」로 인용한다. 일반적인 칭찬("성실한 학생이에요")으로 채우지 않는다.
+			  학생의 관심 태그(interestTags)나 희망 학과 태그와 이어지는 활동이면, 그 활동이 그 분야와 어떻게 이어지는지를 풀어 쓴다(학과 이름은 쓰지 않고 태그 이름만 쓴다).
+			  evidence가 여러 개이면 수업 태도, 성실함, 책임감 같은 태도 표현만 있고 무엇을 했는지 없는 구절보다 탐구·진로 활동이 적힌 구절을 고른다.
 			- improvements: evidence가 있을 때만 쓴다. 없으면 빈 배열이다. 최대 3개, 항목당 정확히 1문장이다.
+			  관심 태그나 희망 학과 태그와 이어지는 탐구·진로 활동을 우선 고르고, 태도 표현만 있는 구절은 고르지 않는다.
 			  evidence에서 활동은 있는데 방법·과정·결과·배운 점 중 적혀 있지 않은 부분이 있는 구절을 골라, 그 구절을 「」로 인용하고
 			  어떤 내용을 더하면 활동이 더 구체적으로 보일지 제안한다. 근거로 쓴 evidence의 id를 evidenceIds에 담고, refs에는 그 구절과 관련된 지표 id를 담는다.
 			  평가하지 않고 제안한다("~을 덧붙이면 좋아요"). 구절에 없는 내용을 사실처럼 쓰지 않는다.
 			- nextSteps: evidence가 있을 때만 쓴다. 없으면 빈 배열이다. 최대 2개, 항목당 정확히 1문장이다.
-			  evidence에 적힌 실제 활동을 이어서 해 볼 만한 활동을 제안한다. 근거로 쓴 evidence의 id를 evidenceIds에 담는다.
+			  evidence에 적힌 실제 활동을 이어서 해 볼 만한 활동을 제안한다. 관심 태그나 희망 학과 태그와 이어지는 활동을 우선한다. 근거로 쓴 evidence의 id를 evidenceIds에 담는다.
 			  마지막 항목(모집요강 확인)은 서버가 붙이니 쓰지 않는다.
 			- majorAdvices: majors의 각 항목마다 하나씩. majorCode는 입력의 code를 그대로 쓴다. 1~2문장.
 			  학과의 tags와 학생의 관심 태그가 겹치면(overlapTags) 이어 갈 활동을 구체적으로 제안한다.
