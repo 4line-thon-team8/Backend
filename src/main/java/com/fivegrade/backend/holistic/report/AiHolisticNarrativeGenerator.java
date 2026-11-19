@@ -63,7 +63,10 @@ public final class AiHolisticNarrativeGenerator implements HolisticNarrativeWrit
 		return new HolisticNarrative(summary, advices, mergeDetail(fallback.detail(), checked));
 	}
 
-	/** 자세히 보기. 보완점·다음 단계는 항상 기본 문장이고, 전체 요약과 강점 근거만 검증을 통과한 AI 글로 바꾼다. */
+	/**
+	 * 자세히 보기. 전체 요약·강점 근거·보완할 점·다음 단계를 검증을 통과한 AI 글로 바꾼다.
+	 * 영역마다 통과한 글이 하나도 없으면 그 영역만 기본 문장을 쓴다. 다음 단계의 마지막은 언제나 서버 고정 문장이다.
+	 */
 	private static Detail mergeDetail(Detail fallback, Checked checked) {
 		if (fallback == null) {
 			return null;
@@ -74,6 +77,20 @@ public final class AiHolisticNarrativeGenerator implements HolisticNarrativeWrit
 		List<Text> evidence = checked.strengthEvidence().isEmpty()
 				? fallback.strengthEvidence()
 				: checked.strengthEvidence().stream().map(line -> Text.llm(line.text().strip())).toList();
-		return new Detail(overview, evidence, fallback.improvements(), fallback.nextSteps());
+		List<Text> improvements = checked.improvements().isEmpty()
+				? fallback.improvements()
+				: checked.improvements().stream().map(line -> Text.llm(line.text().strip())).toList();
+		return new Detail(overview, evidence, improvements, mergeNextSteps(fallback.nextSteps(), checked));
+	}
+
+	/** AI 다음 단계(최대 2개) 뒤에 서버 고정 문장을 붙인다. AI 글이 없으면 기본 문장 전체를 그대로 쓴다. */
+	private static List<Text> mergeNextSteps(List<Text> fallback, Checked checked) {
+		if (checked.nextSteps().isEmpty()) {
+			return fallback;
+		}
+		List<Text> steps = new ArrayList<>(checked.nextSteps().stream()
+				.map(line -> Text.llm(line.text().strip())).toList());
+		steps.add(Text.template(HolisticNarrativeTemplate.FIXED_NEXT_STEP));
+		return steps;
 	}
 }

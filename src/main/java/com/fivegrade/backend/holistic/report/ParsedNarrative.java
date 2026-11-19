@@ -9,10 +9,12 @@ public record ParsedNarrative(
 		Line summary,
 		Line overview,
 		List<EvidenceLine> strengthEvidence,
-		List<MajorLine> majorAdvices
+		List<MajorLine> majorAdvices,
+		List<EvidenceLine> improvements,
+		List<EvidenceLine> nextSteps
 ) {
 
-	/** 강점 근거 문장 하나. evidenceIds 는 이 문장이 근거로 삼은 근거 구절 번호다. */
+	/** 근거 구절을 가리키는 문장 하나(강점 근거·보완할 점·다음 단계). evidenceIds 는 이 문장이 근거로 삼은 근거 구절 번호다. */
 	public record EvidenceLine(Line line, List<String> evidenceIds) {
 		public EvidenceLine {
 			Objects.requireNonNull(line);
@@ -33,5 +35,13 @@ public record ParsedNarrative(
 		Objects.requireNonNull(overview);
 		strengthEvidence = List.copyOf(strengthEvidence);
 		majorAdvices = List.copyOf(majorAdvices);
+		improvements = List.copyOf(improvements);
+		nextSteps = List.copyOf(nextSteps);
+	}
+
+	/** 보완할 점·다음 단계 없이 만든다(기존 호출 호환). */
+	public ParsedNarrative(Line summary, Line overview, List<EvidenceLine> strengthEvidence,
+			List<MajorLine> majorAdvices) {
+		this(summary, overview, strengthEvidence, majorAdvices, List.of(), List.of());
 	}
 }
