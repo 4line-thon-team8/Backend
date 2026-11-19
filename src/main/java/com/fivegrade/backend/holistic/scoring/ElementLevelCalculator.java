@@ -12,6 +12,7 @@ import java.util.Map;
  * "관찰되지 않았다"로 보고 마찬가지로 평균에서 제외한다(A안).
  * 신호가 있는 지표가 하나도 없는 요소는 수준이 없다(요소 수준 맵에 들어 있지 않다).
  * 지표 수준은 신호 개수가 아니라 읽은 서술 글자 수 대비 밀도로 정한다(서술 길이에 따른 쏠림을 막기 위해서다).
+ * 같은 요소 안에서는 지표 가중 평균을 쓴다. 기본 가중치는 {@link #DEFAULT_INDICATOR_WEIGHTS}이고 적혀 있지 않은 지표는 1이다.
  *
  * Spring과 DB에 의존하지 않는 순수 Java 클래스다.
  */
@@ -21,6 +22,15 @@ public final class ElementLevelCalculator {
 	public static final String MAJOR_FIT = "MAJOR_FIT";
 	public static final String COMMUNITY = "COMMUNITY";
 	public static final String POTENTIAL = "POTENTIAL";
+
+	/**
+	 * 요소 안 지표 가중 평균의 기본 가중치. 서울대 합격 사례와 충북 사례집 문서를 앞·뒤 절반으로 나눠 잰 점수의 일치도(반쪽 신뢰도)가
+	 * 올라가는 방향으로 정했다(학업태도 A2 0.7, 탐구력 A3 1.5, 나눔과 배려 C2 1.5, 나머지 1).
+	 * 문서를 반으로 나눠 한쪽에서 정한 가중치를 다른 쪽에서 평가해도 반쪽 신뢰도가 같은 방향으로 올랐다.
+	 * 다만 이는 점수의 안정성 기준이지 사람이 매긴 정답에 맞춘 것이 아니므로, 어떤 지표를 더 보느냐는 정책 판단으로 따로 검토할 수 있다.
+	 * 값을 1로 두면 이전의 단순 평균과 같다.
+	 */
+	public static final Map<String, Double> DEFAULT_INDICATOR_WEIGHTS = Map.of("A2", 0.7, "A3", 1.5, "C2", 1.5);
 
 	/** 요청에서 온 지표 신호 한 건 */
 	public record Observation(String indicatorId, int count, double quality) {
@@ -50,13 +60,25 @@ public final class ElementLevelCalculator {
 	}
 
 	private final IndicatorLevelParameters parameters;
+	private final Map<String, Double> indicatorWeights;
 
 	public ElementLevelCalculator() {
 		this(IndicatorLevelParameters.DEFAULT);
 	}
 
 	public ElementLevelCalculator(IndicatorLevelParameters parameters) {
+		this(parameters, DEFAULT_INDICATOR_WEIGHTS);
+	}
+
+	/** @param indicatorWeights 지표 ID → 요소 평균에서의 가중치(양수). 없는 지표는 1 */
+	public ElementLevelCalculator(IndicatorLevelParameters parameters, Map<String, Double> indicatorWeights) {
+		for (Map.Entry<String, Double> entry : indicatorWeights.entrySet()) {
+			if (!(entry.getValue() > 0)) {
+				throw new IllegalArgumentException("indicator weight must be positive: " + entry.getKey());
+			}
+		}
 		this.parameters = parameters;
+		this.indicatorWeights = Map.copyOf(indicatorWeights);
 	}
 
 	/**
@@ -81,8 +103,9 @@ public final class ElementLevelCalculator {
 			double level = parameters.level(entry.getKey(), observation.count(), narrativeChars, observation.quality());
 			indicatorLevels.put(entry.getKey(), level);
 			double[] sum = elementSums.computeIfAbsent(entry.getValue(), key -> new double[2]);
-			sum[0] += level;
-			sum[1] += 1;
+			double weight = indicatorWeights.getOrDefault(entry.getKey(), 1.0);
+			sum[0] += weight * level;
+			sum[1] += weight;
 		}
 
 		Map<String, Double> elementLevels = new HashMap<>();

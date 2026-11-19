@@ -3,6 +3,7 @@ package com.fivegrade.backend.holistic.scoring;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fivegrade.backend.holistic.scoring.ElementLevelCalculator.Observation;
@@ -127,13 +128,44 @@ class ElementLevelCalculatorTest {
 	}
 
 	@Test
-	void 같은_요소의_관찰된_지표는_평균한다() {
+	void 가중치를_모두_1로_두면_같은_요소의_관찰된_지표를_단순_평균한다() {
+		ElementLevelCalculator equal = new ElementLevelCalculator(COMMON, Map.of());
 		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
-		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+		ElementLevelCalculator.Result result = equal.compute(observable, List.of(
 				new Observation("A3", 25, 1.0), new Observation("A2", 7, 0.0)), CHARS);
 
 		// A3=5.0, A2=1.6 → 평균 3.3
 		assertEquals(3.3, result.elementLevels().get("ACADEMIC"), DELTA);
+	}
+
+	@Test
+	void 기본_가중치로_같은_요소의_지표를_가중_평균한다() {
+		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
+		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+				new Observation("A3", 25, 1.0), new Observation("A2", 7, 0.0)), CHARS);
+
+		// A3=5.0(가중 1.5), A2=1.6(가중 0.7) → (7.5 + 1.12) / 2.2
+		assertEquals((1.5 * 5.0 + 0.7 * 1.6) / 2.2, result.elementLevels().get("ACADEMIC"), DELTA);
+	}
+
+	@Test
+	void 가중치가_없는_지표는_1로_본다() {
+		ElementLevelCalculator custom = new ElementLevelCalculator(COMMON, Map.of("C2", 3.0));
+		Map<String, String> observable = Map.of("C1", "COMMUNITY", "C2", "COMMUNITY");
+		ElementLevelCalculator.Result result = custom.compute(observable, List.of(
+				new Observation("C1", 25, 1.0), new Observation("C2", 7, 0.0)), CHARS);
+
+		double c1 = result.indicatorLevels().get("C1");
+		double c2 = result.indicatorLevels().get("C2");
+		assertEquals((c1 + 3.0 * c2) / 4.0, result.elementLevels().get("COMMUNITY"), DELTA);
+	}
+
+	@Test
+	void 가중치는_양수여야_한다() {
+		assertThrows(IllegalArgumentException.class,
+				() -> new ElementLevelCalculator(COMMON, Map.of("A2", 0.0)));
+		assertThrows(IllegalArgumentException.class,
+				() -> new ElementLevelCalculator(COMMON, Map.of("A2", -1.0)));
 	}
 
 	@Test
@@ -240,13 +272,13 @@ class ElementLevelCalculatorTest {
 	void 앵커가_있으면_밀도가_연속_단계가_되어_계단식에서_같은_단계인_문서도_구분한다() {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 
-		// 1000자당 2.7건과 3.0건: 계단식으로는 둘 다 3단계지만 연속 단계로는 다르다.
-		assertEquals(3, parameters.rateLevel("A3", 27, CHARS));
-		assertEquals(3, parameters.rateLevel("A3", 30, CHARS));
-		double lower = parameters.rateStage("A3", 27, CHARS);
-		double higher = parameters.rateStage("A3", 30, CHARS);
+		// 1000자당 2.9건과 3.3건: 계단식으로는 둘 다 3단계지만 연속 단계로는 다르다.
+		assertEquals(3, parameters.rateLevel("A3", 29, CHARS));
+		assertEquals(3, parameters.rateLevel("A3", 33, CHARS));
+		double lower = parameters.rateStage("A3", 29, CHARS);
+		double higher = parameters.rateStage("A3", 33, CHARS);
 		assertTrue(lower > 2.5 && higher < 3.0 && lower < higher, "lower=" + lower + ", higher=" + higher);
-		assertTrue(parameters.level("A3", 27, CHARS, 0.68) < parameters.level("A3", 30, CHARS, 0.68));
+		assertTrue(parameters.level("A3", 29, CHARS, 0.68) < parameters.level("A3", 33, CHARS, 0.68));
 	}
 
 	@Test
@@ -254,16 +286,16 @@ class ElementLevelCalculatorTest {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 		long chars = 100_000; // 신호 n건 = 1000자당 n/100건
 
-		// A3 앵커 {1.15, 1.64, 2.65, 3.59, 4.55, 7.07, 8.09} ↔ 단계 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0}
-		assertEquals(1.0, parameters.rateStage("A3", 115, chars), DELTA);
-		assertEquals(1.5, parameters.rateStage("A3", 164, chars), DELTA);
-		assertEquals(2.5, parameters.rateStage("A3", 265, chars), DELTA);
-		assertEquals(3.0, parameters.rateStage("A3", 359, chars), DELTA);
-		assertEquals(3.5, parameters.rateStage("A3", 455, chars), DELTA);
-		assertEquals(4.5, parameters.rateStage("A3", 707, chars), DELTA);
-		assertEquals(5.0, parameters.rateStage("A3", 809, chars), DELTA);
-		// 두 앵커(1.64, 2.65)의 한가운데 밀도 2.145는 두 단계(1.5, 2.5)의 한가운데 2.0
-		assertEquals(2.0, parameters.rateStage("A3", 429, 200_000), 1e-9);
+		// A3 앵커 {1.17, 1.59, 2.79, 3.58, 4.69, 7.15, 9.03} ↔ 단계 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0}
+		assertEquals(1.0, parameters.rateStage("A3", 117, chars), DELTA);
+		assertEquals(1.5, parameters.rateStage("A3", 159, chars), DELTA);
+		assertEquals(2.5, parameters.rateStage("A3", 279, chars), DELTA);
+		assertEquals(3.0, parameters.rateStage("A3", 358, chars), DELTA);
+		assertEquals(3.5, parameters.rateStage("A3", 469, chars), DELTA);
+		assertEquals(4.5, parameters.rateStage("A3", 715, chars), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 903, chars), DELTA);
+		// 두 앵커(1.59, 2.79)의 한가운데 밀도 2.19는 두 단계(1.5, 2.5)의 한가운데 2.0
+		assertEquals(2.0, parameters.rateStage("A3", 438, 200_000), 1e-9);
 	}
 
 	@Test

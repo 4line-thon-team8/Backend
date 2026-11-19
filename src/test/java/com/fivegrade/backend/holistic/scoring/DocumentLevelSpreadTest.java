@@ -12,24 +12,24 @@ class DocumentLevelSpreadTest {
 
 	private static final double DELTA = 1e-9;
 
-	/** 앵커 {2.313, 2.471, 2.856, 3.127, 3.389, 3.871, 4.062} ↔ 수준 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0} */
+	/** 앵커 {2.292, 2.434, 2.827, 3.128, 3.422, 3.966, 4.158} ↔ 수준 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0} */
 	private final DocumentLevelSpread spread = DocumentLevelSpread.DEFAULT;
 
 	@Test
 	void 앵커_위치는_백분위_수준과_정확히_맞는다() {
-		assertEquals(1.0, spread.apply(2.313), DELTA);
-		assertEquals(1.5, spread.apply(2.471), DELTA);
-		assertEquals(2.5, spread.apply(2.856), DELTA);
-		assertEquals(3.0, spread.apply(3.127), DELTA);
-		assertEquals(3.5, spread.apply(3.389), DELTA);
-		assertEquals(4.5, spread.apply(3.871), DELTA);
-		assertEquals(5.0, spread.apply(4.062), DELTA);
+		assertEquals(1.0, spread.apply(2.292), DELTA);
+		assertEquals(1.5, spread.apply(2.434), DELTA);
+		assertEquals(2.5, spread.apply(2.827), DELTA);
+		assertEquals(3.0, spread.apply(3.128), DELTA);
+		assertEquals(3.5, spread.apply(3.422), DELTA);
+		assertEquals(4.5, spread.apply(3.966), DELTA);
+		assertEquals(5.0, spread.apply(4.158), DELTA);
 	}
 
 	@Test
 	void 앵커_사이는_선형_보간하고_양끝_바깥은_1과_5로_막는다() {
-		// 2.856(2.5)과 3.127(3.0)의 한가운데
-		assertEquals(2.75, spread.apply((2.856 + 3.127) / 2), DELTA);
+		// 2.827(2.5)과 3.128(3.0)의 한가운데
+		assertEquals(2.75, spread.apply((2.827 + 3.128) / 2), DELTA);
 		assertEquals(1.0, spread.apply(1.0), DELTA);
 		assertEquals(1.0, spread.apply(2.0), DELTA);
 		assertEquals(5.0, spread.apply(4.5), DELTA);

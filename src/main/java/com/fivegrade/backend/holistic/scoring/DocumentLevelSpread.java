@@ -4,7 +4,7 @@ package com.fivegrade.backend.holistic.scoring;
  * 지표 수준을 평균해 만든 문서 수준(원 수준)을 실제 문서 분포 위의 위치로 펴 주는 보정.
  *
  * 지표 수준은 개별로는 1~5를 쓰지만 여러 지표(평균 약 8~10개)를 평균하면 서로 상쇄되어 문서 수준이 3점 근처에 몰린다.
- * 실제 생기부 110건(충북 일반고)과 서울대 합격 사례 72건을 합친 문서에서 원 수준은 p5~p95가 2.3~4.1 이다.
+ * 실제 생기부 110건(충북 일반고)과 서울대 합격 사례 72건을 합친 문서에서 원 수준(요소 안 지표 가중 평균 기준)은 p5~p95가 2.3~4.2 이다.
  * 이 구간이 1~5 전체를 쓰도록 백분위 앵커를 단계에 대응시켜 선형 보간한다.
  * 보정은 단조 증가라 문서끼리의 순서는 바뀌지 않고, 벌어지는 정도만 달라진다.
  *
@@ -29,7 +29,7 @@ public record DocumentLevelSpread(double[] anchors) {
 
 	/** 충북 110건 + 서울대 72건을 문서마다 같은 비중으로 합친 균등 가중 문서 수준의 백분위 앵커 */
 	public static final DocumentLevelSpread DEFAULT = new DocumentLevelSpread(
-			new double[] {2.313, 2.471, 2.856, 3.127, 3.389, 3.871, 4.062});
+			new double[] {2.292, 2.434, 2.827, 3.128, 3.422, 3.966, 4.158});
 
 	public DocumentLevelSpread {
 		if (anchors != null) {
