@@ -167,6 +167,21 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
+	void 거절_원인은_글_내용_없이_힌트로만_남긴다() {
+		Checked style = HolisticNarrative_check("관심이 크다.");
+		assertThat(style.diagnostics()).contains("SUMMARY_STYLE:n=1,max=1,end=다.");
+
+		Checked forbidden = HolisticNarrative_check("합격 가능성이 높아요.");
+		assertThat(forbidden.diagnostics()).contains("SUMMARY_FORBIDDEN:word=합격");
+
+		Checked shortQuote = HolisticNarrative_check("「짧은인용」을 풀어 쓰면 좋아요.");
+		assertThat(shortQuote.diagnostics()).contains("SUMMARY_QUOTE:short");
+
+		Checked missingQuote = HolisticNarrative_check("「증거에있는긴인용글」을 풀어 쓰면 좋아요.");
+		assertThat(missingQuote.diagnostics()).contains("SUMMARY_QUOTE:not_in_evidence,len=9");
+	}
+
+	@Test
 	void 어긋난_글만_버린다() {
 		String advice = "직접 만든 결과물의 과정을 단계별로 남겨 보세요.";
 		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of(), CSE);

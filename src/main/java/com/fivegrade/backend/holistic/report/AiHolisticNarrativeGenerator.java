@@ -36,8 +36,8 @@ public final class AiHolisticNarrativeGenerator implements HolisticNarrativeWrit
 			ParsedNarrative parsed = client.generate(HolisticNarrativePrompt.inputOf(facts));
 			Checked checked = HolisticNarrativeValidator.check(facts, parsed);
 			if (!checked.rejections().isEmpty()) {
-				LOG.warn("event=holistic_narrative_ai_partial_fallback reason={} codes={}",
-						AiReportFailure.Reason.VALIDATION_REJECTED, checked.rejections());
+				LOG.warn("event=holistic_narrative_ai_partial_fallback reason={} codes={} details={}",
+						AiReportFailure.Reason.VALIDATION_REJECTED, checked.rejections(), checked.diagnostics());
 			} else {
 				LOG.info("event=holistic_narrative_ai_success");
 			}
