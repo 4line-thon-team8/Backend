@@ -37,6 +37,11 @@ public final class HolisticNarrativeValidator {
 	static final int MAX_EVIDENCE_LENGTH = 160;
 	static final int MAX_ADVICE_LENGTH = 160;
 	static final int MAX_EVIDENCE_LINES = 3;
+	/** 보완할 점 문장 수 상한 */
+	static final int MAX_IMPROVEMENT_LINES = 3;
+	/** 다음 단계 문장 수 상한. 마지막 한 칸은 서버 고정 문장이 쓴다. */
+	static final int MAX_NEXT_STEP_LINES = 2;
+	static final int MAX_DETAIL_LINE_LENGTH = 160;
 	/** 한 문장이 근거로 삼을 수 있는 구절 수 */
 	static final int MAX_EVIDENCE_IDS_PER_LINE = 3;
 	/** 따옴표 인용의 최소 길이. 한두 글자는 어느 구절에나 들어 있어 인용 검증이 의미가 없다. */
@@ -66,9 +71,23 @@ public final class HolisticNarrativeValidator {
 	 * @param strengthEvidence 통과한 강점 근거 문장(최대 3개). 하나도 없으면 빈 목록
 	 * @param advices          통과한 학과별 조언(학과 코드 → 글)
 	 * @param rejections       버린 글의 사유 코드. 로그에는 이 고정 코드만 남긴다.
+	 * @param improvements     통과한 보완할 점(근거 구절을 든 문장만, 최대 3개)
+	 * @param nextSteps        통과한 다음 단계(근거 구절을 든 문장만, 최대 2개)
 	 */
 	public record Checked(Line summary, Line overview, List<Line> strengthEvidence, Map<String, Line> advices,
-			List<String> rejections) {
+			List<String> rejections, List<Line> improvements, List<Line> nextSteps) {
+
+		public Checked {
+			strengthEvidence = List.copyOf(strengthEvidence);
+			improvements = List.copyOf(improvements);
+			nextSteps = List.copyOf(nextSteps);
+		}
+
+		/** 보완할 점·다음 단계 없이 만든다(기존 호출 호환). */
+		public Checked(Line summary, Line overview, List<Line> strengthEvidence, Map<String, Line> advices,
+				List<String> rejections) {
+			this(summary, overview, strengthEvidence, advices, rejections, List.of(), List.of());
+		}
 	}
 
 	/** 한 지표가 관찰된 학년(오름차순). 관찰되지 않았으면 빈 목록. */
@@ -122,6 +141,11 @@ public final class HolisticNarrativeValidator {
 			}
 		}
 
+		List<Line> improvements = checkGrounded(parsed.improvements(), "IMPROVEMENT", MAX_IMPROVEMENT_LINES,
+				catalog, facts, rejections);
+		List<Line> nextSteps = checkGrounded(parsed.nextSteps(), "NEXT_STEP", MAX_NEXT_STEP_LINES,
+				catalog, facts, rejections);
+
 		Map<String, Line> advices = new LinkedHashMap<>();
 		Map<String, MajorFacts> majors = new HashMap<>();
 		facts.majors().forEach(major -> majors.put(major.code(), major));
@@ -144,7 +168,68 @@ public final class HolisticNarrativeValidator {
 				rejections.add("ADVICE_" + problem);
 			}
 		}
-		return new Checked(summary, overview, strengthEvidence, advices, rejections);
+		return new Checked(summary, overview, strengthEvidence, advices, rejections, improvements, nextSteps);
+	}
+
+	/**
+	 * 보완할 점·다음 단계. 근거 구절이 있을 때만 받고, 문장마다 근거로 든 구절 번호가 입력에 있어야 한다.
+	 * 강점 근거와 달리 강점 지표만 가리킬 필요는 없다(관찰된 지표·요소·관심 태그를 refs 로 쓸 수 있다).
+	 * 구절에 지표 연결이 있고 문장이 지표를 가리켰다면 그 구절은 그 지표 중 하나의 근거여야 한다.
+	 */
+	private static List<Line> checkGrounded(List<EvidenceLine> items, String code, int max, Catalog catalog,
+			HolisticNarrativeFacts facts, List<String> rejections) {
+		List<Line> accepted = new ArrayList<>();
+		if (facts.evidence().isEmpty()) {
+			return accepted;
+		}
+		Map<String, HolisticNarrativeFacts.EvidencePhrase> known = new HashMap<>();
+		facts.evidence().forEach(phrase -> known.put(phrase.id(), phrase));
+		Set<String> texts = new HashSet<>();
+		for (EvidenceLine item : items) {
+			String problem = checkGroundedLine(item, catalog, facts, known);
+			if (problem == null && !texts.add(item.line().text().strip())) {
+				problem = "DUPLICATE";
+			}
+			if (problem != null) {
+				rejections.add(code + "_" + problem);
+			} else if (accepted.size() < max) {
+				accepted.add(item.line());
+			}
+		}
+		return accepted;
+	}
+
+	private static String checkGroundedLine(EvidenceLine item, Catalog catalog, HolisticNarrativeFacts facts,
+			Map<String, HolisticNarrativeFacts.EvidencePhrase> known) {
+		if (item.evidenceIds().isEmpty()) {
+			return "NO_EVIDENCE_IDS";
+		}
+		if (item.evidenceIds().size() > MAX_EVIDENCE_IDS_PER_LINE) {
+			return "TOO_MANY_EVIDENCE_IDS";
+		}
+		Set<String> indicatorRefs = new HashSet<>();
+		for (String ref : item.line().refs()) {
+			if (catalog.indicatorIds.contains(ref)) {
+				indicatorRefs.add(ref);
+			}
+		}
+		Set<Integer> years = new TreeSet<>();
+		List<String> cited = new ArrayList<>();
+		for (String id : item.evidenceIds()) {
+			HolisticNarrativeFacts.EvidencePhrase phrase = known.get(id);
+			if (phrase == null) {
+				return "UNKNOWN_EVIDENCE_ID";
+			}
+			if (!indicatorRefs.isEmpty() && !phrase.indicators().isEmpty()
+					&& phrase.indicators().stream().noneMatch(indicatorRefs::contains)) {
+				return "NOT_LINKED";
+			}
+			if (phrase.year() != null) {
+				years.add(phrase.year());
+			}
+			cited.add(phrase.text());
+		}
+		return checkLine(item.line(), catalog, facts, null, MAX_DETAIL_LINE_LENGTH, 2, years, cited);
 	}
 
 	/** 글에 학년이 나와도 되는 범위. 어느 지표든 관찰된 학년과 근거 구절의 학년이다. */
@@ -294,6 +379,8 @@ public final class HolisticNarrativeValidator {
 	private static final class Catalog {
 		final Map<String, Set<String>> refLabels = new HashMap<>();
 		final Set<String> allLabels = new LinkedHashSet<>();
+		/** 관찰된 지표 id */
+		final Set<String> indicatorIds = new HashSet<>();
 
 		Catalog(HolisticNarrativeFacts facts) {
 			for (ElementView element : facts.report().elements()) {
@@ -304,6 +391,7 @@ public final class HolisticNarrativeValidator {
 					elementLabels.add(indicator.label());
 					allLabels.add(indicator.label());
 					refLabels.put(indicator.id(), Set.of(indicator.label()));
+					indicatorIds.add(indicator.id());
 				}
 				// 관찰되지 않은 지표는 이름만 보호하고 근거로는 받지 않는다.
 				for (NotObserved indicator : element.notObserved()) {

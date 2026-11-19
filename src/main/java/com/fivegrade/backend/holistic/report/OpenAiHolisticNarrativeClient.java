@@ -82,7 +82,7 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 			Map<String, Object> body = Map.of(
 					"model", model,
 					"store", false,
-					"max_output_tokens", 2500,
+					"max_output_tokens", 3000,
 					"instructions", HolisticNarrativePrompt.INSTRUCTIONS,
 					"input", json.writeValueAsString(input),
 					"text", Map.of("format", Map.of(
@@ -149,12 +149,17 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 		properties.put("overview", lineSchema(null, null));
 		properties.put("strengthEvidence", Map.of("type", "array", "items", lineSchema(
 				"evidenceIds", Map.of("type", "array", "items", Map.of("type", "string")))));
+		properties.put("improvements", Map.of("type", "array", "items", lineSchema(
+				"evidenceIds", Map.of("type", "array", "items", Map.of("type", "string")))));
+		properties.put("nextSteps", Map.of("type", "array", "items", lineSchema(
+				"evidenceIds", Map.of("type", "array", "items", Map.of("type", "string")))));
 		properties.put("majorAdvices", Map.of("type", "array", "items", lineSchema(
 				"majorCode", Map.of("type", "string"))));
 		return Map.of(
 				"type", "object",
 				"properties", properties,
-				"required", List.of("activitySummary", "overview", "strengthEvidence", "majorAdvices"),
+				"required", List.of("activitySummary", "overview", "strengthEvidence", "improvements", "nextSteps",
+						"majorAdvices"),
 				"additionalProperties", false);
 	}
 
@@ -192,24 +197,9 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 			if (parsed == null || !parsed.isObject()) {
 				throw invalid();
 			}
-			JsonNode evidenceNodes = parsed.path("strengthEvidence");
-			if (!evidenceNodes.isArray() || evidenceNodes.size() > MAX_ITEMS) {
-				throw invalid();
-			}
-			List<EvidenceLine> strengthEvidence = new ArrayList<>();
-			for (JsonNode item : evidenceNodes) {
-				List<String> ids = new ArrayList<>();
-				if (!item.path("evidenceIds").isArray()) {
-					throw invalid();
-				}
-				for (JsonNode id : item.path("evidenceIds")) {
-					if (!id.isString()) {
-						throw invalid();
-					}
-					ids.add(id.asString());
-				}
-				strengthEvidence.add(new EvidenceLine(line(item), ids));
-			}
+			List<EvidenceLine> strengthEvidence = evidenceLines(parsed.path("strengthEvidence"));
+			List<EvidenceLine> improvements = evidenceLines(parsed.path("improvements"));
+			List<EvidenceLine> nextSteps = evidenceLines(parsed.path("nextSteps"));
 			JsonNode advices = parsed.path("majorAdvices");
 			if (!advices.isArray() || advices.size() > MAX_ITEMS) {
 				throw invalid();
@@ -222,13 +212,35 @@ public final class OpenAiHolisticNarrativeClient implements HolisticNarrativeAiC
 				majorAdvices.add(new MajorLine(item.path("majorCode").asString(), line(item)));
 			}
 			return new ParsedNarrative(line(parsed.path("activitySummary")), line(parsed.path("overview")),
-					strengthEvidence, majorAdvices);
+					strengthEvidence, majorAdvices, improvements, nextSteps);
 		} catch (AiReportFailure failure) {
 			throw failure;
 		} catch (RuntimeException malformed) {
 			// 파싱 예외는 응답 일부를 담을 수 있어 원인을 전달하지 않는다.
 			throw invalid();
 		}
+	}
+
+	/** 근거 구절 번호(evidenceIds)가 붙은 문장 배열을 읽는다. 배열이 아니거나 너무 길면 응답 전체를 거부한다. */
+	private static List<EvidenceLine> evidenceLines(JsonNode nodes) {
+		if (!nodes.isArray() || nodes.size() > MAX_ITEMS) {
+			throw invalid();
+		}
+		List<EvidenceLine> lines = new ArrayList<>();
+		for (JsonNode item : nodes) {
+			List<String> ids = new ArrayList<>();
+			if (!item.path("evidenceIds").isArray()) {
+				throw invalid();
+			}
+			for (JsonNode id : item.path("evidenceIds")) {
+				if (!id.isString()) {
+					throw invalid();
+				}
+				ids.add(id.asString());
+			}
+			lines.add(new EvidenceLine(line(item), ids));
+		}
+		return lines;
 	}
 
 	private static Line line(JsonNode node) {

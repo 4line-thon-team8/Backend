@@ -322,7 +322,7 @@ class HolisticNarrativeTest {
 	}
 
 	@Test
-	void AI가_통과한_자세히_보기만_LLM으로_표시하고_보완점과_다음_단계는_항상_TEMPLATE이다() {
+	void AI가_통과한_자세히_보기만_LLM으로_표시하고_AI가_보완점과_다음_단계를_주지_않으면_TEMPLATE이다() {
 		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
 		Line evidence = new Line("코딩 동아리 활동에서 탐구력이 2학년 기록에 드러나요.", List.of("A3"));
 		HolisticNarrativeAiClient client = input -> new ParsedNarrative(SUMMARY_OK, OVERVIEW_OK,
@@ -439,5 +439,117 @@ class HolisticNarrativeTest {
 		assertThat(withCitation.getFirst().indicators()).containsExactly("A3");
 		assertThat(fragmentOnly).extracting(EvidenceInput::text).containsExactly("코딩 동아리 활동");
 		assertThat(fragmentOnly.getFirst().indicators()).isEmpty();
+	}
+
+	// ---- 보완할 점·다음 단계(근거 구절 기반) ----
+
+	private static final Line IMPROVE_OK = new Line("「코딩 동아리 활동」에서 쓴 방법과 결과를 한 줄 덧붙이면 좋아요.", List.of("A3"));
+	private static final Line NEXT_OK = new Line("「코딩 동아리 활동」을 이어서 작은 프로젝트로 만들어 보면 좋아요.", List.of("B3"));
+
+	private static ParsedNarrative withDetail(List<EvidenceLine> improvements, List<EvidenceLine> nextSteps) {
+		return new ParsedNarrative(SUMMARY_OK, OVERVIEW_OK, List.of(), List.of(), improvements, nextSteps);
+	}
+
+	@Test
+	void 근거_구절을_든_보완점과_다음_단계는_통과한다() {
+		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
+		Checked checked = HolisticNarrativeValidator.check(facts, withDetail(
+				List.of(new EvidenceLine(IMPROVE_OK, List.of("e1"))), List.of(new EvidenceLine(NEXT_OK, List.of("e1")))));
+
+		assertThat(checked.improvements()).containsExactly(IMPROVE_OK);
+		assertThat(checked.nextSteps()).containsExactly(NEXT_OK);
+		assertThat(checked.rejections()).isEmpty();
+	}
+
+	@Test
+	void 어긋난_보완점은_사유별로_버린다() {
+		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
+		Map<String, EvidenceLine> bad = new java.util.LinkedHashMap<>();
+		bad.put("IMPROVEMENT_NO_EVIDENCE_IDS", new EvidenceLine(IMPROVE_OK, List.of()));
+		bad.put("IMPROVEMENT_UNKNOWN_EVIDENCE_ID", new EvidenceLine(IMPROVE_OK, List.of("e9")));
+		bad.put("IMPROVEMENT_FORBIDDEN", new EvidenceLine(new Line("결과가 부족해서 보완하면 좋아요.", List.of("A3")), List.of("e1")));
+		bad.put("IMPROVEMENT_QUOTE", new EvidenceLine(new Line("「다른 활동 내용」을 덧붙이면 좋아요.", List.of("A3")), List.of("e1")));
+		bad.put("IMPROVEMENT_NO_REFS", new EvidenceLine(new Line("결과를 덧붙이면 좋아요.", List.of()), List.of("e1")));
+		bad.put("IMPROVEMENT_STYLE", new EvidenceLine(new Line("결과를 덧붙인다.", List.of("A3")), List.of("e1")));
+		for (var entry : bad.entrySet()) {
+			Checked checked = HolisticNarrativeValidator.check(facts, withDetail(List.of(entry.getValue()), List.of()));
+			assertThat(checked.improvements()).as(entry.getKey()).isEmpty();
+			assertThat(checked.rejections()).as(entry.getKey()).contains(entry.getKey());
+		}
+	}
+
+	@Test
+	void 근거_구절이_없으면_보완점과_다음_단계를_받지_않는다() {
+		HolisticNarrativeFacts without = facts(IT_TAGS, 5000, List.of(), CSE);
+		Checked checked = HolisticNarrativeValidator.check(without, withDetail(
+				List.of(new EvidenceLine(IMPROVE_OK, List.of("e1"))), List.of(new EvidenceLine(NEXT_OK, List.of("e1")))));
+
+		assertThat(checked.improvements()).isEmpty();
+		assertThat(checked.nextSteps()).isEmpty();
+	}
+
+	@Test
+	void 구절에_지표_연결이_있고_문장이_다른_지표를_가리키면_버린다() {
+		HolisticNarrativeFacts linked = HolisticNarrativeFactsFactory.create(
+				report(IT_TAGS, 5000),
+				HolisticStrengthSelector.withDefaults().select(Map.of("A3", 4.4, "C3", 3.8, "B3", 2.0)),
+				List.of(CSE), MAJOR_TAGS,
+				List.of(new EvidenceInput("코딩 동아리 활동", 2, "교과세특", List.of("C3"))));
+
+		Checked checked = HolisticNarrativeValidator.check(linked, withDetail(
+				List.of(new EvidenceLine(IMPROVE_OK, List.of("e1"))), List.of()));
+
+		assertThat(checked.improvements()).isEmpty();
+		assertThat(checked.rejections()).contains("IMPROVEMENT_NOT_LINKED");
+	}
+
+	@Test
+	void 보완점은_세_개_다음_단계는_두_개까지만_받는다() {
+		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
+		List<EvidenceLine> improvements = java.util.stream.IntStream.range(0, 4)
+				.mapToObj(i -> new EvidenceLine(new Line("「코딩 동아리 활동」에서 " + "가나다라".charAt(i) + " 부분을 덧붙이면 좋아요.", List.of("A3")), List.of("e1")))
+				.toList();
+		List<EvidenceLine> nextSteps = java.util.stream.IntStream.range(0, 3)
+				.mapToObj(i -> new EvidenceLine(new Line("「코딩 동아리 활동」을 " + "가나다".charAt(i) + " 방향으로 이어 보면 좋아요.", List.of("B3")), List.of("e1")))
+				.toList();
+
+		Checked checked = HolisticNarrativeValidator.check(facts, withDetail(improvements, nextSteps));
+
+		assertThat(checked.improvements()).hasSize(HolisticNarrativeValidator.MAX_IMPROVEMENT_LINES);
+		assertThat(checked.nextSteps()).hasSize(HolisticNarrativeValidator.MAX_NEXT_STEP_LINES);
+	}
+
+	@Test
+	void 통과한_보완점과_다음_단계는_LLM이고_다음_단계_마지막은_항상_고정_문장이다() {
+		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
+		HolisticNarrativeAiClient client = input -> withDetail(
+				List.of(new EvidenceLine(IMPROVE_OK, List.of("e1"))), List.of(new EvidenceLine(NEXT_OK, List.of("e1"))));
+
+		Detail detail = new AiHolisticNarrativeGenerator(client, new HolisticNarrativeTemplate()).write(facts).detail();
+
+		assertThat(detail.improvements()).extracting(t -> t.text()).containsExactly(IMPROVE_OK.text());
+		assertThat(detail.improvements()).extracting(t -> t.generationMethod()).containsExactly("LLM");
+		assertThat(detail.nextSteps()).extracting(t -> t.generationMethod()).containsExactly("LLM", "TEMPLATE");
+		assertThat(detail.nextSteps().getLast().text()).isEqualTo(HolisticNarrativeTemplate.FIXED_NEXT_STEP);
+	}
+
+	@Test
+	void 보완점이_검증을_통과하지_못하면_그_영역만_기본_문장이다() {
+		HolisticNarrativeFacts facts = facts(IT_TAGS, 5000, List.of("코딩 동아리 활동"), CSE);
+		HolisticNarrativeAiClient client = input -> withDetail(
+				List.of(new EvidenceLine(new Line("결과가 부족해서 보완하면 좋아요.", List.of("A3")), List.of("e1"))),
+				List.of(new EvidenceLine(NEXT_OK, List.of("e1"))));
+
+		Detail detail = new AiHolisticNarrativeGenerator(client, new HolisticNarrativeTemplate()).write(facts).detail();
+		Detail template = new HolisticNarrativeTemplate().write(facts).detail();
+
+		assertThat(detail.improvements()).isEqualTo(template.improvements());
+		assertThat(detail.nextSteps()).extracting(t -> t.generationMethod()).containsExactly("LLM", "TEMPLATE");
+	}
+
+	@Test
+	void AI_지시문은_보완점과_다음_단계를_요구하고_버전이_올라갔다() {
+		assertThat(HolisticNarrativePrompt.VERSION).isEqualTo("5");
+		assertThat(HolisticNarrativePrompt.INSTRUCTIONS).contains("improvements").contains("nextSteps");
 	}
 }
