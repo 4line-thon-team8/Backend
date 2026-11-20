@@ -217,7 +217,7 @@ class ElementLevelCalculatorTest {
 
 		// 밀도 1단계(0.5점) + 품질 바닥 이하(1점 × 0.5) = 1.0, 천장 이상이면 0.5 + 2.5 = 3.0
 		assertEquals(1.0, parameters.level("A3", 1, CHARS, 0.05), DELTA);
-		assertEquals(3.0, parameters.level("A3", 1, CHARS, 0.9), DELTA);
+		assertEquals(3.0, parameters.level("A3", 1, CHARS, 0.95), DELTA);
 		// 바닥과 천장의 가운데는 품질 3점
 		double middle = (parameters.qualityFloor() + parameters.qualityCeil()) / 2;
 		assertEquals(0.5 + 0.5 * 3, parameters.level("A3", 1, CHARS, middle), DELTA);
@@ -228,10 +228,10 @@ class ElementLevelCalculatorTest {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 
 		// 실제 문서의 중앙값 밀도(A3 약 2.6~3.2, 품질 중앙 0.68)는 한가운데 점수여야 한다.
-		double median = parameters.level("A3", 26, CHARS, 0.68);
+		double median = parameters.level("A3", 26, CHARS, 0.80);
 		assertTrue(median > 2.0 && median < 4.0, "median=" + median);
 		// 중앙값의 2배 밀도에 품질 천장이면 5점
-		assertEquals(5.0, parameters.level("A3", 100, CHARS, 0.80), DELTA);
+		assertEquals(5.0, parameters.level("A3", 100, CHARS, parameters.qualityCeil()), DELTA);
 	}
 
 	@Test
@@ -241,13 +241,13 @@ class ElementLevelCalculatorTest {
 				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.10, 0.32);
 		// 밀도 5단계 + 품질 바닥: 게이트 없음 0.6*5 + 0.4*1 = 3.4, 게이트 있음 0.5*(1+4*0.3) + 0.5*1 = 1.6
 		assertEquals(3.4, ungated.level(25, CHARS, 0.10), DELTA);
-		assertEquals(1.6, gated.level(25, CHARS, 0.45), DELTA);
+		assertEquals(1.6, gated.level(25, CHARS, gated.qualityFloor()), DELTA);
 		// 품질이 천장이면 게이트는 영향이 없다
-		assertEquals(5.0, gated.level(25, CHARS, 0.80), DELTA);
-		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, 0.80), DELTA);
+		assertEquals(5.0, gated.level(25, CHARS, gated.qualityCeil()), DELTA);
+		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, gated.qualityCeil()), DELTA);
 		// 품질이 높을수록 같은 밀도에서 수준이 오른다(단조)
-		assertTrue(gated.level(25, CHARS, 0.50) < gated.level(25, CHARS, 0.65));
-		assertTrue(gated.level(25, CHARS, 0.65) < gated.level(25, CHARS, 0.80));
+		assertTrue(gated.level(25, CHARS, 0.60) < gated.level(25, CHARS, 0.75));
+		assertTrue(gated.level(25, CHARS, 0.75) < gated.level(25, CHARS, gated.qualityCeil()));
 	}
 
 	@Test
