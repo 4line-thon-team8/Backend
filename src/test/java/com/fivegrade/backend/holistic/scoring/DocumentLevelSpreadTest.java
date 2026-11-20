@@ -12,18 +12,18 @@ class DocumentLevelSpreadTest {
 
 	private static final double DELTA = 1e-9;
 
-	/** 앵커 {2.292, 2.434, 2.827, 3.128, 3.422, 3.966, 4.158} ↔ 수준 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0} */
+	/** 앵커 {1.612, 1.713, 2.073, 2.355, 2.624, 3.445, 3.668} ↔ 수준 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0} */
 	private final DocumentLevelSpread spread = DocumentLevelSpread.DEFAULT;
 
 	@Test
 	void 앵커_위치는_백분위_수준과_정확히_맞는다() {
-		assertEquals(1.0, spread.apply(2.292), DELTA);
-		assertEquals(1.5, spread.apply(2.434), DELTA);
-		assertEquals(2.5, spread.apply(2.827), DELTA);
-		assertEquals(3.0, spread.apply(3.128), DELTA);
-		assertEquals(3.5, spread.apply(3.422), DELTA);
-		assertEquals(4.5, spread.apply(3.966), DELTA);
-		assertEquals(5.0, spread.apply(4.158), DELTA);
+		assertEquals(1.0, spread.apply(1.612), DELTA);
+		assertEquals(1.5, spread.apply(1.713), DELTA);
+		assertEquals(2.5, spread.apply(2.073), DELTA);
+		assertEquals(3.0, spread.apply(2.355), DELTA);
+		assertEquals(3.5, spread.apply(2.624), DELTA);
+		assertEquals(4.5, spread.apply(3.445), DELTA);
+		assertEquals(5.0, spread.apply(3.668), DELTA);
 	}
 
 	@Test
