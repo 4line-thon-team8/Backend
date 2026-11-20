@@ -28,10 +28,10 @@ class DocumentLevelSpreadTest {
 
 	@Test
 	void 앵커_사이는_선형_보간하고_양끝_바깥은_1과_5로_막는다() {
-		// 2.827(2.5)과 3.128(3.0)의 한가운데
-		assertEquals(2.75, spread.apply((2.827 + 3.128) / 2), DELTA);
+		// 2.073(2.5)과 2.355(3.0)의 한가운데
+		assertEquals(2.75, spread.apply((2.073 + 2.355) / 2), DELTA);
 		assertEquals(1.0, spread.apply(1.0), DELTA);
-		assertEquals(1.0, spread.apply(2.0), DELTA);
+		assertEquals(1.0, spread.apply(1.5), DELTA);
 		assertEquals(5.0, spread.apply(4.5), DELTA);
 		assertEquals(5.0, spread.apply(5.0), DELTA);
 	}
@@ -49,9 +49,9 @@ class DocumentLevelSpreadTest {
 	@Test
 	void 원_수준의_좁은_구간을_1에서_5로_넓힌다() {
 		// 원 수준 2.4~3.5(1.1 폭)가 보정 후 1.3~3.6 (2.3 폭 이상)으로 벌어진다.
-		assertTrue(spread.apply(3.5) - spread.apply(2.4) > 2.0);
+		assertTrue(spread.apply(2.9) - spread.apply(1.8) > 2.0);
 		// 원 수준 0.1 차이가 중앙 부근에서 0.18 이상의 차이가 된다.
-		assertTrue(spread.apply(3.2) - spread.apply(3.1) > 0.15);
+		assertTrue(spread.apply(2.4) - spread.apply(2.3) > 0.15);
 	}
 
 	@Test
