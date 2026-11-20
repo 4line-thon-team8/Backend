@@ -11,7 +11,8 @@ class DocumentLevelCalculatorTest {
 
 	private static final double DELTA = 1e-9;
 
-	private final DocumentLevelCalculator calculator = new DocumentLevelCalculator();
+	/** 가중 평균 계산만 확인하는 테스트는 분포 보정 없이(항등) 돌린다. */
+	private final DocumentLevelCalculator calculator = new DocumentLevelCalculator(DocumentLevelSpread.IDENTITY);
 
 	@Test
 	void weightsAreApplied() {
@@ -58,6 +59,20 @@ class DocumentLevelCalculatorTest {
 		AxisWeights weights = new AxisWeights(0.0, 0.0, 100.0);
 
 		assertEquals(3.0, calculator.compute(levels, weights).orElseThrow(), DELTA);
+	}
+
+	@Test
+	void 기본_계산기는_가중_평균에_분포_보정을_적용한다() {
+		DocumentLevelCalculator production = new DocumentLevelCalculator();
+		ElementLevels levels = new ElementLevels(4.0, 2.0, 3.0);
+		AxisWeights weights = new AxisWeights(50.0, 30.0, 20.0);
+		double mean = calculator.compute(levels, weights).orElseThrow();
+
+		assertEquals(DocumentLevelSpread.DEFAULT.apply(mean), production.compute(levels, weights).orElseThrow(), DELTA);
+		// 보정은 순서를 바꾸지 않는다.
+		double lower = production.compute(new ElementLevels(3.0, 2.0, 3.0), weights).orElseThrow();
+		double higher = production.compute(new ElementLevels(4.0, 2.0, 3.0), weights).orElseThrow();
+		assertTrue(lower < higher);
 	}
 
 }

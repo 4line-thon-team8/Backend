@@ -3,6 +3,7 @@ package com.fivegrade.backend.holistic.scoring;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fivegrade.backend.holistic.scoring.ElementLevelCalculator.Observation;
@@ -127,13 +128,44 @@ class ElementLevelCalculatorTest {
 	}
 
 	@Test
-	void 같은_요소의_관찰된_지표는_평균한다() {
+	void 가중치를_모두_1로_두면_같은_요소의_관찰된_지표를_단순_평균한다() {
+		ElementLevelCalculator equal = new ElementLevelCalculator(COMMON, Map.of());
 		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
-		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+		ElementLevelCalculator.Result result = equal.compute(observable, List.of(
 				new Observation("A3", 25, 1.0), new Observation("A2", 7, 0.0)), CHARS);
 
 		// A3=5.0, A2=1.6 → 평균 3.3
 		assertEquals(3.3, result.elementLevels().get("ACADEMIC"), DELTA);
+	}
+
+	@Test
+	void 기본_가중치로_같은_요소의_지표를_가중_평균한다() {
+		Map<String, String> observable = Map.of("A2", "ACADEMIC", "A3", "ACADEMIC");
+		ElementLevelCalculator.Result result = calculator.compute(observable, List.of(
+				new Observation("A3", 25, 1.0), new Observation("A2", 7, 0.0)), CHARS);
+
+		// A3=5.0(가중 1.5), A2=1.6(가중 0.7) → (7.5 + 1.12) / 2.2
+		assertEquals((1.5 * 5.0 + 0.7 * 1.6) / 2.2, result.elementLevels().get("ACADEMIC"), DELTA);
+	}
+
+	@Test
+	void 가중치가_없는_지표는_1로_본다() {
+		ElementLevelCalculator custom = new ElementLevelCalculator(COMMON, Map.of("C2", 3.0));
+		Map<String, String> observable = Map.of("C1", "COMMUNITY", "C2", "COMMUNITY");
+		ElementLevelCalculator.Result result = custom.compute(observable, List.of(
+				new Observation("C1", 25, 1.0), new Observation("C2", 7, 0.0)), CHARS);
+
+		double c1 = result.indicatorLevels().get("C1");
+		double c2 = result.indicatorLevels().get("C2");
+		assertEquals((c1 + 3.0 * c2) / 4.0, result.elementLevels().get("COMMUNITY"), DELTA);
+	}
+
+	@Test
+	void 가중치는_양수여야_한다() {
+		assertThrows(IllegalArgumentException.class,
+				() -> new ElementLevelCalculator(COMMON, Map.of("A2", 0.0)));
+		assertThrows(IllegalArgumentException.class,
+				() -> new ElementLevelCalculator(COMMON, Map.of("A2", -1.0)));
 	}
 
 	@Test
@@ -185,7 +217,7 @@ class ElementLevelCalculatorTest {
 
 		// 밀도 1단계(0.5점) + 품질 바닥 이하(1점 × 0.5) = 1.0, 천장 이상이면 0.5 + 2.5 = 3.0
 		assertEquals(1.0, parameters.level("A3", 1, CHARS, 0.05), DELTA);
-		assertEquals(3.0, parameters.level("A3", 1, CHARS, 0.9), DELTA);
+		assertEquals(3.0, parameters.level("A3", 1, CHARS, 0.95), DELTA);
 		// 바닥과 천장의 가운데는 품질 3점
 		double middle = (parameters.qualityFloor() + parameters.qualityCeil()) / 2;
 		assertEquals(0.5 + 0.5 * 3, parameters.level("A3", 1, CHARS, middle), DELTA);
@@ -196,10 +228,10 @@ class ElementLevelCalculatorTest {
 		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
 
 		// 실제 문서의 중앙값 밀도(A3 약 2.6~3.2, 품질 중앙 0.68)는 한가운데 점수여야 한다.
-		double median = parameters.level("A3", 26, CHARS, 0.68);
+		double median = parameters.level("A3", 26, CHARS, 0.80);
 		assertTrue(median > 2.0 && median < 4.0, "median=" + median);
 		// 중앙값의 2배 밀도에 품질 천장이면 5점
-		assertEquals(5.0, parameters.level("A3", 100, CHARS, 0.80), DELTA);
+		assertEquals(5.0, parameters.level("A3", 100, CHARS, parameters.qualityCeil()), DELTA);
 	}
 
 	@Test
@@ -209,13 +241,13 @@ class ElementLevelCalculatorTest {
 				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.10, 0.32);
 		// 밀도 5단계 + 품질 바닥: 게이트 없음 0.6*5 + 0.4*1 = 3.4, 게이트 있음 0.5*(1+4*0.3) + 0.5*1 = 1.6
 		assertEquals(3.4, ungated.level(25, CHARS, 0.10), DELTA);
-		assertEquals(1.6, gated.level(25, CHARS, 0.45), DELTA);
+		assertEquals(1.6, gated.level(25, CHARS, gated.qualityFloor()), DELTA);
 		// 품질이 천장이면 게이트는 영향이 없다
-		assertEquals(5.0, gated.level(25, CHARS, 0.80), DELTA);
-		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, 0.80), DELTA);
+		assertEquals(5.0, gated.level(25, CHARS, gated.qualityCeil()), DELTA);
+		assertEquals(ungated.level(25, CHARS, 0.32), gated.level(25, CHARS, gated.qualityCeil()), DELTA);
 		// 품질이 높을수록 같은 밀도에서 수준이 오른다(단조)
-		assertTrue(gated.level(25, CHARS, 0.50) < gated.level(25, CHARS, 0.65));
-		assertTrue(gated.level(25, CHARS, 0.65) < gated.level(25, CHARS, 0.80));
+		assertTrue(gated.level(25, CHARS, 0.60) < gated.level(25, CHARS, 0.75));
+		assertTrue(gated.level(25, CHARS, 0.75) < gated.level(25, CHARS, gated.qualityCeil()));
 	}
 
 	@Test
@@ -234,6 +266,83 @@ class ElementLevelCalculatorTest {
 				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, 0.3, 0.3));
 		assertThrowsIllegal(() -> new IndicatorLevelParameters(
 				new double[] {0.7, 1.2, 1.7, 2.5}, Map.of(), 0.6, 0.4, -0.1, 0.5));
+	}
+
+	@Test
+	void 앵커가_있으면_밀도가_연속_단계가_되어_계단식에서_같은_단계인_문서도_구분한다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+
+		// 1000자당 2.9건과 3.3건: 계단식으로는 둘 다 3단계지만 연속 단계로는 다르다.
+		assertEquals(3, parameters.rateLevel("A3", 29, CHARS));
+		assertEquals(3, parameters.rateLevel("A3", 33, CHARS));
+		double lower = parameters.rateStage("A3", 29, CHARS);
+		double higher = parameters.rateStage("A3", 33, CHARS);
+		assertTrue(lower > 2.5 && higher < 3.0 && lower < higher, "lower=" + lower + ", higher=" + higher);
+		assertTrue(parameters.level("A3", 29, CHARS, 0.68) < parameters.level("A3", 33, CHARS, 0.68));
+	}
+
+	@Test
+	void 앵커_위치의_밀도는_백분위_단계와_정확히_맞는다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+		long chars = 100_000; // 신호 n건 = 1000자당 n/100건
+
+		// A3 앵커 {1.17, 1.59, 2.79, 3.58, 4.69, 7.15, 9.03} ↔ 단계 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0}
+		assertEquals(1.0, parameters.rateStage("A3", 117, chars), DELTA);
+		assertEquals(1.5, parameters.rateStage("A3", 159, chars), DELTA);
+		assertEquals(2.5, parameters.rateStage("A3", 279, chars), DELTA);
+		assertEquals(3.0, parameters.rateStage("A3", 358, chars), DELTA);
+		assertEquals(3.5, parameters.rateStage("A3", 469, chars), DELTA);
+		assertEquals(4.5, parameters.rateStage("A3", 715, chars), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 903, chars), DELTA);
+		// 두 앵커(1.59, 2.79)의 한가운데 밀도 2.19는 두 단계(1.5, 2.5)의 한가운데 2.0
+		assertEquals(2.0, parameters.rateStage("A3", 438, 200_000), 1e-9);
+	}
+
+	@Test
+	void 앵커_양끝_바깥은_1과_5로_막는다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+
+		assertEquals(1.0, parameters.rateStage("A3", 0, CHARS), DELTA);
+		assertEquals(1.0, parameters.rateStage("A3", 5, CHARS), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 100, CHARS), DELTA);
+		assertEquals(5.0, parameters.rateStage("A3", 5_000, CHARS), DELTA);
+	}
+
+	@Test
+	void 앵커가_없는_지표는_계단식_정수_단계를_쓴다() {
+		// 공통 경계만 쓰는 설정(지표별 앵커 없음)
+		assertEquals(3.0, COMMON.rateStage("A3", 12, CHARS), DELTA);
+		assertEquals(1.0, COMMON.rateStage("A3", 6, CHARS), DELTA);
+		// 기본 설정이어도 앵커가 없는 지표(ZZ)는 공통 경계의 정수 단계
+		assertEquals(IndicatorLevelParameters.DEFAULT.rateLevel("ZZ", 12, CHARS),
+				IndicatorLevelParameters.DEFAULT.rateStage("ZZ", 12, CHARS), DELTA);
+	}
+
+	@Test
+	void 수준은_밀도에_따라_매끄럽게_오르고_계단식보다_훨씬_많은_값을_만든다() {
+		IndicatorLevelParameters parameters = IndicatorLevelParameters.DEFAULT;
+		long chars = 100_000;
+		java.util.Set<Double> distinct = new java.util.TreeSet<>();
+		double previous = 0;
+		for (int count = 0; count <= 900; count += 5) {
+			double level = parameters.level("A3", count, chars, 0.68);
+			assertTrue(level >= previous, "count=" + count);
+			previous = level;
+			distinct.add(Math.round(level * 100) / 100.0);
+		}
+		// 계단식이면 지표 수준은 최대 5가지 값(품질이 같을 때)이다.
+		assertTrue(distinct.size() > 30, "distinct=" + distinct.size());
+	}
+
+	@Test
+	void 잘못된_앵커는_거부한다() {
+		double[] cuts = {0.7, 1.2, 1.7, 2.5};
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(cuts, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.0,
+				Map.of("A3", new double[] {1, 2, 3, 4, 5, 6})));
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(cuts, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.0,
+				Map.of("A3", new double[] {1, 2, 3, 3, 5, 6, 7})));
+		assertThrowsIllegal(() -> new IndicatorLevelParameters(cuts, Map.of(), 0.6, 0.4, 0.1, 0.3, 1.0,
+				Map.of("A3", new double[] {0, 2, 3, 4, 5, 6, 7})));
 	}
 
 	private static void assertThrowsIllegal(Runnable action) {

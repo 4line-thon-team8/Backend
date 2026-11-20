@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fivegrade.backend.holistic.profile.HolisticTrackProfile;
 import com.fivegrade.backend.holistic.scoring.DocumentLevelCalculator.ElementLevels;
+import com.fivegrade.backend.holistic.scoring.DocumentLevelSpread;
 import com.fivegrade.backend.holistic.scoring.DocumentSignal;
 import com.fivegrade.backend.recommendation.candidate.CandidateUnit;
 import com.fivegrade.backend.recommendation.dto.CandidateKind;
@@ -25,6 +26,9 @@ class DocumentSignalFactoryTest {
 	private static final Offset<Double> DELTA = Offset.offset(1e-9);
 	private static final ElementLevels LEVELS = new ElementLevels(4.0, 2.0, 3.0);
 
+	/** 서류 수준은 축 평균을 실제 문서 분포 위의 위치로 편 값이다. 기대값은 평균에 같은 보정을 적용해 만든다. */
+	private static final DocumentLevelSpread SPREAD = DocumentLevelSpread.DEFAULT;
+
 	@Test
 	void 학종_후보는_전형_프로필의_비중으로_서류_수준과_비중을_만든다() {
 		// 학업 100%면 서류 수준은 학업 수준(4.0)과 같다. 서류 비중 70%는 0.7이 된다.
@@ -34,7 +38,7 @@ class DocumentSignalFactoryTest {
 		DocumentSignal signal = resolver.apply(unit(1L, "학종", "학생부종합(학교장추천)"));
 
 		assertThat(signal).isNotNull();
-		assertThat(signal.level()).isEqualTo(4.0, DELTA);
+		assertThat(signal.level()).isEqualTo(SPREAD.apply(4.0), DELTA);
 		assertThat(signal.share()).isEqualTo(0.7, DELTA);
 	}
 
@@ -65,7 +69,7 @@ class DocumentSignalFactoryTest {
 
 		DocumentSignal signal = resolver.apply(unit(1L, "학종", "A전형"));
 
-		assertThat(signal.level()).isEqualTo(4.0, DELTA);
+		assertThat(signal.level()).isEqualTo(SPREAD.apply(4.0), DELTA);
 		assertThat(signal.share()).isEqualTo(0.6, DELTA);
 	}
 
@@ -91,7 +95,7 @@ class DocumentSignalFactoryTest {
 			assertThat(signal.adjustable()).isFalse();
 			assertThat(signal.share()).isNull();
 			// 세 축 균등: (4.0 + 2.0 + 3.0) / 3
-			assertThat(signal.level()).isEqualTo(3.0, DELTA);
+			assertThat(signal.level()).isEqualTo(SPREAD.apply(3.0), DELTA);
 		}
 		assertThat(resolver.apply(unit(1L, "학종", "A전형")).adjustable()).isTrue();
 	}
@@ -103,7 +107,7 @@ class DocumentSignalFactoryTest {
 
 		DocumentSignal signal = resolver.apply(unit(1L, "학종", "A전형"));
 
-		assertThat(signal.level()).isEqualTo(3.0, DELTA);
+		assertThat(signal.level()).isEqualTo(SPREAD.apply(3.0), DELTA);
 		assertThat(signal.share()).isNull();
 	}
 
@@ -124,7 +128,7 @@ class DocumentSignalFactoryTest {
 
 		DocumentSignal signal = resolver.apply(unit(1L, "학종", "A전형"));
 		assertThat(signal).isNotNull();
-		assertThat(signal.level()).isEqualTo(4.0, DELTA);
+		assertThat(signal.level()).isEqualTo(SPREAD.apply(4.0), DELTA);
 	}
 
 	@Test

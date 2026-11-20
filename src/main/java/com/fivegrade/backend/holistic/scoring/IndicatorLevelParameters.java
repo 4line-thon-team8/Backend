@@ -31,8 +31,18 @@ import java.util.Map;
  * rateGateFloor + (1 - rateGateFloor) × q 이다. 품질이 천장이면 배율 1(밀도 단계 그대로),
  * 품질이 바닥이면 배율 rateGateFloor 다. 1 이면 게이트를 쓰지 않는다.
  *
- * 경계값은 실제 생기부 110건(충북 사례집)의 분포에 맞춘 값이다. 같은 값으로 서울대 합격 사례 72건을 재면 서류 수준 중앙이
- * 충북보다 약 0.5 높게 나온다(충북 3.0, 서울대 3.5). 사람이 매긴 서류 수준으로 검증하기 전까지는 그 점을 감안한다.
+ * <h3>연속 단계(앵커)</h3>
+ * 경계로 나눈 5단계는 계단식이라, 경계를 막 넘은 문서와 막 못 넘은 문서가 한 단계씩 차이 나고 같은 단계 안의 차이는 보이지 않는다.
+ * 지표를 평균하면 이 계단이 서로 상쇄되어 문서 수준이 3점 근처 좁은 구간에 몰린다. 그래서 지표별 앵커가 있으면
+ * 밀도를 앵커 사이에서 선형 보간해 1.0~5.0 연속 단계로 쓴다. 앵커는 실제 문서 분포의 백분위 {5, 10, 30, 50, 70, 90, 95}이고
+ * 각각 단계 {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0}에 대응한다(계단식 경계 10·30·70·90은 그대로 1.5·2.5·3.5·4.5의 지점이다).
+ * 5% 아래는 1.0, 95% 위는 5.0 으로 막는다. 앵커가 없는 지표는 위 계단식 경계(정수 단계)를 쓴다.
+ *
+ * <h3>자료</h3>
+ * 경계와 앵커는 충북 일반고 사례집 110건과 서울대 합격 사례 72건(2019~2026)을 같은 분석 파이프라인으로 재서, 문서마다 같은 비중으로
+ * 합친 분포의 백분위다. 서울대 사례는 합격자 발췌라 충북보다 분포가 위쪽이므로 합치면 앵커가 위로 올라간다.
+ * 충북만으로 재면 서울대 중앙이 4.9 까지 올라가 서울대 사례끼리 구분이 사라지고, 서울대만으로 재면 충북 중앙이 2.6 이 된다.
+ * 사람이 매긴 서류 수준으로 검증하기 전까지는 이 점을 감안한다.
  *
  * @param rateCuts       공통 신호 밀도(1000자당) 경계(오름차순, 길이 4). 지표별 경계가 없을 때 쓴다.
  * @param indicatorCuts  지표 ID → 그 지표의 신호 밀도 경계(오름차순, 길이 4)
@@ -41,25 +51,40 @@ import java.util.Map;
  * @param qualityFloor   품질을 1점으로 보는 값(이하)
  * @param qualityCeil    품질을 5점으로 보는 값(이상). qualityFloor 보다 크다.
  * @param rateGateFloor  품질이 바닥일 때 밀도 단계(1 초과분)에 곱하는 배율(0 초과 1 이하). 1 이면 게이트를 쓰지 않는다.
+ * @param indicatorAnchors 지표 ID → 그 지표의 밀도 앵커(오름차순, 길이 7, 백분위 5·10·30·50·70·90·95). 없으면 계단식 단계를 쓴다.
  */
 public record IndicatorLevelParameters(
 		double[] rateCuts, Map<String, double[]> indicatorCuts, double rateWeight, double qualityWeight,
-		double qualityFloor, double qualityCeil, double rateGateFloor) {
+		double qualityFloor, double qualityCeil, double rateGateFloor, Map<String, double[]> indicatorAnchors) {
+
+	/** 앵커 7개가 각각 대응하는 연속 단계. 백분위 5·10·30·50·70·90·95 에 해당한다. */
+	static final double[] ANCHOR_STAGES = {1.0, 1.5, 2.5, 3.0, 3.5, 4.5, 5.0};
 
 	public static final IndicatorLevelParameters DEFAULT = new IndicatorLevelParameters(
 			new double[] {0.7, 1.2, 1.7, 2.5},
 			Map.of(
-				"A2", new double[] {0.18, 0.55, 1.13, 1.56},
-				"A3", new double[] {1.44, 2.46, 4.05, 5.09},
-				"B3", new double[] {0.79, 1.68, 2.91, 3.73},
-				"C1", new double[] {0.74, 1.26, 2.13, 2.70},
-				"C2", new double[] {0.31, 0.49, 1.21, 1.81},
-				"C3", new double[] {0.22, 0.56, 1.01, 1.50},
-				"C4", new double[] {0.15, 0.36, 1.04, 1.47},
-				"D1", new double[] {0.16, 0.40, 0.88, 1.38},
-				"D3", new double[] {0.42, 0.81, 1.45, 1.88},
-				"D4", new double[] {0.15, 0.34, 0.79, 1.09}),
-			0.5, 0.5, 0.45, 0.80, 0.3);
+				"A2", new double[] {0.30, 0.61, 1.31, 2.11},
+				"A3", new double[] {1.59, 2.79, 4.69, 7.15},
+				"B3", new double[] {0.40, 0.93, 2.57, 3.41},
+				"C1", new double[] {0.61, 1.14, 2.03, 2.86},
+				"C2", new double[] {0.32, 0.52, 1.12, 1.79},
+				"C3", new double[] {0.30, 0.53, 1.05, 1.51},
+				"C4", new double[] {0.18, 0.49, 1.04, 1.59},
+				"D1", new double[] {0.29, 0.42, 0.91, 1.35},
+				"D3", new double[] {0.42, 0.70, 1.52, 1.96},
+				"D4", new double[] {0.28, 0.48, 0.99, 1.94}),
+			0.5, 0.5, 0.55, 0.90, 0.3,
+			Map.of(
+				"A2", new double[] {0.19, 0.30, 0.61, 0.94, 1.31, 2.11, 2.86},
+				"A3", new double[] {1.17, 1.59, 2.79, 3.58, 4.69, 7.15, 9.03},
+				"B3", new double[] {0.33, 0.40, 0.93, 1.83, 2.57, 3.41, 3.85},
+				"C1", new double[] {0.50, 0.61, 1.14, 1.63, 2.03, 2.86, 3.43},
+				"C2", new double[] {0.30, 0.32, 0.52, 0.71, 1.12, 1.79, 1.93},
+				"C3", new double[] {0.18, 0.30, 0.53, 0.73, 1.05, 1.51, 1.92},
+				"C4", new double[] {0.16, 0.18, 0.49, 0.71, 1.04, 1.59, 1.89},
+				"D1", new double[] {0.21, 0.29, 0.42, 0.62, 0.91, 1.35, 1.53},
+				"D3", new double[] {0.31, 0.42, 0.70, 1.08, 1.52, 1.96, 2.51},
+				"D4", new double[] {0.16, 0.28, 0.48, 0.71, 0.99, 1.94, 2.39}));
 
 	/** 지표별 경계와 품질 정규화 없이 공통 경계만 쓰는 설정(품질은 0~1 을 그대로 1~5 로 편다). */
 	public IndicatorLevelParameters(double[] rateCuts, double rateWeight, double qualityWeight) {
@@ -71,6 +96,13 @@ public record IndicatorLevelParameters(
 			double[] rateCuts, Map<String, double[]> indicatorCuts, double rateWeight, double qualityWeight,
 			double qualityFloor, double qualityCeil) {
 		this(rateCuts, indicatorCuts, rateWeight, qualityWeight, qualityFloor, qualityCeil, 1.0);
+	}
+
+	/** 지표별 경계와 품질 게이트까지 쓰되, 밀도는 계단식(정수) 단계로만 보는 설정. 연속 단계 앵커가 없다. */
+	public IndicatorLevelParameters(
+			double[] rateCuts, Map<String, double[]> indicatorCuts, double rateWeight, double qualityWeight,
+			double qualityFloor, double qualityCeil, double rateGateFloor) {
+		this(rateCuts, indicatorCuts, rateWeight, qualityWeight, qualityFloor, qualityCeil, rateGateFloor, Map.of());
 	}
 
 	public IndicatorLevelParameters {
@@ -92,8 +124,31 @@ public record IndicatorLevelParameters(
 		if (rateGateFloor <= 0 || rateGateFloor > 1) {
 			throw new IllegalArgumentException("rateGateFloor must be in (0, 1]");
 		}
+		if (indicatorAnchors == null) {
+			throw new IllegalArgumentException("indicatorAnchors must not be null");
+		}
+		Map<String, double[]> anchorCopy = new HashMap<>();
+		indicatorAnchors.forEach((id, anchors) -> {
+			checkAnchors(anchors, "indicatorAnchors[" + id + "]");
+			anchorCopy.put(id, anchors.clone());
+		});
 		rateCuts = rateCuts.clone();
 		indicatorCuts = Map.copyOf(copy);
+		indicatorAnchors = Map.copyOf(anchorCopy);
+	}
+
+	private static void checkAnchors(double[] anchors, String name) {
+		if (anchors == null || anchors.length != ANCHOR_STAGES.length) {
+			throw new IllegalArgumentException(name + " must have " + ANCHOR_STAGES.length + " items");
+		}
+		if (anchors[0] <= 0) {
+			throw new IllegalArgumentException(name + " must be positive");
+		}
+		for (int i = 1; i < anchors.length; i++) {
+			if (anchors[i] <= anchors[i - 1]) {
+				throw new IllegalArgumentException(name + " must be increasing");
+			}
+		}
 	}
 
 	private static void checkCuts(double[] cuts, String name) {
@@ -131,17 +186,42 @@ public record IndicatorLevelParameters(
 		return level;
 	}
 
+	/**
+	 * 그 지표의 밀도 단계를 1.0~5.0 연속 값으로 만든다. 지표별 앵커가 있으면 앵커 사이를 선형 보간하고(5% 아래는 1.0,
+	 * 95% 위는 5.0), 없으면 {@link #rateLevel(String, int, long)}의 정수 단계를 그대로 쓴다.
+	 */
+	public double rateStage(String indicatorId, int count, long narrativeChars) {
+		double[] anchors = indicatorAnchors.get(indicatorId);
+		if (anchors == null) {
+			return rateLevel(indicatorId, count, narrativeChars);
+		}
+		double rate = count * 1000.0 / Math.max(1L, narrativeChars);
+		if (rate <= anchors[0]) {
+			return ANCHOR_STAGES[0];
+		}
+		int last = anchors.length - 1;
+		if (rate >= anchors[last]) {
+			return ANCHOR_STAGES[last];
+		}
+		int i = 0;
+		while (rate >= anchors[i + 1]) {
+			i++;
+		}
+		double ratio = (rate - anchors[i]) / (anchors[i + 1] - anchors[i]);
+		return ANCHOR_STAGES[i] + ratio * (ANCHOR_STAGES[i + 1] - ANCHOR_STAGES[i]);
+	}
+
 	/** 신호 수·서술 글자 수·품질(0~1)로 지표 수준(1~5)을 만든다(공통 경계). */
 	public double level(int count, long narrativeChars, double quality) {
 		return combine(rateLevel(count, narrativeChars), quality);
 	}
 
-	/** 지표별 경계로 지표 수준(1~5)을 만든다. */
+	/** 지표별 밀도 단계(앵커가 있으면 연속, 없으면 계단식)로 지표 수준(1~5)을 만든다. */
 	public double level(String indicatorId, int count, long narrativeChars, double quality) {
-		return combine(rateLevel(indicatorId, count, narrativeChars), quality);
+		return combine(rateStage(indicatorId, count, narrativeChars), quality);
 	}
 
-	private double combine(int rateStage, double quality) {
+	private double combine(double rateStage, double quality) {
 		double q = Math.min(1.0, Math.max(0.0, (quality - qualityFloor) / (qualityCeil - qualityFloor)));
 		double gatedStage = 1 + (rateStage - 1) * (rateGateFloor + (1 - rateGateFloor) * q);
 		double level = rateWeight * gatedStage + qualityWeight * (1 + 4 * q);
@@ -157,6 +237,13 @@ public record IndicatorLevelParameters(
 	public Map<String, double[]> indicatorCuts() {
 		Map<String, double[]> copy = new HashMap<>();
 		indicatorCuts.forEach((id, cuts) -> copy.put(id, cuts.clone()));
+		return copy;
+	}
+
+	@Override
+	public Map<String, double[]> indicatorAnchors() {
+		Map<String, double[]> copy = new HashMap<>();
+		indicatorAnchors.forEach((id, anchors) -> copy.put(id, anchors.clone()));
 		return copy;
 	}
 }
