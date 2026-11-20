@@ -1,7 +1,6 @@
 package com.fivegrade.backend.holistic.service;
 
 import com.fivegrade.backend.holistic.scoring.DocumentContext;
-import com.fivegrade.backend.holistic.scoring.DocumentLevelCalculator;
 import java.util.Map;
 
 /**
@@ -45,9 +44,6 @@ public sealed interface HolisticEvaluation {
 			return context.overallLevel();
 		}
 
-		public DocumentLevelCalculator.ElementLevels axisLevels() {
-			return context.levels();
-		}
 	}
 
 	record Skipped(SkipReason reason) implements HolisticEvaluation {

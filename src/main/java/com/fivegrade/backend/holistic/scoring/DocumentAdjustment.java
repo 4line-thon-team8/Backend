@@ -38,10 +38,4 @@ public record DocumentAdjustment(
 	public boolean upgraded() {
 		return applied && adjustedBand.ordinal() < baseBand.ordinal();
 	}
-
-	/** 보정으로 구간이 내려갔는지 */
-	public boolean downgraded() {
-		return applied && adjustedBand.ordinal() > baseBand.ordinal();
-	}
-
 }

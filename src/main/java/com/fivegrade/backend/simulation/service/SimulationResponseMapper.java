@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
 
 /**
  * 내부 결과(SimulationReportResult)를 공개 응답으로 바꾼다.
