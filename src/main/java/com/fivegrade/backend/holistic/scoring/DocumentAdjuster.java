@@ -31,7 +31,6 @@ public final class DocumentAdjuster {
 			AdmissionBand.REACH, AdmissionBand.MATCH, AdmissionBand.SAFE);
 
 	private final DocumentAdjustmentParameters parameters;
-	private final ProbabilityParameters probabilityParameters;
 	private final AdmissionBandCalculator bandCalculator;
 
 	public DocumentAdjuster() {
@@ -40,7 +39,6 @@ public final class DocumentAdjuster {
 
 	public DocumentAdjuster(DocumentAdjustmentParameters parameters, ProbabilityParameters probabilityParameters) {
 		this.parameters = parameters;
-		this.probabilityParameters = probabilityParameters;
 		this.bandCalculator = new AdmissionBandCalculator(probabilityParameters);
 	}
 
@@ -102,9 +100,4 @@ public final class DocumentAdjuster {
 		int index = LADDER.indexOf(band);
 		return index >= 0 ? index : 0;
 	}
-
-	ProbabilityParameters probabilityParameters() {
-		return probabilityParameters;
-	}
-
 }
