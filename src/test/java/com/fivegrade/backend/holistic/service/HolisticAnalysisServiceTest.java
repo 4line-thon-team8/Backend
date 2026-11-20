@@ -118,13 +118,14 @@ class HolisticAnalysisServiceTest {
 	@Test
 	void 같은_신호라도_서술이_길면_서류_수준이_내려간다() {
 		List<IndicatorSignal> signals = List.of(
-				new IndicatorSignal("A3", 9, List.of(1, 2), 0.5),
-				new IndicatorSignal("B3", 9, List.of(1, 2), 0.5),
-				new IndicatorSignal("C1", 9, List.of(1, 2), 0.5));
+				new IndicatorSignal("A3", 9, List.of(1, 2), 0.7),
+				new IndicatorSignal("B3", 9, List.of(1, 2), 0.7),
+				new IndicatorSignal("C1", 9, List.of(1, 2), 0.7));
 
 		Applied shortDoc = (Applied) service.evaluate(request("0.1.0", chars(1_500, 1_500), signals));
 		Applied longDoc = (Applied) service.evaluate(request("0.1.0", chars(25_000, 25_000), signals));
 
+		// 품질은 실제 문서 범위(약 0.6~0.75)로 둔다. 하위 5% 아래의 약한 문서는 둘 다 1.0 으로 막혀 비교할 수 없다.
 		assertThat(shortDoc.overallLevel()).isGreaterThan(longDoc.overallLevel());
 	}
 
