@@ -217,7 +217,7 @@ class ElementLevelCalculatorTest {
 
 		// 밀도 1단계(0.5점) + 품질 바닥 이하(1점 × 0.5) = 1.0, 천장 이상이면 0.5 + 2.5 = 3.0
 		assertEquals(1.0, parameters.level("A3", 1, CHARS, 0.05), DELTA);
-		assertEquals(3.0, parameters.level("A3", 1, CHARS, 0.95), DELTA);
+		assertEquals(3.0, parameters.level("A3", 1, CHARS, 1.0), DELTA);
 		// 바닥과 천장의 가운데는 품질 3점
 		double middle = (parameters.qualityFloor() + parameters.qualityCeil()) / 2;
 		assertEquals(0.5 + 0.5 * 3, parameters.level("A3", 1, CHARS, middle), DELTA);
