@@ -29,7 +29,7 @@ public record DocumentLevelSpread(double[] anchors) {
 
 	/** 충북 110건 + 서울대 72건을 문서마다 같은 비중으로 합친 균등 가중 문서 수준의 백분위 앵커 */
 	public static final DocumentLevelSpread DEFAULT = new DocumentLevelSpread(
-			new double[] {1.612, 1.713, 2.073, 2.355, 2.624, 3.445, 3.668});
+			new double[] {1.705, 1.909, 2.335, 2.641, 2.999, 3.630, 3.988});
 
 	public DocumentLevelSpread {
 		if (anchors != null) {
